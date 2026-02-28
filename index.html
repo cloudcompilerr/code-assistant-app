@@ -547,7 +547,29 @@ function patch(txt,dk){
     }
   }
 
-  /* PRIORITY 4: thought_process — partial after 80 chars (~4-5s) */
+  /* PRIORITY 4: capacity numbers — parse as soon as write_qps appears */
+  if(!dk.has('cap')){
+    const wq=strComplete('write_qps'), rq=strComplete('read_qps'), st=strComplete('storage_per_year');
+    const assM=txt.match(/"assumptions"\s*:\s*\[([\s\S]*?)(?:\])/);
+    const assumptions=[];
+    if(assM){let rx3=/"([^"]+)"/g,h2;while((h2=rx3.exec(assM[1]))!==null)assumptions.push(h2[1]);}
+    if(wq&&rq){
+      dk.add('cap');
+      const el=document.getElementById('sk_cap');
+      if(el){
+        el.innerHTML=
+          (assumptions.length?assumptions.map(a=>'<div style="font-size:11.5px;color:var(--ts);margin-bottom:3px">• '+a+'</div>').join(''):'') +
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'+
+          '<div style="flex:1;min-width:110px;background:var(--os);border-radius:7px;padding:8px 10px"><div style="font-size:9px;font-weight:700;color:var(--orange);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px">✍️ Write QPS</div><div style="font-size:12px;font-weight:700">'+wq+'</div></div>'+
+          '<div style="flex:1;min-width:110px;background:var(--bs);border-radius:7px;padding:8px 10px"><div style="font-size:9px;font-weight:700;color:var(--blue);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px">📖 Read QPS</div><div style="font-size:12px;font-weight:700">'+rq+'</div></div>'+
+          (st?'<div style="flex:1;min-width:110px;background:var(--gs);border-radius:7px;padding:8px 10px"><div style="font-size:9px;font-weight:700;color:var(--green);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px">💾 Storage/yr</div><div style="font-size:12px;font-weight:700">'+st+'</div></div>':'')+
+          '</div>';
+        el.classList.add('fadein');
+      }
+    }
+  }
+
+  /* PRIORITY 5: thought_process — partial after 80 chars (~5-6s) */
   if(!dk.has('tp')){
     const v=strComplete('thought_process')||strPartial('thought_process',80);
     if(v&&v.length>40){dk.add('tp');slot('sk_tp',v.replace(/\n/g,'<br>'));}
@@ -571,15 +593,26 @@ function showSkeleton(){
       <!-- Problem statement arrives FIRST ~1-2s -->
       <div class="sumbox" id="sk_ps" style="min-height:52px"><div class="skel" style="width:100%"></div><div class="skel" style="width:68%"></div></div>
 
-      <!-- FRs arrive ~2-3s — you can start speaking requirements immediately -->
+      <!-- FRs stream in ~2-3s -->
       <div class="sublbl">🔵 Functional Requirements <span style="font-size:9px;font-weight:400;color:var(--ts)">(streaming…)</span></div>
       <div id="sk_fr"><div class="skel" style="width:90%"></div><div class="skel" style="width:76%"></div><div class="skel" style="width:83%"></div></div>
 
-      <!-- NFRs arrive ~3-4s -->
+      <!-- NFRs stream in ~3-4s -->
       <div class="sublbl">◎ Non-Functional Requirements <span style="font-size:9px;font-weight:400;color:var(--ts)">(streaming…)</span></div>
       <div id="sk_nfr"><div class="skel" style="width:86%"></div><div class="skel" style="width:72%"></div><div class="skel" style="width:79%"></div></div>
 
-      <!-- Interview framing arrives ~4-5s -->
+      <!-- Capacity numbers stream in ~4-5s -->
+      <div class="sublbl">📊 Scale Assumptions & QPS</div>
+      <div id="sk_cap" style="background:var(--sf);border:1px solid var(--br);border-radius:10px;padding:11px 13px;margin-bottom:10px">
+        <div class="skel" style="width:80%;margin-bottom:6px"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div style="flex:1;min-width:120px"><div class="skel" style="width:100%;height:32px;border-radius:6px"></div></div>
+          <div style="flex:1;min-width:120px"><div class="skel" style="width:100%;height:32px;border-radius:6px"></div></div>
+          <div style="flex:1;min-width:120px"><div class="skel" style="width:100%;height:32px;border-radius:6px"></div></div>
+        </div>
+      </div>
+
+      <!-- Interview framing ~5-6s -->
       <div class="sublbl">🧠 Interview Framing</div>
       <div class="iblock blue" id="sk_tp"><div class="skel" style="width:100%"></div><div class="skel" style="width:88%"></div><div class="skel" style="width:70%"></div><div class="skel" style="width:80%"></div></div>
 
@@ -599,216 +632,187 @@ Return ONLY valid JSON starting with { :
 }
 
 function sdPrompt(){
-  const ctx={
-    senior:'Senior/Staff — deep trade-offs, real scale numbers, justify every decision with specific reasoning.',
-    mid:'Mid-level — clear architecture, solid reasoning, key trade-offs explained.',
-    deep:'Deep walkthrough — explain every component, every decision, as if teaching a junior engineer.'
-  }[depth];
+  const lvl={
+    senior:'Senior/Staff Engineer level — deep trade-offs, real numbers, justify EVERY decision.',
+    mid:'Mid-level — clear architecture with solid reasoning on key trade-offs.',
+    deep:'Thorough walkthrough — explain every component as if teaching a principal engineer.'
+  }[depth]||'Senior/Staff Engineer level.';
 
-  return `You are a MAANG Staff Engineer who has passed 50+ system design interviews. Follow Hello Interview's exact framework by Evan King. Produce world-class, specific answers — never generic.
+  return `You are a principal engineer who has conducted 200+ FAANG system design interviews. You follow Evan King's Hello Interview framework EXACTLY. Your answers are the benchmark candidates are measured against.
 
-Context: ${ctx}
+LEVEL: ${lvl}
 
-════════════════════════════════════
-DIAGRAM RULES — follow exactly:
-════════════════════════════════════
-You must produce TWO ASCII diagrams. Both must be vertical top-to-bottom flows using ↓ arrows. Every line must be accurate for the specific system being designed.
+═══════════════════════════════════════════════════
+EVAN KING'S HELLO INTERVIEW FRAMEWORK — STRICT ORDER
+═══════════════════════════════════════════════════
+Step 1: Requirements (FRs + NFRs + capacity)
+Step 2: Core Entities — nouns ONLY, no fields yet
+Step 3: API Design — REST endpoints + real-time protocol
+Step 4: High-Level Design — draw boxes and arrows, schema emerges HERE as you trace each request
+Step 5: Deep Dives — harden specific NFRs
 
-DIAGRAM 1 (diagram_simple) — baseline satisfying only core functional requirements:
-- Include exactly: Client → DNS → Load Balancer → API Gateway → [main services] → Primary Database
-- Keep it minimal — just what's needed for the core write and read paths
-- Use this exact style (adapt names/services to the actual system):
+IMPORTANT on Entities vs Schema:
+- Step 2 entities = NOUNS ONLY. "User, Tweet, Follow, Timeline". NO fields. Fields belong in HLD.
+- Schema lives in step5_high_level_design, NOT in step2. You introduce fields only when you trace the write path through each service to the DB.
+- This separation is deliberate — Evan King explicitly teaches it. Candidates who dump fields in step 2 waste time and lose signal on prioritization.
 
-  ┌─────────┐
-  │  Client │ (Web / Mobile)
-  └────┬────┘
-       ↓
-  ┌──────────────────────────┐
-  │  DNS  (Route 53)         │
-  └────┬─────────────────────┘
-       ↓
-  ┌──────────────────────────┐
-  │  Load Balancer (Nginx)   │
-  └────┬─────────────────────┘
-       ↓
-  ┌──────────────────────────┐
-  │  API Gateway (Kong)      │ Auth / Rate Limit / Routing
-  └────┬─────────────────────┘
-       ↓
-  ┌──────────────────────────┐
-  │  [Service Name]          │
-  └────┬─────────────────────┘
-       ↓
-  ┌──────────────────────────┐
-  │  Primary DB (PostgreSQL) │
-  └──────────────────────────┘
+═══════════════════════════════════════════════════
+DIAGRAM RULES — CRITICAL
+═══════════════════════════════════════════════════
+Produce TWO diagrams. Diagram 2 MUST visibly EVOLVE from Diagram 1 — same core boxes, with new layers added on top.
 
-DIAGRAM 2 (diagram_scaled) — full production design satisfying all NFRs:
-- Must include ALL of: Client, CDN, DNS, Load Balancer, API Gateway, Auth Service, Write Service, Read Service, Message Queue, Fan-out/Worker Service, Cache layer, Primary DB, Read Replica(s), Object/Blob Storage (if needed), Search (if needed), Monitoring
-- Every component line MUST show alternatives in [brackets] on the SAME line
-- Use this exact style (adapt to actual system):
+DIAGRAM 1 — Baseline (satisfies core FRs only, simple monolith path):
+Use this style. Every box must be drawn with ┌─┐└─┘│ box-drawing chars. Arrows must be ↓ or → never plain dashes.
 
-  ┌──────────────────────────────────────────────────┐
-  │  Client  (Web / iOS / Android)                   │
-  └───────────────────┬──────────────────────────────┘
-                      ↓
-  ┌──────────────────────────────────────────────────┐
-  │  CDN  [CloudFront | Akamai | Fastly]             │ Static assets, edge caching
-  └───────────────────┬──────────────────────────────┘
-                      ↓
-  ┌──────────────────────────────────────────────────┐
-  │  DNS  (Route 53 / GeoDNS)                        │
-  └───────────────────┬──────────────────────────────┘
-                      ↓
-  ┌──────────────────────────────────────────────────┐
-  │  Load Balancer  [Nginx | HAProxy | AWS ALB]      │ L7, health checks, SSL termination
-  └───────────────────┬──────────────────────────────┘
-                      ↓
-  ┌──────────────────────────────────────────────────┐
-  │  API Gateway  [Kong | AWS API GW | Envoy]        │ Auth, rate limit, routing
-  └──────┬──────────────────────┬────────────────────┘
-         ↓ (writes)             ↓ (reads)
-  ┌──────────────┐    ┌─────────────────────────────┐
-  │ Write Service│    │ Read Service                │
-  └──────┬───────┘    └──────────┬──────────────────┘
-         ↓                       ↓
-  ┌─────────────────┐   ┌────────────────────────────┐
-  │ [Kafka |        │   │ Cache [Redis | Memcached]  │
-  │  RabbitMQ | SQS]│   │ (read-through, TTL 5 min)  │
-  │ (Event Queue)   │   └──────────┬─────────────────┘
-  └──────┬──────────┘              ↓ (cache miss)
-         ↓                ┌────────────────────────────┐
-  ┌──────────────┐        │ Read Replica               │
-  │ Worker/Fan-  │        │ [PostgreSQL RR | Aurora RR]│
-  │ out Service  │        └────────────────────────────┘
-  └──────┬───────┘
-         ↓
-  ┌─────────────────────────────────────────────────┐
-  │  Primary DB  [PostgreSQL | MySQL | Aurora]      │
-  └─────────────────────────────────────────────────┘
-  
-  ┌─────────────────────────────────────────────────┐
-  │  Object Store  [S3 | GCS | Azure Blob]          │ Media, files
-  └─────────────────────────────────────────────────┘
-  
-  ┌─────────────────────────────────────────────────┐
-  │  Monitoring  [Datadog | Prometheus + Grafana]   │
-  └─────────────────────────────────────────────────┘
+  ┌────────────────────────────┐
+  │  Client  (Web / Mobile)    │
+  └──────────────┬─────────────┘
+                 ↓
+  ┌────────────────────────────┐
+  │  Load Balancer (Nginx)     │  — horizontal scale, health checks
+  └──────────────┬─────────────┘
+                 ↓
+  ┌────────────────────────────┐
+  │  API Server                │  — stateless, JWT auth
+  └──────┬───────────┬─────────┘
+         ↓ (write)   ↓ (read)
+  ┌──────────────────────────────────────────────┐
+  │  Primary DB  (PostgreSQL)                    │
+  └──────────────────────────────────────────────┘
 
-IMPORTANT: The above is a TEMPLATE — adapt every component name, service name, and alternative to be accurate and specific for the system being designed. Do not just copy the template literally.
-════════════════════════════════════
+DIAGRAM 2 — Production (evolves diagram 1, every NEW component labelled with WHY it was added):
+- Keep the SAME core boxes from Diagram 1
+- Add new layers above/below with a comment showing what NFR it satisfies
+- Every component that has alternatives: show on same line in [brackets]
+- Mark new additions with ★ prefix so evolution is clear
 
-Return ONLY valid JSON starting with { — no markdown, no preamble:
+Example evolution annotation style:
+  ★ CDN [CloudFront|Akamai|Fastly]   ← satisfies: p99 latency < 100ms for global users
+  ★ Kafka [RabbitMQ|SQS]             ← satisfies: async fan-out, decouples write latency
+  ★ Redis Cache [Memcached]          ← satisfies: read QPS 100k/s without DB overload
+
+BOTH diagrams must be 100% accurate for the specific system — do NOT use Twitter/feed as a template for a URL shortener.
+
+═══════════════════════════════════════════════════
+QUALITY BAR — what separates Staff from Mid answers
+═══════════════════════════════════════════════════
+- Never say "use a database". Say "PostgreSQL with a composite index on (user_id, created_at DESC) because our read pattern is always per-user ordered by time"
+- Never say "add a cache". Say "Redis with write-through strategy, TTL 5 min, ~95% hit rate at 100K read QPS eliminates the need for read replicas in early stages"
+- Never say "use a queue". Say "Kafka with 3 partitions keyed by user_id — gives us ordered fan-out per user and consumer group replay if the notification service crashes"
+- Capacity numbers must drive decisions: "at 10K write QPS a single Postgres instance hits ~8K TPS limit — this is why we add read replicas"
+- Always state the bottleneck and how you resolved it
+
+Return ONLY valid JSON, starting with {, no markdown fences, no preamble:
 {
-  "problem_statement": "Precise 2-3 sentence restatement: what we are building, the core challenge, the key scale dimension",
-  "thought_process": "5-6 sentences first person — how a Staff engineer frames this in an interview: what to clarify first, what makes this uniquely hard vs a simple CRUD app, the core trade-off (consistency vs availability / read vs write heavy / etc), your high-level approach",
+  "problem_statement": "2-3 sentences: exactly what we are building, the core scale challenge, and the dominant technical constraint (read-heavy? write-heavy? consistency? latency?)",
+
+  "thought_process": "5-6 sentences, first-person Staff engineer thinking out loud: 1) what makes this uniquely hard 2) the core trade-off (e.g. consistency vs availability) 3) read/write ratio and how it drives architecture 4) the one insight most candidates miss 5) your high-level approach",
+
   "clarifying_questions": [
-    "Specific question to scope scale (e.g. how many DAU?)",
-    "Question to scope features (e.g. do we need real-time notifications?)",
-    "Question surfacing a key trade-off (e.g. is eventual consistency acceptable for the feed?)"
+    "DAU / MAU — sets scale tier (10M vs 500M changes every decision)",
+    "one question scoping a key feature boundary",
+    "one question surfacing the dominant trade-off (e.g. is eventual consistency acceptable?)"
   ],
 
   "step1_requirements": {
     "functional": [
-      {"req": "Users should be able to [verb] [noun]", "priority": "core", "technical_implication": "what this means architecturally — e.g. requires fan-out on write"}
+      {"req": "Users should be able to [verb] [noun]", "priority": "core", "technical_implication": "specific architectural consequence — e.g. fan-out on write required, or requires low-latency read path"}
     ],
     "non_functional": [
-      {"req": "The system should be [quality]", "value": "specific measurable target e.g. p99 read latency < 100ms", "tradeoff": "what we give up to achieve this"}
+      {"req": "System must achieve [measurable quality]", "value": "concrete number e.g. p99 write latency < 500ms", "tradeoff": "what we sacrifice — e.g. strong consistency traded for availability"},
+      {"req": "System must handle [scale]", "value": "e.g. 100K read QPS at peak", "tradeoff": "cost of caching layer"},
+      {"req": "System must be [reliability]", "value": "99.99% availability (< 52 min downtime/year)", "tradeoff": "complexity of multi-region failover"},
+      {"req": "Data must be [durability]", "value": "no data loss on single node failure", "tradeoff": "replication overhead"}
     ],
-    "out_of_scope": ["explicitly excluded feature and why"],
-    "capacity_note": "State whether capacity estimation is needed and why — per Hello Interview, skip unless the number changes a design decision",
+    "out_of_scope": ["specific excluded feature — e.g. analytics/reporting dashboard", "another exclusion"],
     "capacity": {
-      "assumptions": ["X MAU", "Y active users/day", "Z writes/user/day", "W reads/user/day"],
-      "write_qps": "~X,XXX writes/sec  (calc: Y_MAU × 0.1 × Z / 86,400)",
-      "read_qps": "~XX,XXX reads/sec  (calc: Y_MAU × 0.1 × W / 86,400)",
-      "storage_per_year": "~X TB/year  (calc: show row size × write_qps × seconds_per_year)",
-      "design_impact": "Does this number change a specific design choice? State which one."
+      "assumptions": ["e.g. 100M DAU", "e.g. avg 2 writes/user/day", "e.g. avg 20 reads/user/day", "e.g. avg object size 1KB"],
+      "write_qps": "~2,300/s (100M × 2 / 86,400) — show the actual calc",
+      "read_qps": "~23,000/s (100M × 20 / 86,400) — 10:1 read/write ratio",
+      "storage_per_year": "~72 TB/year (2,300 writes/s × 1KB × 31.5M seconds)",
+      "design_impact": "Read/write ratio of 10:1 → add read replicas and Redis cache. Storage of 72TB/yr → consider object store for large blobs."
     }
   },
 
   "step2_core_entities": [
     {
       "name": "EntityName",
-      "description": "what this entity represents in the domain",
-      "note": "key design decision — e.g. why denormalized, why separate table",
-      "storage": "PostgreSQL | DynamoDB | Cassandra | Redis",
-      "why_storage": "specific reason for this store — e.g. relational integrity for joins / wide-column for time-series / key-value for O(1) lookup",
-      "key_fields": "id UUID PK, user_id UUID FK, [design-relevant fields only], created_at TIMESTAMP",
-      "key_indexes": "INDEX on (user_id, created_at DESC) — one sentence on why this index matters",
-      "relationships": "e.g. User 1:N Posts, Post N:M Tags via PostTag"
+      "description": "what this noun represents — one sentence on its domain role",
+      "note": "the non-obvious modeling insight — e.g. why this is a separate entity vs embedded, or why it is denormalized"
     }
   ],
 
   "step3_api_design": {
-    "protocol_choice": "REST (default) / GraphQL / gRPC — one sentence on why for this system",
+    "protocol_choice": "REST — default. One sentence why REST over gRPC/GraphQL for this specific system.",
     "realtime_protocol": {
       "needed": true,
-      "chosen": "WebSocket | SSE | Long Polling | HTTP/2 Push | None",
-      "reason": "why this protocol fits — e.g. SSE because updates are server-to-client only; auto-reconnects; simpler than WebSocket for this use case",
-      "where_in_arch": "where it sits — e.g. Client opens SSE to Notification Service via API Gateway; fan-out worker pushes to Redis Pub/Sub which Notification Service subscribes to",
+      "chosen": "SSE | WebSocket | Long Polling | None",
+      "reason": "specific reason matched to this system — e.g. SSE because updates are server→client only (notifications/feed), auto-reconnects, simpler than WS when client never sends",
+      "where_in_arch": "exactly where it plugs in — e.g. Client keeps open SSE connection to Notification Service through API Gateway; fan-out worker pushes events to Redis Pub/Sub → Notification Service → client",
       "alternatives": [
-        {"name": "WebSocket", "verdict": "tradeoff", "reason": "bidirectional, lower overhead per message; overkill if client never sends on the channel"},
-        {"name": "Long Polling", "verdict": "avoid", "reason": "holds open HTTP connections, wasteful at scale vs persistent SSE/WS"},
-        {"name": "HTTP/2 Push", "verdict": "tradeoff", "reason": "native but limited proxy support; less predictable reconnect than SSE"}
+        {"name": "WebSocket", "verdict": "tradeoff", "reason": "better for bi-directional (chat, collaborative editing); overhead not justified when client only receives"},
+        {"name": "Long Polling", "verdict": "avoid", "reason": "reconnects every 30s, 100K concurrent users = 3.3K reconnects/sec hammering API Gateway — wasteful vs persistent SSE"},
+        {"name": "Polling", "verdict": "avoid", "reason": "fixed interval polling at 100K users even at 30s interval = 3.3K req/s wasted on empty responses"}
       ]
     },
     "endpoints": [
       {
-        "method": "POST",
+        "method": "POST|GET|PUT|DELETE",
         "path": "/v1/resource",
-        "auth": "Bearer JWT — derive user_id from token, never from request body",
-        "request": "{ field1: type, field2: type }",
-        "response": "{ id: uuid, created_at: timestamp, status: string }",
-        "note": "Rate limited to X req/min per user. Returns 201 on success, 429 on rate limit."
+        "auth": "JWT Bearer — user_id derived from token, NEVER from request body",
+        "request": "{ field: type, field2: type }",
+        "response": "{ id: uuid, ...relevant fields, created_at: ISO8601 }",
+        "note": "Rate limit: X req/min. Key design note — e.g. idempotency key required to prevent double-submit"
       }
     ]
   },
 
   "step4_data_flow": {
     "needed": true,
-    "reason": "One sentence on why data flow matters specifically for this system",
+    "reason": "one sentence why the flow matters — e.g. fan-out complexity, async processing pipeline",
     "steps": [
-      "1. Client sends POST /v1/[resource] with JWT",
-      "2. API Gateway authenticates token, applies rate limit, routes to Write Service",
-      "3. Write Service validates, writes to Primary DB, publishes event to [Queue]",
-      "4. [Worker/Fan-out] Service consumes event, updates derived data / caches / search index",
-      "5. Read path: Client GETs /v1/[resource], Read Service checks Cache first, falls back to Read Replica"
+      "1. Client → POST /v1/[resource] with JWT Bearer token",
+      "2. API Gateway validates JWT, applies rate limit (token bucket), routes to Write Service",
+      "3. Write Service validates payload, writes to Primary DB (synchronous, durability guarantee)",
+      "4. Write Service publishes event to Kafka topic (async, fire-and-forget after DB ack)",
+      "5. Fan-out Worker consumes event, updates derived caches / search index / notification queue",
+      "6. Read path: Client GET → API GW → Read Service → Redis cache (hit ~95%) → on miss: Read Replica → cache back-fill"
     ]
   },
 
   "step5_high_level_design": {
-    "diagram_simple": "VERTICAL top-to-bottom ASCII diagram — baseline design for core FRs only. Client → DNS → LB → API GW → Service → DB. Use box drawing with ┌─┐└─┘│ characters and ↓ arrows. Label each box with its specific role for this system.",
+    "diagram_simple": "Draw Diagram 1 here — baseline satisfying core FRs only. Use ┌─┐└─┘│↓→ box-drawing. Show: Client → Load Balancer → API Server → Primary DB. Label EVERY arrow with what flows (e.g. HTTP/REST, SQL query). Keep it to 6-8 boxes maximum. Make it specific to this system, not generic.",
     "diagram_simple_commentary": [
-      {"component": "Load Balancer", "say": "say this aloud while drawing it — e.g. I'm adding a load balancer to distribute traffic across API instances, giving us horizontal scale and automatic failover"},
-      {"component": "API Gateway", "say": "e.g. The API Gateway handles auth, rate limiting and routing so all downstream services stay stateless"},
-      {"component": "Primary DB", "say": "e.g. Single PostgreSQL instance for now — this is the bottleneck we'll address when we scale up"}
+      {"component": "name of first key box", "say": "word-for-word what to say while drawing this — explain its role and why it's here"},
+      {"component": "name of second key box", "say": "word-for-word what to say — include the specific trade-off this component introduces"},
+      {"component": "Primary DB", "say": "word-for-word — name the specific DB, why it was chosen, and what the bottleneck will be at scale"}
     ],
-    "diagram_scaled": "VERTICAL top-to-bottom ASCII diagram — full production design. EVERY component must show alternatives in [brackets] on same line. Must include: Client, CDN [Alt1|Alt2|Alt3], DNS, Load Balancer [Alt1|Alt2|Alt3], API Gateway [Alt1|Alt2|Alt3], Write Service, Read Service, Message Queue [Alt1|Alt2|Alt3], Worker/Fan-out, Cache [Alt1|Alt2], Primary DB [Alt1|Alt2|Alt3], Read Replica, Object Store [Alt1|Alt2] if needed, Search [Alt1|Alt2] if needed, Monitoring [Alt1|Alt2]. Use box drawing with ┌─┐└─┘│ and ↓ arrows. Show write path on left, read path on right where they diverge.",
+    "diagram_scaled": "Draw Diagram 2 here — EVOLUTION of Diagram 1. Keep the same core boxes. Add new components with ★ prefix and a comment showing which NFR each satisfies. Show write path (left side) and read path (right side) diverging from API Gateway. Use ┌─┐└─┘│↓→ box-drawing. Label EVERY arrow. Show [Alt1|Alt2] on every component that has alternatives.",
     "diagram_scaled_commentary": [
-      {"component": "CDN", "say": "e.g. I'm adding a CDN to serve static assets and cache edge responses — cuts p99 latency for distributed users by ~40ms and removes load from origin"},
-      {"component": "Message Queue", "say": "e.g. Kafka decouples write from fan-out — the write service acks immediately after DB write, fan-out is async. This is how we hit our write latency NFR"},
-      {"component": "Cache", "say": "e.g. Redis in front of the read replica — target 95% hit rate, cache miss falls through to replica and back-fills"},
-      {"component": "Read Replica", "say": "e.g. Read replicas absorb our read-heavy load, replication lag ~50ms which is acceptable for eventual consistency on feeds"}
+      {"component": "★ first new component added", "say": "explain WHY this was added — connect it to the specific NFR it satisfies and the bottleneck it solves"},
+      {"component": "★ second new component", "say": "explain the trade-off — what complexity it adds and why it's worth it at this scale"},
+      {"component": "★ third new component", "say": "explain how it connects to the component before it in the flow"}
     ],
     "schema": [
       {
         "table": "TableName",
-        "key_fields": "id UUID PK, user_id UUID FK, [relevant fields only — skip name/email/created_at unless they affect query patterns], status ENUM('active','deleted'), created_at TIMESTAMP",
-        "storage": "PostgreSQL | DynamoDB | Cassandra | Redis",
-        "why": "Specific reason — e.g. relational integrity needed for transactions / wide-column for time-series / key-value for session speed",
-        "key_indexes": "INDEX on (user_id, created_at DESC) — enables efficient feed queries ordered by time"
+        "storage": "PostgreSQL | DynamoDB | Cassandra | Redis | S3",
+        "why": "specific reason — e.g. relational model needed for foreign key constraints on user/tweet / wide-column for time-series append-only / key-value for O(1) session lookup",
+        "key_fields": "id UUID PK, user_id UUID FK NOT NULL, content VARCHAR(280), status ENUM('active','deleted') DEFAULT 'active', created_at TIMESTAMPTZ DEFAULT NOW()",
+        "key_indexes": "INDEX (user_id, created_at DESC) — feeds query pattern: SELECT ... WHERE user_id = ? ORDER BY created_at DESC LIMIT 20",
+        "access_pattern": "99% of reads are: get timeline for user_id ordered by time — drives the index design"
       }
     ],
     "components": [
       {
-        "name": "Component Name (matches diagram box exactly)",
-        "role": "What this component does and why it exists as a separate service — the specific responsibility boundary",
-        "chosen_tech": "Specific technology name e.g. Apache Kafka 3.x",
-        "why_chosen": "Specific technical reason matching this system's needs — e.g. log-based storage gives us consumer group replay for fan-out recovery; ordered within partitions guarantees feed consistency",
+        "name": "Component name matching diagram box exactly",
+        "role": "Single responsibility — what this service owns and why it is isolated",
+        "chosen_tech": "Specific technology e.g. Apache Kafka 3.5",
+        "why_chosen": "Specific technical reason for THIS system — e.g. log-compaction gives us event replay when notification service crashes; partitioning by user_id gives ordering guarantees per user; consumer groups allow independent scaling of fan-out workers",
         "alternatives": [
-          {"name": "RabbitMQ", "verdict": "tradeoff", "reason": "Better for complex routing with exchanges and bindings; worse for our high-throughput fan-out because no consumer replay if fan-out service crashes"},
-          {"name": "AWS SQS", "verdict": "tradeoff", "reason": "Zero ops overhead, scales automatically; limited to 256KB messages and no replay beyond 14-day retention window"},
-          {"name": "Redis Pub/Sub", "verdict": "avoid", "reason": "No persistence — messages permanently lost if any consumer is offline at publish time, unacceptable for feed delivery"}
+          {"name": "Alt 1", "verdict": "tradeoff", "reason": "concrete pro and con vs chosen for this specific workload"},
+          {"name": "Alt 2", "verdict": "tradeoff", "reason": "concrete pro and con"},
+          {"name": "Alt 3", "verdict": "avoid", "reason": "why this would specifically fail for this system"}
         ]
       }
     ]
@@ -816,32 +820,35 @@ Return ONLY valid JSON starting with { — no markdown, no preamble:
 
   "step6_deep_dives": [
     {
-      "topic": "Specific hard problem title e.g. 'Feed Fan-out for Celebrity Accounts with 10M+ Followers'",
-      "nfr_addressed": "which NFR from step1 this hardens",
-      "why_hard": "Why this is specifically hard for this system at this scale — not generic",
-      "naive_approach": "What a junior engineer would implement and the specific failure mode at scale — e.g. synchronous fan-out to 10M follower rows on each write = 10s write latency",
-      "real_solution": "Detailed solution with specific technologies and algorithms — e.g. hybrid push/pull: push for users <10K followers (async Kafka fan-out), pull on read for celebrities (merge at read time from tweet store + follow graph)",
-      "numbers": "Concrete numbers validating the solution — e.g. 10M followers × 100 byte cache entry = 1GB Redis per celebrity tweet; Redis cluster with 64GB RAM handles 64 concurrent celebrity writes",
-      "trade_offs": "What you explicitly give up — e.g. celebrity followers see slight delay (eventual consistency) vs follower-count < 10K users who see instant updates"
+      "topic": "Specific problem title — e.g. Fan-out for users with 50M followers",
+      "nfr_addressed": "exact NFR from step1 this hardens",
+      "why_hard": "why specifically hard at THIS scale — concrete numbers e.g. 50M followers × 1 DB write = 50M synchronous writes = 21 seconds at 2.4M writes/sec Postgres limit",
+      "naive_approach": "what a junior engineer implements and EXACTLY how it breaks — include numbers showing failure mode",
+      "real_solution": "detailed solution with specific tech and algorithm — e.g. hybrid push/pull: push to Redis sorted set for users <10K followers async via Kafka; pull+merge at read time for celebrities from tweet store + follow graph",
+      "numbers": "concrete numbers proving solution works — e.g. 10K followers × 200 byte entry = 2MB Redis per active user; 1M active users × 2MB = 2TB Redis cluster — fits in 32 × 64GB nodes",
+      "trade_offs": "explicit cost — e.g. celebrity followers see up to 500ms delay vs instant for regular users; adds read-time fan-out complexity"
     }
   ],
 
   "followup_qa": [
-    {"question": "Specific technical question an interviewer would ask, e.g. 'How would you handle the thundering herd when a celebrity posts?'", "answer": "Confident, specific 3-4 sentence answer with concrete solution — e.g. use request coalescing at the cache layer with a single in-flight key, dog-pile prevention via probabilistic early expiration (PER), and pre-warming celebrity feed caches via a background job that detects high-follower accounts"}
+    {
+      "question": "realistic follow-up an interviewer would ask for THIS specific system",
+      "answer": "confident 3-4 sentence answer with specific technologies and numbers — no vague statements"
+    }
   ],
 
   "speak_guide": {
-    "opening_script": "Word-for-word what to say in the first 60 seconds — clarifying questions to ask, how to state what you're going to design",
-    "key_insight": "The one non-obvious insight that most candidates miss — the thing that makes a Staff-level answer different from a mid-level answer",
+    "opening_script": "word-for-word first 60 seconds — state the problem, ask 2 clarifying questions, state your approach",
+    "key_insight": "the one non-obvious insight that separates a Staff answer — something most candidates get wrong",
     "common_mistakes": [
-      "Specific mistake candidates make on this problem and exactly what to do instead",
-      "Another common mistake"
+      "specific mistake on THIS problem and exactly what to say instead",
+      "another common mistake"
     ],
-    "closing_script": "How to wrap up confidently in the last 2 minutes — what to summarize, how to invite questions"
+    "closing_script": "how to close in last 2 minutes — what to summarize, what to proactively offer to go deeper on"
   }
 }
 
-Requirements: 3 func reqs max (prioritization is a signal), 4-5 NFRs with specific numbers, 3-4 core entities, 3-4 API endpoints, BOTH diagrams always required, 4-6 components each with exactly 3 inline alternatives with specific reasons, 3-4 deep dives each with naive+real+numbers, 5 Q&As. Make every answer specific to THIS problem — no generic advice.`;
+Produce: exactly 3 FRs (max), 4 NFRs with measurable values, 3-5 entities (nouns only, no fields), 4-5 API endpoints, BOTH diagrams (diagram 2 visibly evolves from diagram 1 with ★ markers), 3-4 schema tables, 4-6 components each with 3 alternatives, 3-4 deep dives with naive+real+numbers, 5 Q&As. Every answer must be specific to the exact system described — zero generic advice.`;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -950,6 +957,14 @@ function renderSD(d){
       <div>🎯 <strong>Design impact:</strong> ${cap.design_impact||'—'}</div>
     </div></div>`:
     '<div class="iblock orange fadein"><div class="blbl">📌 Hello Interview</div>Skip capacity unless it changes a design decision. State this explicitly to the interviewer.</div>';
+
+  /* Entities — nouns only per Evan King step 2. Schema in HLD step 5. */
+  const entH=(d.step2_core_entities||[]).map(e=>`
+    <div class="card fadein" style="margin-bottom:10px">
+      <div class="card-head" style="font-size:14px;font-weight:700">${e.name}</div>
+      <div class="card-body">${e.description}</div>
+      ${e.note?`<div class="card-sub" style="margin-top:5px">💡 ${e.note}</div>`:''}
+    </div>`).join('');
 
   /* Entities + Schema merged — one card per entity showing domain + storage + fields */
   const entSchemaH=(d.step2_core_entities||[]).map(e=>`
@@ -1077,33 +1092,42 @@ function renderSD(d){
       <div class="sublbl">Clarifying Questions to Ask First</div>
       ${(d.clarifying_questions||[]).map((q,i)=>'<div class="hrow fadein"><strong>Q'+(i+1)+':</strong> '+q+'</div>').join('')}
       <div class="sublbl">🔵 Core Functional Requirements</div>
-      ${(r.functional||[]).filter(f=>f.priority==='core').map(f=>'<div class="hrow fadein">🔵 '+f.req+'</div>').join('')}
-      <div class="sublbl">◎ Key Non-Functional Requirements</div>
-      ${(r.non_functional||[]).map(n=>'<div class="hrow fadein">◎ '+n.req+' <span class="badge ba">'+n.value+'</span></div>').join('')}
-      <div class="iblock blue fadein" style="margin-top:14px"><div class="blbl">🧠 How to frame this interview</div>${d.thought_process}</div>
+      ${(r.functional||[]).map(f=>'<div class="hrow fadein"><strong>🔵 '+f.req+'</strong>'+(f.technical_implication?'<br><span style="font-size:11.5px;color:var(--ts)">→ '+f.technical_implication+'</span>':'')+'</div>').join('')}
+      <div class="sublbl">◎ Non-Functional Requirements</div>
+      ${(r.non_functional||[]).map(n=>'<div class="hrow fadein">◎ <strong>'+n.req+'</strong> <span class="badge ba">'+n.value+'</span>'+(n.tradeoff?'<br><span style="font-size:11.5px;color:var(--orange)">Tradeoff: '+n.tradeoff+'</span>':'')+'</div>').join('')}
+      ${cap.write_qps?`<div class="sublbl">📊 Scale</div><div style="background:var(--sf);border:1px solid var(--br);border-radius:10px;padding:12px 14px;margin-bottom:10px">
+        ${(cap.assumptions||[]).map(a=>'<div style="font-size:11.5px;color:var(--ts);margin-bottom:2px">• '+a+'</div>').join('')}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+          <div style="flex:1;min-width:110px;background:var(--os);border-radius:7px;padding:8px 10px"><div style="font-size:9px;font-weight:700;color:var(--orange);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px">✍️ Write QPS</div><div style="font-size:12px;font-weight:600">${cap.write_qps}</div></div>
+          <div style="flex:1;min-width:110px;background:var(--bs);border-radius:7px;padding:8px 10px"><div style="font-size:9px;font-weight:700;color:var(--blue);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px">📖 Read QPS</div><div style="font-size:12px;font-weight:600">${cap.read_qps}</div></div>
+          <div style="flex:1;min-width:110px;background:var(--gs);border-radius:7px;padding:8px 10px"><div style="font-size:9px;font-weight:700;color:var(--green);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px">💾 Storage/yr</div><div style="font-size:12px;font-weight:600">${cap.storage_per_year}</div></div>
+        </div>
+        ${cap.design_impact?'<div style="font-size:11.5px;color:var(--tp);margin-top:8px;font-weight:600">🎯 '+cap.design_impact+'</div>':''}
+      </div>`:''}
+      <div class="iblock blue fadein" style="margin-top:4px"><div class="blbl">🧠 How to frame this interview</div>${d.thought_process}</div>
       <button class="spk-btn fadein" style="margin-top:10px" onclick="openSM()">📢 Open Speak Mode</button>
     </div>
 
     <div class="ppanel" id="pp_walkthrough">
       <div class="stab-row">
         <div class="stab on"><span class="sn">1</span>Requirements<span class="step-t">~5m</span></div>
-        <div class="stab"><span class="sn">2</span>Entities & Schema<span class="step-t">~3m</span></div>
+        <div class="stab"><span class="sn">2</span>Core Entities<span class="step-t">~2m</span></div>
         <div class="stab"><span class="sn">3</span>API & Protocol<span class="step-t">~5m</span></div>
         <div class="stab"><span class="sn">4</span>Data Flow<span class="step-t">opt</span></div>
         <div class="stab"><span class="sn">5</span>HLD + Diagrams<span class="step-t">~15m</span></div>
       </div>
 
       <div class="spanel on">
-        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>"Users should be able to…" — max 3. NFRs must be specific numbers. Capacity only if it changes a decision.</div>
+        <div class="iblock blue fadein"><div class="blbl">📌 Evan King — Hello Interview</div>FRs: "Users should be able to…" — max 3, prioritized. NFRs: always include specific numbers (p99 latency, QPS, availability %). Capacity: calculate only if the number changes a design decision — state this explicitly.</div>
         <div class="sublbl">🔵 Functional Requirements</div>${funcH}
         <div class="sublbl">◎ Non-Functional Requirements</div>${nfrH}
         <div class="sublbl">✗ Out of Scope</div><div class="pill-row">${oosH}</div>
-        <div class="sublbl">📊 Capacity Estimation</div>${capH}
+        <div class="sublbl">📊 Assumptions & Capacity</div>${capH}
       </div>
 
       <div class="spanel">
-        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>State each entity as a noun, its domain role, and key schema fields together. Mentioning storage choice + why signals senior thinking. Relationships show you understand data modeling.</div>
-        ${entSchemaH}
+        <div class="iblock blue fadein"><div class="blbl">📌 Evan King — Hello Interview</div>Step 2 = NOUNS ONLY. No fields yet. List the core domain objects your API will exchange and your system will persist. Fields emerge in HLD (step 5) as you trace each request to the DB. Candidates who dump schema here waste 3-5 minutes and lose the prioritization signal.</div>
+        ${entH}
       </div>
 
       <div class="spanel">
