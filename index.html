@@ -2,542 +2,1100 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Notes</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  :root {
-    --bg: #faf9f7; --surface: #ffffff; --border: #e8e5e0;
-    --text-primary: #1a1916; --text-secondary: #7a7670;
-    --accent: #c8a96e; --accent-soft: #f5f0e8;
-    --code-bg: #1e1c1a; --code-text: #e8e4dc;
-    --green: #5a8a5a; --blue: #4a6fa5; --red: #a05a5a;
-    --green-soft: #eef4ee; --blue-soft: #eef2fa; --red-soft: #faf0f0;
-  }
-  body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text-primary); min-height: 100vh; max-width: 700px; margin: 0 auto; padding: 0 0 100px; }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#faf9f7;--sf:#ffffff;--br:#e8e5e0;
+  --tp:#1a1916;--ts:#7a7670;
+  --ac:#c8a96e;--as:#f5f0e8;
+  --cdbg:#1a1917;--cdtx:#e8e4dc;
+  --green:#3d7a52;--blue:#2d5fa0;--red:#8a3a3a;--purple:#6040a0;--orange:#b06020;
+  --gs:#eaf3ee;--bs:#e8f0fb;--rs:#faeaea;--ps:#f2edfb;--os:#fdf0e4;
+}
+body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--tp);min-height:100vh;max-width:720px;margin:0 auto;padding:0 0 80px;}
 
-  /* ── HEADER (looks like Notes app) ── */
-  .app-header { padding: 56px 24px 16px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); background: rgba(250,249,247,0.93); }
-  .header-row { display: flex; align-items: center; justify-content: space-between; }
-  .app-title { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
-  .icon-btn { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--accent); font-size: 20px; border-radius: 50%; border: none; background: none; }
-  .note-count { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+/* LIST */
+.app-header{padding:52px 24px 14px;border-bottom:1px solid var(--br);position:sticky;top:0;z-index:100;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background:rgba(250,249,247,.93);}
+.app-title{font-size:28px;font-weight:700;letter-spacing:-.5px;}
+.note-count{font-size:13px;color:var(--ts);margin-top:3px;}
+.note-row{padding:16px 24px;border-bottom:1px solid var(--br);display:flex;gap:14px;align-items:flex-start;cursor:pointer;width:100%;background:none;border-left:none;border-right:none;border-top:none;text-align:left;}
+.note-row:active{background:var(--as);}
+.note-icon{width:40px;height:40px;border-radius:10px;background:var(--as);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;}
+.note-preview{flex:1;min-width:0;}
+.note-title{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tp);}
+.note-snippet{font-size:13px;color:var(--ts);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+.note-date{font-size:12px;color:var(--ts);flex-shrink:0;margin-top:2px;}
 
-  /* ── NOTES LIST ── */
-  .notes-list { padding: 8px 0; }
-  .note-row { padding: 14px 24px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; gap: 12px; align-items: flex-start; transition: background 0.1s; }
-  .note-row:active { background: var(--accent-soft); }
-  .note-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--accent-soft); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
-  .note-preview { flex: 1; min-width: 0; }
-  .note-title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .note-snippet { font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
-  .note-date { font-size: 11px; color: var(--text-secondary); flex-shrink: 0; margin-top: 2px; }
+/* DETAIL */
+.note-detail{display:none;min-height:100vh;}
+.note-detail.open{display:block;}
+.detail-header{padding:13px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--br);position:sticky;top:0;background:rgba(250,249,247,.96);backdrop-filter:blur(20px);z-index:10;}
+.back-btn{color:var(--ac);font-size:17px;font-weight:600;border:none;background:none;padding:6px 4px;min-width:56px;cursor:pointer;}
+.detail-title{flex:1;font-size:14px;font-weight:600;text-align:center;}
+.gear-btn{font-size:20px;border:none;background:none;padding:6px;min-width:40px;color:var(--ac);cursor:pointer;}
 
-  /* ── DETAIL VIEW ── */
-  .note-detail { display: none; min-height: 100vh; background: var(--bg); }
-  .note-detail.open { display: block; }
-  .detail-header { padding: 16px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(250,249,247,0.96); backdrop-filter: blur(20px); z-index: 10; }
-  .back-btn { color: var(--accent); font-size: 15px; cursor: pointer; border: none; background: none; font-weight: 500; padding: 4px 0; }
-  .detail-title-display { flex: 1; font-size: 15px; font-weight: 600; }
+/* SETUP */
+.setup-box{margin:12px 20px;padding:14px;background:var(--as);border:1px solid rgba(200,169,110,.3);border-radius:12px;}
+.setup-box input{width:100%;padding:9px 11px;border:1px solid var(--br);border-radius:8px;font-size:13px;font-family:monospace;background:#fff;color:var(--tp);outline:none;margin-bottom:7px;-webkit-appearance:none;}
+.setup-box button{width:100%;padding:9px;background:var(--tp);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;}
+.setup-lbl{font-size:12px;font-weight:600;margin-bottom:5px;}
+.setup-desc{font-size:11px;color:var(--ts);margin-bottom:8px;line-height:1.5;}
 
-  /* ── API SETUP ── */
-  .setup-note { margin: 16px 24px; padding: 16px; background: var(--accent-soft); border: 1px solid rgba(200,169,110,0.3); border-radius: 12px; }
-  .setup-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-  .setup-desc { font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.5; }
-  .api-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: monospace; background: var(--surface); color: var(--text-primary); outline: none; }
-  .save-btn { margin-top: 8px; padding: 8px 16px; background: var(--text-primary); color: white; border: none; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; width: 100%; }
+/* MODE */
+.mode-row{display:flex;margin:12px 20px 8px;background:var(--br);border-radius:11px;padding:3px;gap:2px;}
+.mode-btn{flex:1;padding:8px 6px;border-radius:8px;border:none;font-size:11.5px;font-weight:700;cursor:pointer;transition:all .18s;background:none;color:var(--ts);}
+.mode-btn.on{background:var(--sf);color:var(--tp);box-shadow:0 1px 4px rgba(0,0,0,.12);}
 
-  /* ── INPUT AREA ── */
-  .problem-area { padding: 20px 24px 12px; border-bottom: 1px solid var(--border); }
-  .problem-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px; }
-  .problem-input { width: 100%; min-height: 80px; border: none; background: none; font-family: inherit; font-size: 15px; color: var(--text-primary); resize: none; outline: none; line-height: 1.6; }
-  .problem-input::placeholder { color: var(--text-secondary); }
+/* VOICE */
+.voice-wrap{margin:0 20px 6px;background:var(--sf);border:1px solid var(--br);border-radius:14px;overflow:hidden;}
+.voice-top{padding:10px 14px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--br);}
+.vlbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ts);}
+.vtimer{font-size:12px;color:var(--ts);font-variant-numeric:tabular-nums;}
+.mic-wrap{display:flex;justify-content:center;padding:16px 0 4px;}
+.mic-btn{width:68px;height:68px;border-radius:50%;background:var(--as);border:2px solid rgba(200,169,110,.4);font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;}
+.mic-btn:active{transform:scale(.92);}
+.mic-btn.on{background:#fff0f0;border-color:rgba(200,60,60,.5);animation:mPulse 1s ease-in-out infinite;}
+@keyframes mPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.waveform{display:none;align-items:flex-end;justify-content:center;gap:3px;height:26px;margin:3px auto 0;width:100px;}
+.waveform.on{display:flex;}
+.wb{width:4px;border-radius:2px;background:var(--ac);animation:wv .9s infinite ease-in-out;}
+.wb:nth-child(1){animation-delay:0s}.wb:nth-child(2){animation-delay:.1s}.wb:nth-child(3){animation-delay:.2s}.wb:nth-child(4){animation-delay:.3s}.wb:nth-child(5){animation-delay:.2s}.wb:nth-child(6){animation-delay:.1s}.wb:nth-child(7){animation-delay:0s}
+@keyframes wv{0%,100%{height:4px;opacity:.4}50%{height:22px;opacity:1}}
+.vstatus{text-align:center;font-size:12.5px;color:var(--ts);padding:5px 14px 3px;font-style:italic;min-height:24px;}
+.vstatus.on{color:#c0392b;font-style:normal;font-weight:500;}
+.tbox{margin:7px 14px 11px;padding:10px 12px;background:var(--bg);border:1px solid var(--br);border-radius:9px;font-size:14px;line-height:1.65;color:var(--tp);min-height:48px;outline:none;-webkit-user-select:text;user-select:text;}
+.tbox:empty::before{content:attr(data-ph);color:var(--ts);font-style:italic;}
+.vactions{display:flex;gap:8px;padding:0 14px 14px;}
+.btn-cl{flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:600;border:1.5px solid var(--br);background:var(--bg);color:var(--ts);cursor:pointer;}
+.btn-go{flex:2;padding:10px;border-radius:8px;font-size:13px;font-weight:700;border:none;background:var(--tp);color:#fff;cursor:pointer;}
+.btn-go:disabled{opacity:.35;cursor:not-allowed;}
 
-  /* ── DEPTH SELECTOR ── */
-  .depth-row { display: flex; gap: 8px; padding: 10px 24px; border-bottom: 1px solid var(--border); overflow-x: auto; }
-  .depth-chip { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1.5px solid var(--border); background: var(--surface); color: var(--text-secondary); cursor: pointer; white-space: nowrap; transition: all 0.15s; flex-shrink: 0; }
-  .depth-chip.active { background: var(--text-primary); color: white; border-color: var(--text-primary); }
+/* CHIPS */
+.chips{display:flex;gap:7px;padding:8px 20px 10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.chips::-webkit-scrollbar{display:none;}
+.chip{padding:6px 13px;border-radius:20px;font-size:11.5px;font-weight:600;border:1.5px solid var(--br);background:var(--sf);color:var(--ts);cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.chip.on{background:var(--tp);color:#fff;border-color:var(--tp);}
 
-  /* ── GENERATE BUTTON ── */
-  .generate-btn { margin: 14px 24px; padding: 13px 24px; background: var(--text-primary); color: var(--bg); border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; width: calc(100% - 48px); display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.15s; }
-  .generate-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+/* STREAM */
+.sprog{display:none;margin:0 20px 2px;height:2px;background:var(--br);border-radius:2px;overflow:hidden;}
+.sprog.on{display:block;}
+.sbar{height:100%;background:linear-gradient(90deg,var(--ac),#e8c878);border-radius:2px;width:0%;transition:width .4s ease;}
 
-  /* ── THINKING ── */
-  .thinking { display: none; padding: 20px 24px; align-items: center; gap: 12px; }
-  .thinking.active { display: flex; }
-  .thinking-dots { display: flex; gap: 4px; }
-  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.2s infinite; }
-  .dot:nth-child(2) { animation-delay: 0.2s; } .dot:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes pulse { 0%,80%,100%{transform:scale(1);opacity:0.5} 40%{transform:scale(1.3);opacity:1} }
-  .thinking-text { font-size: 13px; color: var(--text-secondary); font-style: italic; }
+/* THINKING */
+.thinking{display:none;padding:14px 20px;align-items:center;gap:10px;}
+.thinking.on{display:flex;}
+.dots{display:flex;gap:4px;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--ac);animation:pulse 1.2s infinite;}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,80%,100%{transform:scale(1);opacity:.5}40%{transform:scale(1.3);opacity:1}}
+.ttext{font-size:12.5px;color:var(--ts);font-style:italic;}
 
-  /* ── RESPONSE ── */
-  .response-area { padding: 0 24px 40px; display: none; }
-  .response-area.visible { display: block; }
+/* RESPONSE */
+.rarea{padding:0 20px 40px;display:none;}
+.rarea.on{display:block;}
 
-  /* ── TAB BAR ── */
-  .tab-bar { display: flex; border-bottom: 1px solid var(--border); margin: 0 -24px; padding: 0 24px; overflow-x: auto; gap: 0; margin-top: 20px; }
-  .tab { padding: 10px 14px; font-size: 12px; font-weight: 600; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.15s; }
-  .tab.active { color: var(--text-primary); border-bottom-color: var(--accent); }
+/* PRIMARY TABS */
+.ptabs{display:flex;border-bottom:1px solid var(--br);margin:0 -20px;padding:0 10px;overflow-x:auto;margin-top:14px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.ptabs::-webkit-scrollbar{display:none;}
+.ptab{padding:9px 11px;font-size:11.5px;font-weight:700;color:var(--ts);cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;flex-shrink:0;}
+.ptab.on{color:var(--tp);border-bottom-color:var(--ac);}
+.ppanel{display:none;padding-top:14px;}
+.ppanel.on{display:block;}
 
-  /* ── TAB PANELS ── */
-  .tab-panel { display: none; padding-top: 16px; }
-  .tab-panel.active { display: block; }
+/* SUB-TABS */
+.stab-row{display:flex;margin:10px -20px 0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:var(--sf);border-bottom:1px solid var(--br);}
+.stab-row::-webkit-scrollbar{display:none;}
+.stab{padding:8px 11px;font-size:10.5px;font-weight:700;color:var(--ts);cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:4px;}
+.stab.on{color:var(--blue);border-bottom-color:var(--blue);}
+.sn{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:var(--br);color:var(--ts);font-size:9px;font-weight:800;flex-shrink:0;}
+.stab.on .sn{background:var(--blue);color:#fff;}
+.step-t{font-size:9px;font-weight:400;color:var(--ts);margin-left:2px;}
+.spanel{display:none;padding-top:12px;}
+.spanel.on{display:block;}
 
-  /* ── SUMMARY ── */
-  .summary-box { background: var(--accent-soft); border: 1px solid rgba(200,169,110,0.3); border-radius: 10px; padding: 16px; font-size: 14px; line-height: 1.7; margin-bottom: 14px; }
-  .meta-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-  .badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
-  .badge-complexity { background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(200,169,110,0.3); }
-  .badge-pattern { background: var(--blue-soft); color: var(--blue); border: 1px solid rgba(74,111,165,0.2); }
-  .badge-approach { background: var(--green-soft); color: var(--green); border: 1px solid rgba(90,138,90,0.2); }
+/* CONTENT BLOCKS */
+.iblock{border-radius:0 10px 10px 0;padding:13px 15px;font-size:13px;line-height:1.75;margin-bottom:11px;}
+.iblock.blue{background:var(--bs);border-left:3px solid var(--blue);}
+.iblock.green{background:var(--gs);border-left:3px solid var(--green);}
+.iblock.red{background:var(--rs);border-left:3px solid var(--red);}
+.iblock.purple{background:var(--ps);border-left:3px solid var(--purple);}
+.iblock.orange{background:var(--os);border-left:3px solid var(--orange);}
+.blbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;}
+.iblock.blue .blbl{color:var(--blue);}
+.iblock.green .blbl{color:var(--green);}
+.iblock.red .blbl{color:var(--red);}
+.iblock.purple .blbl{color:var(--purple);}
+.iblock.orange .blbl{color:var(--orange);}
 
-  /* ── THOUGHT PROCESS ── */
-  .thought-block { background: var(--blue-soft); border-left: 3px solid var(--blue); border-radius: 0 10px 10px 0; padding: 14px 16px; font-size: 13.5px; line-height: 1.75; color: var(--text-primary); margin-bottom: 12px; }
-  .thought-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue); margin-bottom: 6px; }
+.sumbox{background:var(--as);border:1px solid rgba(200,169,110,.3);border-radius:10px;padding:14px;font-size:14px;line-height:1.7;margin-bottom:12px;}
+.mrow{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;}
+.badge{font-size:10.5px;padding:3px 9px;border-radius:20px;font-weight:600;}
+.bb{background:var(--bs);color:var(--blue);border:1px solid rgba(45,95,160,.2);}
+.bg{background:var(--gs);color:var(--green);border:1px solid rgba(61,122,82,.2);}
+.ba{background:var(--as);color:var(--ac);border:1px solid rgba(200,169,110,.3);}
+.bp{background:var(--ps);color:var(--purple);border:1px solid rgba(96,64,160,.2);}
+.bo{background:var(--os);color:var(--orange);border:1px solid rgba(176,96,32,.2);}
 
-  /* ── ANALOGY ── */
-  .analogy-block { background: var(--green-soft); border-left: 3px solid var(--green); border-radius: 0 10px 10px 0; padding: 14px 16px; font-size: 13.5px; line-height: 1.75; color: var(--text-primary); margin-bottom: 12px; }
-  .analogy-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green); margin-bottom: 6px; }
+.sublbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ts);margin:16px 0 7px;}
+.hrow{background:var(--as);border:1px solid rgba(200,169,110,.22);border-radius:8px;padding:9px 13px;margin-bottom:7px;font-size:13px;line-height:1.6;}
+.pill-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.pill{font-size:11.5px;padding:3px 11px;border-radius:20px;border:1px solid var(--br);background:var(--sf);color:var(--tp);font-weight:500;}
+.divider{height:1px;background:var(--br);margin:14px 0;}
 
-  /* ── CODE ── */
-  .code-block { background: var(--code-bg); border-radius: 12px; overflow: hidden; margin-bottom: 8px; }
-  .code-header { padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.08); }
-  .code-lang { font-size: 11px; color: #8a8580; font-family: monospace; }
-  .copy-btn { font-size: 11px; color: var(--accent); background: none; border: none; cursor: pointer; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
-  .code-content { padding: 16px; overflow-x: auto; }
-  .code-content pre { font-family: 'SF Mono', monospace; font-size: 12.5px; line-height: 1.7; color: var(--code-text); white-space: pre; }
+/* CARD */
+.card{background:var(--sf);border:1px solid var(--br);border-radius:10px;padding:13px;margin-bottom:9px;}
+.card-head{font-size:13px;font-weight:700;margin-bottom:4px;display:flex;align-items:flex-start;gap:8px;}
+.cnum{width:22px;height:22px;border-radius:50%;background:var(--ac);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.card-body{font-size:12.5px;line-height:1.65;}
+.card-body code{font-family:monospace;font-size:11px;background:var(--as);padding:1px 4px;border-radius:3px;}
+.card-sub{font-size:11.5px;color:var(--blue);margin-top:5px;font-style:italic;}
+.card-warn{font-size:11.5px;color:var(--red);margin-top:5px;}
 
-  /* ── WALKTHROUGH STEPS ── */
-  .section-header { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-secondary); margin: 20px 0 10px; }
-  .steps-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-  .step-item { display: flex; gap: 12px; align-items: flex-start; padding: 14px; background: var(--surface); border-radius: 10px; border: 1px solid var(--border); }
-  .step-num { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: white; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
-  .step-body { flex: 1; }
-  .step-title { font-size: 13.5px; font-weight: 700; margin-bottom: 4px; }
-  .step-desc { font-size: 13px; line-height: 1.65; color: var(--text-primary); }
-  .step-desc code { font-family: 'SF Mono', monospace; font-size: 11.5px; background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; }
-  .step-why { font-size: 12px; color: var(--blue); margin-top: 6px; font-style: italic; }
+/* TECH CARD with inline alts */
+.tech-card{background:var(--sf);border:1px solid var(--br);border-radius:10px;padding:13px;margin-bottom:10px;}
+.tech-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+.tech-name{font-size:13.5px;font-weight:700;}
+.chosen-tag{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:700;background:var(--gs);color:var(--green);}
+.tech-role{font-size:12.5px;line-height:1.6;color:var(--tp);margin-bottom:3px;}
+.tech-why{font-size:12px;line-height:1.6;color:var(--ts);margin-bottom:8px;border-left:2px solid var(--green);padding-left:8px;}
+.alt-lbl{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ts);margin-bottom:5px;}
+.alt-row{display:flex;align-items:flex-start;gap:7px;padding:6px 9px;background:var(--bg);border-radius:7px;margin-bottom:4px;border:1px solid var(--br);}
+.alt-name{font-size:12px;font-weight:600;flex-shrink:0;min-width:90px;}
+.av{font-size:9.5px;padding:2px 7px;border-radius:7px;font-weight:700;flex-shrink:0;white-space:nowrap;}
+.av-ok{background:var(--bs);color:var(--blue);}
+.av-trade{background:var(--os);color:var(--orange);}
+.av-avoid{background:var(--rs);color:var(--red);}
+.alt-why{font-size:11.5px;color:var(--ts);line-height:1.5;}
 
-  /* ── TRICKY PARTS ── */
-  .tricky-item { padding: 14px; background: var(--red-soft); border: 1px solid rgba(160,90,90,0.2); border-radius: 10px; margin-bottom: 10px; }
-  .tricky-head { font-size: 13px; font-weight: 700; color: var(--red); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
-  .tricky-desc { font-size: 13px; line-height: 1.65; }
-  .tricky-desc code { font-family: monospace; font-size: 11.5px; background: rgba(160,90,90,0.1); padding: 1px 5px; border-radius: 4px; }
+/* DIAGRAM — two diagrams stacked, pre-wrap so no horizontal scroll */
+.diag-wrap{margin-bottom:14px;}
+.diag-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ts);margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+.diag-pill{font-size:9px;padding:2px 7px;border-radius:10px;background:var(--bs);color:var(--blue);font-weight:600;}
+.diagram{background:var(--cdbg);border-radius:12px;padding:14px 16px;font-family:'SF Mono',monospace;font-size:11.5px;line-height:1.9;color:#c8c4bc;white-space:pre-wrap;word-break:break-word;overflow-x:auto;}
+/* colour accents inside diagram */
+.diagram .chosen{color:#7ec87e;}
+.diagram .alt{color:#e8c878;}
 
-  /* ── FOLLOW-UP Q&A ── */
-  .qa-item { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
-  .qa-q { padding: 12px 16px; font-size: 13.5px; font-weight: 600; background: var(--surface); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-  .qa-q .chevron { color: var(--text-secondary); transition: transform 0.2s; font-size: 12px; }
-  .qa-q.open .chevron { transform: rotate(90deg); }
-  .qa-a { display: none; padding: 12px 16px; font-size: 13px; line-height: 1.7; color: var(--text-primary); background: var(--bg); border-top: 1px solid var(--border); }
-  .qa-a code { font-family: monospace; font-size: 11.5px; background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; }
-  .qa-a.open { display: block; }
+/* CODE — pre-wrap no horizontal scroll */
+.code-outer{background:var(--cdbg);border-radius:12px;overflow:hidden;margin-bottom:10px;}
+.code-hdr{padding:9px 14px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.08);}
+.code-lang{font-size:10px;color:#8a8580;font-family:monospace;letter-spacing:.05em;}
+.copy-btn{font-size:11px;color:var(--ac);background:none;border:none;cursor:pointer;padding:3px 8px;border-radius:4px;font-weight:500;}
+.code-body{padding:14px;}
+.code-body pre{font-family:'SF Mono',monospace;font-size:12px;line-height:1.7;color:var(--cdtx);white-space:pre-wrap;word-break:break-word;}
 
-  /* ── ALTERNATIVES ── */
-  .alt-item { padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; }
-  .alt-head { font-size: 13px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; }
-  .alt-desc { font-size: 13px; line-height: 1.65; color: var(--text-primary); }
-  .alt-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
-  .better { background: var(--green-soft); color: var(--green); }
-  .tradeoff { background: var(--accent-soft); color: var(--accent); }
-  .worse { background: var(--red-soft); color: var(--red); }
+/* Q&A */
+.qa-item{border:1px solid var(--br);border-radius:10px;overflow:hidden;margin-bottom:9px;}
+.qa-q{padding:12px 14px;font-size:13px;font-weight:600;background:var(--sf);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.chev{color:var(--ts);transition:transform .2s;font-size:13px;flex-shrink:0;}
+.chev.open{transform:rotate(90deg);}
+.qa-a{display:none;padding:11px 14px;font-size:12.5px;line-height:1.7;background:var(--bg);border-top:1px solid var(--br);}
+.qa-a.open{display:block;}
 
-  /* ── ERROR ── */
-  .error-box { background: #fff0f0; border: 1px solid #ffcccc; border-radius: 10px; padding: 14px 16px; font-size: 13px; color: #c0392b; margin-top: 12px; }
+/* SKELETON shimmer */
+.skel{background:linear-gradient(90deg,var(--br) 25%,var(--as) 50%,var(--br) 75%);background-size:200% 100%;animation:sk 1.2s infinite;border-radius:5px;height:13px;margin-bottom:7px;}
+@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-  /* ── SPEAK MODE OVERLAY ── */
-  #speakOverlay { display: none; position: fixed; inset: 0; background: rgba(26,25,22,0.96); z-index: 999; flex-direction: column; padding: 60px 28px 40px; overflow-y: auto; }
-  #speakOverlay.open { display: flex; }
-  .speak-close { position: fixed; top: 20px; right: 24px; color: var(--accent); font-size: 24px; cursor: pointer; background: none; border: none; z-index: 1000; }
-  .speak-title { font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 24px; }
-  .speak-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
-  .speak-card-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
-  .speak-card-text { font-size: 16px; line-height: 1.8; color: #f0ede8; }
+/* SPEAK MODE */
+#sovl{display:none;position:fixed;inset:0;background:rgba(12,11,10,.97);z-index:999;flex-direction:column;padding:60px 22px 40px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#sovl.on{display:flex;}
+.sovl-close{position:fixed;top:16px;right:18px;color:var(--ac);font-size:26px;cursor:pointer;background:none;border:none;z-index:1000;padding:8px;}
+.sovl-title{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ac);margin-bottom:18px;}
+.sc{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:13px;padding:16px 18px;margin-bottom:13px;}
+.sc-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ac);margin-bottom:8px;}
+.sc-txt{font-size:15px;line-height:1.9;color:#ede9e2;}
+
+.spk-btn{width:100%;padding:12px;background:var(--as);border:1.5px solid rgba(200,169,110,.4);border-radius:9px;font-size:13px;font-weight:600;color:var(--tp);cursor:pointer;margin-top:4px;}
+.err-box{background:#fff0f0;border:1px solid #ffcccc;border-radius:9px;padding:13px 15px;font-size:13px;color:#c0392b;margin-top:10px;}
+.fadein{animation:fadeIn .3s ease forwards;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.toast{position:fixed;bottom:36px;left:50%;transform:translateX(-50%);background:#1a1916;color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;z-index:9999;opacity:0;transition:opacity .25s;white-space:nowrap;pointer-events:none;}
 </style>
 </head>
 <body>
 
-<!-- ══ NOTES LIST VIEW ══ -->
-<div id="notesList">
+<!-- LIST -->
+<div id="list">
   <div class="app-header">
-    <div class="header-row">
-      <div class="app-title">Notes</div>
-      <button class="icon-btn" onclick="openTool()">✏️</button>
-    </div>
-    <div class="note-count">3 notes</div>
+    <div class="app-title">Notes</div>
+    <div class="note-count">4 notes</div>
   </div>
-  <div class="notes-list">
-    <div class="note-row" onclick="openTool()">
-      <div class="note-icon">⚙️</div>
-      <div class="note-preview">
-        <div class="note-title">Quick Reference</div>
-        <div class="note-snippet">Type your problem to get Java code...</div>
-      </div>
+  <div style="padding:6px 0">
+    <button class="note-row" onclick="openTool('coding')">
+      <div class="note-icon">☕</div>
+      <div class="note-preview"><div class="note-title">Quick Ref – Java</div><div class="note-snippet">Tap to solve a coding problem…</div></div>
       <div class="note-date">Now</div>
-    </div>
-    <div class="note-row">
+    </button>
+    <button class="note-row" onclick="openTool('sd')">
+      <div class="note-icon">🏗️</div>
+      <div class="note-preview"><div class="note-title">Quick Ref – System Design</div><div class="note-snippet">Tap to design a system…</div></div>
+      <div class="note-date">Now</div>
+    </button>
+    <button class="note-row" onclick="void(0)">
       <div class="note-icon">📋</div>
-      <div class="note-preview">
-        <div class="note-title">Meeting notes – Product sync</div>
-        <div class="note-snippet">Discussed roadmap priorities and Q2 milestones</div>
-      </div>
+      <div class="note-preview"><div class="note-title">Meeting notes – Product sync</div><div class="note-snippet">Roadmap priorities, Q2 milestones</div></div>
       <div class="note-date">Mon</div>
-    </div>
-    <div class="note-row">
+    </button>
+    <button class="note-row" onclick="void(0)">
       <div class="note-icon">📝</div>
-      <div class="note-preview">
-        <div class="note-title">Grocery list</div>
-        <div class="note-snippet">Eggs, bread, olive oil, tomatoes...</div>
-      </div>
+      <div class="note-preview"><div class="note-title">Grocery list</div><div class="note-snippet">Eggs, bread, olive oil, tomatoes…</div></div>
       <div class="note-date">Sun</div>
-    </div>
+    </button>
   </div>
 </div>
 
-<!-- ══ DETAIL / TOOL VIEW ══ -->
-<div id="noteDetail" class="note-detail">
+<!-- TOOL -->
+<div id="tool" class="note-detail">
   <div class="detail-header">
     <button class="back-btn" onclick="goBack()">‹ Notes</button>
-    <div class="detail-title-display">Quick Reference</div>
-    <button class="icon-btn" onclick="toggleSetup()">⚙</button>
+    <div class="detail-title" id="dtitle">Quick Ref</div>
+    <button class="gear-btn" onclick="toggleSetup()">⚙️</button>
   </div>
 
-  <div id="setupArea" class="setup-note" style="display:none;">
-    <div class="setup-title">🔑 API Configuration</div>
-    <div class="setup-desc">Enter your Anthropic API key. Stored locally only, never shared.</div>
-    <input type="password" class="api-input" id="apiKeyInput" placeholder="sk-ant-..." />
-    <button class="save-btn" onclick="saveApiKey()">Save</button>
+  <div id="setup" class="setup-box" style="display:none;margin-top:12px">
+    <div class="setup-lbl">🔑 API Key</div>
+    <div class="setup-desc">Stored locally — never sent anywhere except Anthropic.</div>
+    <input type="password" id="apikey" placeholder="sk-ant-…" autocomplete="off"/>
+    <button onclick="saveKey()">Save & Close</button>
   </div>
 
-  <div class="problem-area">
-    <div class="problem-label">Problem Statement</div>
-    <textarea class="problem-input" id="problemInput" placeholder="Describe your coding problem in plain English… e.g. 'Find the longest substring without repeating characters'" rows="4"></textarea>
+  <div class="mode-row">
+    <button class="mode-btn on" id="mCoding" onclick="setMode('coding')">☕ Java Coding</button>
+    <button class="mode-btn" id="mSD" onclick="setMode('sd')">🏗️ System Design</button>
   </div>
 
-  <!-- Explanation depth selector -->
-  <div class="depth-row">
-    <div class="depth-chip active" data-depth="interview" onclick="setDepth(this)">🎯 Interview</div>
-    <div class="depth-chip" data-depth="explain" onclick="setDepth(this)">🗣️ Explain to team</div>
-    <div class="depth-chip" data-depth="beginner" onclick="setDepth(this)">📖 Beginner-friendly</div>
+  <div class="voice-wrap">
+    <div class="voice-top">
+      <span class="vlbl" id="vlbl">🎙 Speak your coding problem</span>
+      <span class="vtimer" id="vtimer"></span>
+    </div>
+    <div class="mic-wrap">
+      <button class="mic-btn" id="micBtn" onclick="toggleMic()">🎙️</button>
+    </div>
+    <div class="waveform" id="wf">
+      <div class="wb" style="height:5px"></div><div class="wb" style="height:11px"></div>
+      <div class="wb" style="height:19px"></div><div class="wb" style="height:25px"></div>
+      <div class="wb" style="height:19px"></div><div class="wb" style="height:11px"></div>
+      <div class="wb" style="height:5px"></div>
+    </div>
+    <div class="vstatus" id="vs">Tap the mic and speak clearly</div>
+    <div class="tbox" id="tbox" contenteditable="true" spellcheck="false" data-ph="Tap mic to speak…"></div>
+    <div class="vactions">
+      <button class="btn-cl" onclick="clearAll()">Clear</button>
+      <button class="btn-go" id="goBtn" onclick="generate()" disabled>Generate ⚡</button>
+    </div>
   </div>
 
-  <button class="generate-btn" id="generateBtn" onclick="generate()">
-    <span>⚡</span><span id="btnText">Generate Java Code</span>
-  </button>
-
-  <div class="thinking" id="thinking">
-    <div class="thinking-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-    <div class="thinking-text" id="thinkingText">Building your complete explanation...</div>
+  <div class="chips" id="chips">
+    <div class="chip on" data-d="interview" onclick="setDepth(this)">🎯 Interview</div>
+    <div class="chip" data-d="explain" onclick="setDepth(this)">🗣️ Team</div>
+    <div class="chip" data-d="beginner" onclick="setDepth(this)">📖 Beginner</div>
   </div>
 
-  <div class="response-area" id="responseArea"></div>
+  <div class="sprog" id="sprog"><div class="sbar" id="sbar"></div></div>
+  <div class="thinking" id="thinking"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><div class="ttext" id="ttext">Thinking…</div></div>
+  <div class="rarea" id="rarea"></div>
 </div>
 
-<!-- ══ SPEAK MODE OVERLAY (reads like your own notes) ══ -->
-<div id="speakOverlay">
-  <button class="speak-close" onclick="closeSpeakMode()">✕</button>
-  <div class="speak-title">📢 How to Explain This</div>
-  <div id="speakContent"></div>
+<!-- SPEAK MODE -->
+<div id="sovl">
+  <button class="sovl-close" onclick="closeSM()">✕</button>
+  <div class="sovl-title">📢 How to Explain This</div>
+  <div id="smc"></div>
 </div>
+<div class="toast" id="toast"></div>
 
 <script>
-const STORAGE_KEY = 'nts_cfg_key';
-let currentDepth = 'interview';
-let lastResult = null;
+/* ═══ STATE ═══ */
+const SK='nt_v6';
+let mode='coding',depth='interview',last=null;
+let rec=null,listening=false,silT=null,timerI=null,elapsed=0,accTxt='';
 
-function getApiKey() { return localStorage.getItem(STORAGE_KEY) || ''; }
-function saveApiKey() {
-  const key = document.getElementById('apiKeyInput').value.trim();
-  if (key) { localStorage.setItem(STORAGE_KEY, key); document.getElementById('setupArea').style.display = 'none'; showToast('Saved ✓'); }
-}
-function toggleSetup() {
-  const area = document.getElementById('setupArea');
-  const hidden = area.style.display === 'none';
-  area.style.display = hidden ? 'block' : 'none';
-  if (hidden && getApiKey()) document.getElementById('apiKeyInput').value = getApiKey();
-}
-function openTool() {
-  document.getElementById('notesList').style.display = 'none';
-  document.getElementById('noteDetail').classList.add('open');
-  if (!getApiKey()) document.getElementById('setupArea').style.display = 'block';
-}
-function goBack() {
-  document.getElementById('noteDetail').classList.remove('open');
-  document.getElementById('notesList').style.display = 'block';
-  document.getElementById('responseArea').innerHTML = '';
-  document.getElementById('responseArea').classList.remove('visible');
-  document.getElementById('thinking').classList.remove('active');
-  document.getElementById('problemInput').value = '';
-  lastResult = null;
-}
-function setDepth(el) {
-  document.querySelectorAll('.depth-chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  currentDepth = el.dataset.depth;
-}
-function showToast(msg) {
-  const t = document.createElement('div');
-  t.textContent = msg;
-  Object.assign(t.style, { position:'fixed', bottom:'90px', left:'50%', transform:'translateX(-50%)', background:'#1a1916', color:'white', padding:'8px 20px', borderRadius:'20px', fontSize:'13px', zIndex:'9999', opacity:'0', transition:'opacity 0.2s', whiteSpace:'nowrap' });
-  document.body.appendChild(t);
-  setTimeout(() => t.style.opacity = '1', 10);
-  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2200);
-}
+/* ═══ KEY ═══ */
+const getKey=()=>localStorage.getItem(SK)||'';
+function saveKey(){const v=document.getElementById('apikey').value.trim();if(!v){toast('Enter a key');return;}localStorage.setItem(SK,v);document.getElementById('setup').style.display='none';toast('Saved ✓');}
+function toggleSetup(){const s=document.getElementById('setup');const show=s.style.display==='none';s.style.display=show?'block':'none';if(show&&getKey())document.getElementById('apikey').value=getKey();}
 
-// ── TABS ──
-function switchTab(id) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === id));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel_' + id));
+/* ═══ NAV ═══ */
+function openTool(m){document.getElementById('list').style.display='none';document.getElementById('tool').classList.add('open');setMode(m);if(!getKey())document.getElementById('setup').style.display='block';}
+function goBack(){stopMic(false);document.getElementById('tool').classList.remove('open');document.getElementById('list').style.display='block';clearAll();last=null;}
+
+/* ═══ MODE ═══ */
+function setMode(m){
+  mode=m;
+  document.getElementById('mCoding').classList.toggle('on',m==='coding');
+  document.getElementById('mSD').classList.toggle('on',m==='sd');
+  document.getElementById('dtitle').textContent=m==='coding'?'Java Coding':'System Design';
+  document.getElementById('vlbl').textContent=m==='coding'?'🎙 Speak your coding problem':'🎙 Describe the system to design';
+  document.getElementById('tbox').setAttribute('data-ph',m==='coding'?'Tap mic to speak your problem…':'e.g. "Design Twitter" or "Design a URL shortener"');
+  const ch=document.getElementById('chips');
+  if(m==='sd'){ch.innerHTML=`<div class="chip on" data-d="senior" onclick="setDepth(this)">🎯 Senior/Staff</div><div class="chip" data-d="mid" onclick="setDepth(this)">👨‍💻 Mid-level</div><div class="chip" data-d="deep" onclick="setDepth(this)">📖 Deep Dive</div>`;depth='senior';}
+  else{ch.innerHTML=`<div class="chip on" data-d="interview" onclick="setDepth(this)">🎯 Interview</div><div class="chip" data-d="explain" onclick="setDepth(this)">🗣️ Team</div><div class="chip" data-d="beginner" onclick="setDepth(this)">📖 Beginner</div>`;depth='interview';}
+  clearAll();
 }
+function setDepth(el){el.closest('.chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');depth=el.dataset.d;}
 
-// ── ACCORDION for Q&A ──
-function toggleQA(el) {
-  const ans = el.nextElementSibling;
-  el.classList.toggle('open');
-  ans.classList.toggle('open');
-}
+/* ═══ TOAST / TIMER ═══ */
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',2400);}
+function startTimer(){elapsed=0;clearInterval(timerI);timerI=setInterval(()=>{elapsed++;document.getElementById('vtimer').textContent=pad(Math.floor(elapsed/60))+':'+pad(elapsed%60);},1000);}
+function stopTimer(){clearInterval(timerI);document.getElementById('vtimer').textContent='';}
+const pad=n=>String(n).padStart(2,'0');
 
-// ── SPEAK MODE ──
-function openSpeakMode() {
-  if (!lastResult) return;
-  const d = lastResult;
-  let html = '';
-  html += speakCard('🧠 How I Approached It', d.thought_process);
-  html += speakCard('🎯 One-Liner Summary', d.summary);
-  html += speakCard('💡 Real-World Analogy', d.analogy);
-  html += speakCard('🔑 Key Points to Hit', d.steps.map((s,i) => `${i+1}. ${s.title} — ${s.why}`).join('\n'));
-  html += speakCard('⚡ If They Ask About Complexity', d.complexity_explanation);
-  html += speakCard('🔄 If Asked for Alternatives', d.alternatives.map(a => `• ${a.name}: ${a.when_to_use}`).join('\n'));
-  document.getElementById('speakContent').innerHTML = html;
-  document.getElementById('speakOverlay').classList.add('open');
-}
-function closeSpeakMode() { document.getElementById('speakOverlay').classList.remove('open'); }
-function speakCard(label, text) {
-  return `<div class="speak-card"><div class="speak-card-label">${label}</div><div class="speak-card-text">${text.replace(/\n/g,'<br>')}</div></div>`;
-}
-
-// ── SYNTAX HIGHLIGHT ──
-function highlight(code) {
-  const kw = ['public','private','protected','class','interface','extends','implements','new','return','if','else','for','while','do','switch','case','default','break','continue','null','true','false','void','static','final','abstract','import','package','throws','throw','try','catch','finally','int','long','double','float','boolean','char','String','List','Map','Set','ArrayList','HashMap','HashSet','LinkedList','Stack','Queue','TreeMap','TreeSet','Arrays','Collections','Math','Integer','Character','Optional'];
-  let h = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  h = h.replace(/(\/\/[^\n]*)/g,'<span style="color:#6a9955">$1</span>');
-  h = h.replace(/(\/\*[\s\S]*?\*\/)/g,'<span style="color:#6a9955">$1</span>');
-  h = h.replace(/("(?:[^"\\]|\\.)*")/g,'<span style="color:#ce9178">$1</span>');
-  h = h.replace(/\b(\d+)\b/g,'<span style="color:#b5cea8">$1</span>');
-  kw.forEach(k => { h = h.replace(new RegExp(`\\b(${k})\\b`,'g'),'<span style="color:#569cd6">$1</span>'); });
-  return h;
-}
-function renderExpl(t) { return t.replace(/`([^`]+)`/g,'<code>$1</code>'); }
-
-// ── MAIN GENERATE ──
-async function generate() {
-  const problem = document.getElementById('problemInput').value.trim();
-  if (!problem) { showToast('Enter a problem first'); return; }
-  const apiKey = getApiKey();
-  if (!apiKey) { toggleSetup(); showToast('Add your API key first'); return; }
-
-  const btn = document.getElementById('generateBtn');
-  btn.disabled = true;
-  document.getElementById('btnText').textContent = 'Generating...';
-  document.getElementById('thinking').classList.add('active');
-  document.getElementById('responseArea').classList.remove('visible');
-  document.getElementById('responseArea').innerHTML = '';
-
-  const depthInstructions = {
-    interview: 'The user is in a coding interview. Steps and explanations must be crisp, confident, and precise. Anticipate typical interviewer follow-up questions.',
-    explain: 'The user is explaining this to their engineering team. Be conversational, practical, and mention real-world trade-offs they would care about.',
-    beginner: 'The user is explaining to a beginner. Use very simple language, avoid jargon, and make the analogy especially vivid and relatable.'
+/* ═══ MIC ═══ */
+function toggleMic(){listening?stopMic(true):startMic();}
+function startMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast('Voice not supported — type instead');return;}
+  accTxt=document.getElementById('tbox').textContent.trim();
+  rec=new SR();rec.continuous=true;rec.interimResults=true;rec.lang='en-US';
+  rec.onstart=()=>{listening=true;document.getElementById('micBtn').classList.add('on');document.getElementById('micBtn').textContent='⏹️';document.getElementById('wf').classList.add('on');document.getElementById('vs').textContent='Listening… speak clearly';document.getElementById('vs').classList.add('on');startTimer();};
+  rec.onresult=e=>{
+    clearTimeout(silT);silT=setTimeout(()=>stopMic(true),2800);
+    let fin=accTxt?accTxt+' ':'',int='';
+    for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;e.results[i].isFinal?(fin+=t,accTxt=fin.trim()):int=t;}
+    document.getElementById('tbox').textContent=(accTxt+(int?' '+int:'')).trim();chkBtn();
   };
-
-  const systemPrompt = `You are an elite Java coding coach. Given a problem, produce a comprehensive response that lets the user sound like they genuinely thought through and wrote the solution themselves.
-
-Context: ${depthInstructions[currentDepth]}
-
-Return ONLY valid JSON (no markdown fences) with this exact structure:
-{
-  "summary": "One confident sentence describing the approach, as if you just thought of it",
-  "complexity": "Time: O(?) | Space: O(?)",
-  "complexity_explanation": "2-3 sentences explaining WHY the complexity is what it is, in plain terms — not just stating it",
-  "pattern": "Algorithm pattern name",
-  "approach": "Core technique used",
-  "thought_process": "3-5 sentences describing how a smart engineer would naturally arrive at this solution — the 'aha moment', what naive approaches fail, why this approach clicks. Written in first person as if the user is narrating their thinking.",
-  "analogy": "A vivid real-world analogy that makes the algorithm intuitive. 2-3 sentences. Should be memorable and make someone say 'oh that makes sense'.",
-  "code": "Complete, clean, well-commented Java code",
-  "steps": [
-    {
-      "title": "Short step title",
-      "what": "What this step does — 1-2 sentences",
-      "how": "How it works in code — mention specific variable/method names with backtick formatting like \`varName\`",
-      "why": "WHY we do it this way — the reasoning, not just the mechanics. This is what makes you sound smart."
-    }
-  ],
-  "tricky_parts": [
-    {
-      "issue": "Name of the tricky edge case or gotcha",
-      "explanation": "Why it's tricky and exactly how the code handles it. Mention variable/method names with backtick formatting."
-    }
-  ],
-  "followup_qa": [
-    {
-      "question": "A realistic follow-up question someone would ask",
-      "answer": "A confident, complete answer. 2-4 sentences."
-    }
-  ],
-  "alternatives": [
-    {
-      "name": "Alternative approach name",
-      "complexity": "Time/Space complexity",
-      "when_to_use": "When this alternative is better or worse",
-      "verdict": "better|tradeoff|worse"
-    }
-  ]
+  rec.onerror=e=>{if(e.error==='not-allowed')toast('Mic blocked — allow in Safari settings');stopMic(false);};
+  rec.onend=()=>{if(listening){try{rec.start();}catch(e){stopMic(false);}}};
+  try{rec.start();}catch(e){toast('Cannot start mic');}
 }
+function stopMic(auto){
+  const was=listening;listening=false;clearTimeout(silT);stopTimer();
+  if(rec){try{rec.stop();}catch(e){}rec=null;}
+  document.getElementById('micBtn').classList.remove('on');document.getElementById('micBtn').textContent='🎙️';
+  document.getElementById('wf').classList.remove('on');document.getElementById('vs').classList.remove('on');
+  const txt=document.getElementById('tbox').textContent.trim();
+  if(was&&auto&&txt.length>5){document.getElementById('vs').textContent='Got it — generating…';setTimeout(generate,500);}
+  else{document.getElementById('vs').textContent=txt.length>5?'Ready — tap Generate':'Tap the mic and speak clearly';}
+}
+function chkBtn(){document.getElementById('goBtn').disabled=document.getElementById('tbox').textContent.trim().length<5;}
+function clearAll(){accTxt='';document.getElementById('tbox').textContent='';document.getElementById('goBtn').disabled=true;document.getElementById('vs').textContent='Tap the mic and speak clearly';document.getElementById('rarea').innerHTML='';document.getElementById('rarea').classList.remove('on');document.getElementById('thinking').classList.remove('on');document.getElementById('sprog').classList.remove('on');document.getElementById('sbar').style.width='0%';last=null;}
 
-Provide 4-6 steps, 2-3 tricky parts, 3-4 follow-up Q&As, and 2-3 alternatives. Make every explanation feel organic and intelligent — not textbook-like.`;
-
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
-      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:4000, system:systemPrompt, messages:[{role:'user', content:problem}] })
+/* ═══════════════════════════════════════════════════════
+   GENERATE — STREAMING
+═══════════════════════════════════════════════════════ */
+async function generate(){
+  const prob=document.getElementById('tbox').textContent.trim();
+  if(prob.length<4){toast('Say or type a problem first');return;}
+  const key=getKey();if(!key){toggleSetup();toast('Add API key first');return;}
+  document.getElementById('goBtn').disabled=true;
+  document.getElementById('rarea').innerHTML='';
+  document.getElementById('rarea').classList.remove('on');
+  document.getElementById('thinking').classList.add('on');
+  document.getElementById('ttext').textContent=mode==='coding'?'Solving your problem…':'Architecting your system…';
+  document.getElementById('sprog').classList.add('on');
+  const bar=document.getElementById('sbar');bar.style.width='5%';
+  const sys=mode==='coding'?codingPrompt():sdPrompt();
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:mode==='coding'?4500:7500,stream:true,system:sys,messages:[{role:'user',content:prob}]})
     });
-    const data = await response.json();
-    if (data.error) throw new Error(data.error.message);
-    let text = data.content[0].text.trim().replace(/^```json\s*/i,'').replace(/\s*```$/,'');
-    const parsed = JSON.parse(text);
-    lastResult = parsed;
-    renderResponse(parsed);
-  } catch(err) {
-    document.getElementById('responseArea').innerHTML = `<div class="error-box">⚠️ ${err.message}</div>`;
-    document.getElementById('responseArea').classList.add('visible');
-  } finally {
-    btn.disabled = false;
-    document.getElementById('btnText').textContent = 'Generate Java Code';
-    document.getElementById('thinking').classList.remove('active');
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'API error '+res.status);}
+    const reader=res.body.getReader(),dec=new TextDecoder();
+    let full='',pct=5,dk=new Set();
+    /* Show skeleton immediately — don't wait for thinking */
+    document.getElementById('thinking').classList.remove('on');
+    showSkeleton();
+    document.getElementById('rarea').classList.add('on');
+    while(true){
+      const{done,value}=await reader.read();if(done)break;
+      const lines=dec.decode(value,{stream:true}).split('\n');
+      for(const ln of lines){
+        if(!ln.startsWith('data: '))continue;
+        const d=ln.slice(6).trim();if(d==='[DONE]')break;
+        try{const ev=JSON.parse(d);if(ev.type==='content_block_delta'&&ev.delta?.text){full+=ev.delta.text;pct=Math.min(90,pct+0.2);bar.style.width=pct+'%';patch(full,dk);}}catch(e){}
+      }
+    }
+    bar.style.width='100%';
+    setTimeout(()=>{document.getElementById('sprog').classList.remove('on');bar.style.width='0%';},500);
+    try{
+      const parsed=JSON.parse(full.trim().replace(/^```json\s*/i,'').replace(/\s*```$/,''));
+      last={mode,data:parsed};
+      mode==='coding'?renderCoding(parsed):renderSD(parsed);
+    }catch(e){console.warn('parse',e);}
+  }catch(err){
+    document.getElementById('thinking').classList.remove('on');
+    document.getElementById('rarea').innerHTML='<div class="err-box">⚠️ '+err.message+'</div>';
+    document.getElementById('rarea').classList.add('on');
+    document.getElementById('sprog').classList.remove('on');
+  }finally{
+    document.getElementById('goBtn').disabled=false;
+    document.getElementById('thinking').classList.remove('on');
+    document.getElementById('vs').textContent='Tap mic to record again';
   }
 }
 
-// ── RENDER ──
-function renderResponse(d) {
-  const area = document.getElementById('responseArea');
+/* ═══════════════════════════════════════════════════════
+   STREAM PATCH — renders content progressively as tokens arrive.
+   Uses TWO extraction strategies:
+   A) strComplete — only fires when JSON string is fully closed (safe for short fields)
+   B) strPartial  — fires as soon as MIN_CHARS arrived (for long fields like thought_process)
+   Priority: problem_statement (partial, ~40 chars) → FR items → NFR items → thought_process
+═══════════════════════════════════════════════════════ */
+function patch(txt,dk){
+  /* A: fully-closed string — safe value */
+  const strComplete=key=>{
+    const m=txt.match(new RegExp('"'+key+'"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*?)"\\s*[,}\\n]','s'));
+    return m?unescape(m[1]):null;
+  };
+  /* B: partial string — grab whatever has arrived so far (no closing quote required) */
+  const strPartial=(key,minLen=40)=>{
+    const m=txt.match(new RegExp('"'+key+'"\\s*:\\s*"((?:[^"\\\\]|\\\\.){'+minLen+',})','s'));
+    return m?unescape(m[1]):null;
+  };
+  const unescape=s=>s.replace(/\\n/g,'\n').replace(/\\"/g,'"').replace(/\\\\/g,'\\');
 
-  // Steps
-  const stepsHTML = d.steps.map((s,i) => `
-    <li class="step-item">
-      <div class="step-num">${i+1}</div>
-      <div class="step-body">
-        <div class="step-title">${s.title}</div>
-        <div class="step-desc">${renderExpl(s.what)}<br><br>${renderExpl(s.how)}</div>
-        <div class="step-why">💡 Why: ${s.why}</div>
-      </div>
-    </li>`).join('');
+  /* Write to a named slot, removing skeleton shimmer lines */
+  const slot=(id,html)=>{
+    const el=document.getElementById(id);
+    if(!el||el.dataset.filled)return;
+    el.dataset.filled='1';
+    el.innerHTML=html;
+    el.classList.add('fadein');
+  };
 
-  // Tricky parts
-  const trickyHTML = (d.tricky_parts||[]).map(t => `
-    <div class="tricky-item">
-      <div class="tricky-head">⚠️ ${t.issue}</div>
-      <div class="tricky-desc">${renderExpl(t.explanation)}</div>
-    </div>`).join('');
+  if(mode==='coding'){
+    ['thought_process','analogy','summary','complexity'].forEach(k=>{
+      if(!dk.has(k)){
+        const v=strComplete(k)||strPartial(k,30);
+        if(v&&v.length>15){dk.add(k);slot('sk_'+k,v.replace(/\n/g,'<br>'));}
+      }
+    });
+    return;
+  }
 
-  // Follow-up Q&A
-  const qaHTML = (d.followup_qa||[]).map(q => `
-    <div class="qa-item">
-      <div class="qa-q" onclick="toggleQA(this)">
-        <span>${q.question}</span>
-        <span class="chevron">›</span>
-      </div>
-      <div class="qa-a">${renderExpl(q.answer)}</div>
-    </div>`).join('');
+  /* ── SD mode ── */
 
-  // Alternatives
-  const altHTML = (d.alternatives||[]).map(a => `
-    <div class="alt-item">
-      <div class="alt-head">
-        <span>${a.name} <small style="color:var(--text-secondary);font-weight:400">${a.complexity}</small></span>
-        <span class="alt-badge ${a.verdict}">${a.verdict === 'better' ? '✓ Better case' : a.verdict === 'worse' ? '✗ Worse' : '⇄ Trade-off'}</span>
-      </div>
-      <div class="alt-desc">${a.when_to_use}</div>
-    </div>`).join('');
+  /* PRIORITY 1: problem_statement — partial, fires as soon as ~50 chars arrive (~1s) */
+  if(!dk.has('ps')){
+    const v=strComplete('problem_statement')||strPartial('problem_statement',50);
+    if(v&&v.length>15){dk.add('ps');slot('sk_ps',v);}
+  }
 
-  area.innerHTML = `
-    <!-- TAB BAR -->
-    <div class="tab-bar">
-      <div class="tab active" data-tab="overview" onclick="switchTab('overview')">Overview</div>
-      <div class="tab" data-tab="code" onclick="switchTab('code')">Code</div>
-      <div class="tab" data-tab="walkthrough" onclick="switchTab('walkthrough')">Walkthrough</div>
-      <div class="tab" data-tab="tricky" onclick="switchTab('tricky')">Gotchas</div>
-      <div class="tab" data-tab="qa" onclick="switchTab('qa')">Q&amp;A</div>
-      <div class="tab" data-tab="alts" onclick="switchTab('alts')">Alternatives</div>
-    </div>
+  /* PRIORITY 2: functional requirements — parse objects as each closes */
+  if(!dk.has('fr')){
+    const m=txt.match(/"functional"\s*:\s*\[([\s\S]*?)(?:\]|(?="non_functional"))/);
+    if(m&&m[1]){
+      const reqs=[];let rx2=/"req"\s*:\s*"([^"\\\\]+)"/g,hit;
+      while((hit=rx2.exec(m[1]))!==null)reqs.push(hit[1]);
+      if(reqs.length>=1){
+        dk.add('fr');
+        /* Don't lock — keep updating until NFR starts */
+        const el=document.getElementById('sk_fr');
+        if(el){el.innerHTML=reqs.map(r=>'<div class="hrow fadein">🔵 '+r+'</div>').join('');el.classList.add('fadein');}
+      }
+    }
+  }
 
-    <!-- OVERVIEW -->
-    <div class="tab-panel active" id="panel_overview">
-      <div class="thought-block">
-        <div class="thought-label">🧠 How I thought about this</div>
-        ${d.thought_process}
-      </div>
-      <div class="analogy-block">
-        <div class="analogy-label">💡 Real-world analogy</div>
-        ${d.analogy}
-      </div>
-      <div class="summary-box">${d.summary}</div>
-      <div class="meta-row">
-        <span class="badge badge-complexity">${d.complexity}</span>
-        <span class="badge badge-pattern">${d.pattern}</span>
-        <span class="badge badge-approach">${d.approach}</span>
-      </div>
-      <div style="font-size:13px;line-height:1.7;color:var(--text-secondary);padding:4px 0 16px;">${d.complexity_explanation}</div>
-      <button onclick="openSpeakMode()" style="width:100%;padding:12px;background:var(--accent-soft);border:1.5px solid rgba(200,169,110,0.4);border-radius:10px;font-size:13px;font-weight:600;color:var(--text-primary);cursor:pointer;">📢 Open Speak Mode</button>
-    </div>
+  /* PRIORITY 3: NFRs — same rolling parse */
+  if(!dk.has('nfr')){
+    const m=txt.match(/"non_functional"\s*:\s*\[([\s\S]*?)(?:\]|(?="out_of_scope"))/);
+    if(m&&m[1]){
+      const items=[];let pos=0;
+      while(true){
+        const s=m[1].indexOf('"req"',pos);if(s<0)break;
+        const rM=m[1].slice(s).match(/"req"\s*:\s*"([^"\\\\]+)"/);
+        const vM=m[1].slice(s).match(/"value"\s*:\s*"([^"\\\\]+)"/);
+        if(rM)items.push({r:rM[1],v:vM?vM[1]:''});
+        pos=s+5;
+      }
+      if(items.length>=1){
+        dk.add('nfr');
+        const el=document.getElementById('sk_nfr');
+        if(el){el.innerHTML=items.map(i=>'<div class="hrow fadein">◎ <strong>'+i.r+'</strong>'+(i.v?' <span class="badge ba">'+i.v+'</span>':'')+'</div>').join('');el.classList.add('fadein');}
+      }
+    }
+  }
 
-    <!-- CODE -->
-    <div class="tab-panel" id="panel_code">
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Java</span>
-          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-        </div>
-        <div class="code-content"><pre>${highlight(d.code)}</pre></div>
-      </div>
-    </div>
-
-    <!-- WALKTHROUGH -->
-    <div class="tab-panel" id="panel_walkthrough">
-      <ul class="steps-list">${stepsHTML}</ul>
-    </div>
-
-    <!-- TRICKY PARTS -->
-    <div class="tab-panel" id="panel_tricky">
-      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;line-height:1.6;">These are the parts that trip people up — knowing these makes you sound thorough.</div>
-      ${trickyHTML}
-    </div>
-
-    <!-- Q&A -->
-    <div class="tab-panel" id="panel_qa">
-      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;line-height:1.6;">Tap a question to see a confident answer you can give on the spot.</div>
-      ${qaHTML}
-    </div>
-
-    <!-- ALTERNATIVES -->
-    <div class="tab-panel" id="panel_alts">
-      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;line-height:1.6;">Knowing trade-offs shows depth. Mention these proactively.</div>
-      ${altHTML}
-    </div>
-  `;
-
-  area._rawCode = d.code;
-  area.classList.add('visible');
+  /* PRIORITY 4: thought_process — partial after 80 chars (~4-5s) */
+  if(!dk.has('tp')){
+    const v=strComplete('thought_process')||strPartial('thought_process',80);
+    if(v&&v.length>40){dk.add('tp');slot('sk_tp',v.replace(/\n/g,'<br>'));}
+  }
 }
 
-function copyCode(btn) {
-  const area = document.getElementById('responseArea');
-  navigator.clipboard.writeText(area._rawCode||'').then(() => { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500); });
+/* ═══════════════════════════════════════════════════════
+   SKELETON — shown instantly before any stream arrives
+═══════════════════════════════════════════════════════ */
+function showSkeleton(){
+  const a=document.getElementById('rarea');
+  if(mode==='coding'){
+    a.innerHTML=`<div style="padding-top:12px">
+      <div class="iblock blue"><div class="blbl">🧠 Approach</div><div id="sk_thought_process"><div class="skel" style="width:100%"></div><div class="skel" style="width:84%"></div><div class="skel" style="width:66%"></div></div></div>
+      <div class="iblock green"><div class="blbl">💡 Analogy</div><div id="sk_analogy"><div class="skel" style="width:100%"></div><div class="skel" style="width:72%"></div></div></div>
+      <div class="sumbox" id="sk_summary"><div class="skel" style="width:100%"></div><div class="skel" style="width:55%"></div></div>
+      <div id="sk_complexity" style="font-size:12.5px;color:var(--ts);padding:2px 0 10px"><div class="skel" style="width:76%"></div><div class="skel" style="width:52%"></div></div>
+      <div style="text-align:center;font-size:11px;color:var(--ts);font-style:italic;padding:6px 0">⏳ Code & walkthrough loading…</div></div>`;
+  } else {
+    a.innerHTML=`<div style="padding-top:12px">
+      <!-- Problem statement arrives FIRST ~1-2s -->
+      <div class="sumbox" id="sk_ps" style="min-height:52px"><div class="skel" style="width:100%"></div><div class="skel" style="width:68%"></div></div>
+
+      <!-- FRs arrive ~2-3s — you can start speaking requirements immediately -->
+      <div class="sublbl">🔵 Functional Requirements <span style="font-size:9px;font-weight:400;color:var(--ts)">(streaming…)</span></div>
+      <div id="sk_fr"><div class="skel" style="width:90%"></div><div class="skel" style="width:76%"></div><div class="skel" style="width:83%"></div></div>
+
+      <!-- NFRs arrive ~3-4s -->
+      <div class="sublbl">◎ Non-Functional Requirements <span style="font-size:9px;font-weight:400;color:var(--ts)">(streaming…)</span></div>
+      <div id="sk_nfr"><div class="skel" style="width:86%"></div><div class="skel" style="width:72%"></div><div class="skel" style="width:79%"></div></div>
+
+      <!-- Interview framing arrives ~4-5s -->
+      <div class="sublbl">🧠 Interview Framing</div>
+      <div class="iblock blue" id="sk_tp"><div class="skel" style="width:100%"></div><div class="skel" style="width:88%"></div><div class="skel" style="width:70%"></div><div class="skel" style="width:80%"></div></div>
+
+      <div style="text-align:center;font-size:11px;color:var(--ts);font-style:italic;padding:10px 0">⏳ Diagrams, components & deep dives loading…</div></div>`;
+  }
 }
 
-document.getElementById('problemInput').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && e.shiftKey) { e.preventDefault(); generate(); }
-});
+/* ═══════════════════════════════════════════════════════
+   PROMPTS
+═══════════════════════════════════════════════════════ */
+function codingPrompt(){
+  const ctx={interview:'Crisp, confident. Anticipate follow-ups.',explain:'Conversational, real-world trade-offs.',beginner:'Simple language, vivid analogies.'}[depth];
+  return `Elite Java coding coach. Context: ${ctx}
+Return ONLY valid JSON starting with { :
+{"summary":"confident one-liner","complexity":"Time: O(?) | Space: O(?)","complexity_explanation":"2-3 sentences WHY","pattern":"algorithm pattern","approach":"core technique","thought_process":"4-5 sentences first-person: aha moment, why naive fails, why this clicks","analogy":"vivid 2-3 sentence real-world analogy","code":"complete clean well-commented Java — use meaningful variable names","steps":[{"title":"title","what":"1-2 sentences","how":"mechanics with backtick \`varName\`","why":"reasoning"}],"tricky_parts":[{"issue":"gotcha","explanation":"why tricky, exactly how handled"}],"followup_qa":[{"question":"realistic question","answer":"confident 3-4 sentence answer"}],"alternatives":[{"name":"approach","complexity":"T/S","when_to_use":"when to prefer","verdict":"better|tradeoff|worse"}]}
+5-6 steps, 3 tricky_parts, 5 followup_qa, 3 alternatives.`;
+}
+
+function sdPrompt(){
+  const ctx={
+    senior:'Senior/Staff — deep trade-offs, real scale numbers, justify every decision with specific reasoning.',
+    mid:'Mid-level — clear architecture, solid reasoning, key trade-offs explained.',
+    deep:'Deep walkthrough — explain every component, every decision, as if teaching a junior engineer.'
+  }[depth];
+
+  return `You are a MAANG Staff Engineer who has passed 50+ system design interviews. Follow Hello Interview's exact framework by Evan King. Produce world-class, specific answers — never generic.
+
+Context: ${ctx}
+
+════════════════════════════════════
+DIAGRAM RULES — follow exactly:
+════════════════════════════════════
+You must produce TWO ASCII diagrams. Both must be vertical top-to-bottom flows using ↓ arrows. Every line must be accurate for the specific system being designed.
+
+DIAGRAM 1 (diagram_simple) — baseline satisfying only core functional requirements:
+- Include exactly: Client → DNS → Load Balancer → API Gateway → [main services] → Primary Database
+- Keep it minimal — just what's needed for the core write and read paths
+- Use this exact style (adapt names/services to the actual system):
+
+  ┌─────────┐
+  │  Client │ (Web / Mobile)
+  └────┬────┘
+       ↓
+  ┌──────────────────────────┐
+  │  DNS  (Route 53)         │
+  └────┬─────────────────────┘
+       ↓
+  ┌──────────────────────────┐
+  │  Load Balancer (Nginx)   │
+  └────┬─────────────────────┘
+       ↓
+  ┌──────────────────────────┐
+  │  API Gateway (Kong)      │ Auth / Rate Limit / Routing
+  └────┬─────────────────────┘
+       ↓
+  ┌──────────────────────────┐
+  │  [Service Name]          │
+  └────┬─────────────────────┘
+       ↓
+  ┌──────────────────────────┐
+  │  Primary DB (PostgreSQL) │
+  └──────────────────────────┘
+
+DIAGRAM 2 (diagram_scaled) — full production design satisfying all NFRs:
+- Must include ALL of: Client, CDN, DNS, Load Balancer, API Gateway, Auth Service, Write Service, Read Service, Message Queue, Fan-out/Worker Service, Cache layer, Primary DB, Read Replica(s), Object/Blob Storage (if needed), Search (if needed), Monitoring
+- Every component line MUST show alternatives in [brackets] on the SAME line
+- Use this exact style (adapt to actual system):
+
+  ┌──────────────────────────────────────────────────┐
+  │  Client  (Web / iOS / Android)                   │
+  └───────────────────┬──────────────────────────────┘
+                      ↓
+  ┌──────────────────────────────────────────────────┐
+  │  CDN  [CloudFront | Akamai | Fastly]             │ Static assets, edge caching
+  └───────────────────┬──────────────────────────────┘
+                      ↓
+  ┌──────────────────────────────────────────────────┐
+  │  DNS  (Route 53 / GeoDNS)                        │
+  └───────────────────┬──────────────────────────────┘
+                      ↓
+  ┌──────────────────────────────────────────────────┐
+  │  Load Balancer  [Nginx | HAProxy | AWS ALB]      │ L7, health checks, SSL termination
+  └───────────────────┬──────────────────────────────┘
+                      ↓
+  ┌──────────────────────────────────────────────────┐
+  │  API Gateway  [Kong | AWS API GW | Envoy]        │ Auth, rate limit, routing
+  └──────┬──────────────────────┬────────────────────┘
+         ↓ (writes)             ↓ (reads)
+  ┌──────────────┐    ┌─────────────────────────────┐
+  │ Write Service│    │ Read Service                │
+  └──────┬───────┘    └──────────┬──────────────────┘
+         ↓                       ↓
+  ┌─────────────────┐   ┌────────────────────────────┐
+  │ [Kafka |        │   │ Cache [Redis | Memcached]  │
+  │  RabbitMQ | SQS]│   │ (read-through, TTL 5 min)  │
+  │ (Event Queue)   │   └──────────┬─────────────────┘
+  └──────┬──────────┘              ↓ (cache miss)
+         ↓                ┌────────────────────────────┐
+  ┌──────────────┐        │ Read Replica               │
+  │ Worker/Fan-  │        │ [PostgreSQL RR | Aurora RR]│
+  │ out Service  │        └────────────────────────────┘
+  └──────┬───────┘
+         ↓
+  ┌─────────────────────────────────────────────────┐
+  │  Primary DB  [PostgreSQL | MySQL | Aurora]      │
+  └─────────────────────────────────────────────────┘
+  
+  ┌─────────────────────────────────────────────────┐
+  │  Object Store  [S3 | GCS | Azure Blob]          │ Media, files
+  └─────────────────────────────────────────────────┘
+  
+  ┌─────────────────────────────────────────────────┐
+  │  Monitoring  [Datadog | Prometheus + Grafana]   │
+  └─────────────────────────────────────────────────┘
+
+IMPORTANT: The above is a TEMPLATE — adapt every component name, service name, and alternative to be accurate and specific for the system being designed. Do not just copy the template literally.
+════════════════════════════════════
+
+Return ONLY valid JSON starting with { — no markdown, no preamble:
+{
+  "problem_statement": "Precise 2-3 sentence restatement: what we are building, the core challenge, the key scale dimension",
+  "thought_process": "5-6 sentences first person — how a Staff engineer frames this in an interview: what to clarify first, what makes this uniquely hard vs a simple CRUD app, the core trade-off (consistency vs availability / read vs write heavy / etc), your high-level approach",
+  "clarifying_questions": [
+    "Specific question to scope scale (e.g. how many DAU?)",
+    "Question to scope features (e.g. do we need real-time notifications?)",
+    "Question surfacing a key trade-off (e.g. is eventual consistency acceptable for the feed?)"
+  ],
+
+  "step1_requirements": {
+    "functional": [
+      {"req": "Users should be able to [verb] [noun]", "priority": "core", "technical_implication": "what this means architecturally — e.g. requires fan-out on write"}
+    ],
+    "non_functional": [
+      {"req": "The system should be [quality]", "value": "specific measurable target e.g. p99 read latency < 100ms", "tradeoff": "what we give up to achieve this"}
+    ],
+    "out_of_scope": ["explicitly excluded feature and why"],
+    "capacity_note": "State whether capacity estimation is needed and why — per Hello Interview, skip unless the number changes a design decision",
+    "capacity": {
+      "assumptions": ["X MAU", "Y active users/day", "Z writes/user/day", "W reads/user/day"],
+      "write_qps": "~X,XXX writes/sec  (calc: Y_MAU × 0.1 × Z / 86,400)",
+      "read_qps": "~XX,XXX reads/sec  (calc: Y_MAU × 0.1 × W / 86,400)",
+      "storage_per_year": "~X TB/year  (calc: show row size × write_qps × seconds_per_year)",
+      "design_impact": "Does this number change a specific design choice? State which one."
+    }
+  },
+
+  "step2_core_entities": [
+    {
+      "name": "EntityName",
+      "description": "what this entity represents — the real-world noun",
+      "note": "key design insight about this entity — e.g. why denormalized, why split, what's non-obvious",
+      "schema": {
+        "storage": "PostgreSQL | DynamoDB | Cassandra | Redis | S3",
+        "why_storage": "Specific reason for this store — e.g. relational integrity for transactions / wide-column for time-series / key-value for O(1) lookup",
+        "key_fields": "id UUID PK, user_id UUID FK, [design-relevant fields only — skip obvious ones], status ENUM, created_at TIMESTAMP",
+        "key_indexes": "INDEX on (user_id, created_at DESC) — one sentence on why this index matters for the query pattern",
+        "relationships": "How this entity relates to others — e.g. User 1:N Tweets, Tweet N:M Hashtags via TweetHashtag"
+      }
+    }
+  ],
+
+  "step3_api_design": {
+    "protocol_choice": "REST (default) / GraphQL / gRPC — and one sentence on why for this system",
+    "realtime_protocol": {
+      "needed": true,
+      "chosen": "WebSocket | SSE | Long Polling | HTTP/2 Server Push | None",
+      "reason": "Why this specific protocol fits this system — e.g. 'SSE because updates are server-to-client only (notifications, feed updates), no need for bidirectional channel, and SSE auto-reconnects and is simpler than WebSocket for this use case'",
+      "alternatives": [
+        {"name": "WebSocket", "verdict": "tradeoff|avoid|ok", "reason": "specific reason for or against here — e.g. 'bidirectional, lower overhead for chat; overkill if clients only receive, not send'"},
+        {"name": "Long Polling", "verdict": "avoid", "reason": "specific reason — e.g. 'simpler but holds open HTTP connections, wasteful at 10M concurrent users vs SSE'"},
+        {"name": "HTTP/2 Push", "verdict": "tradeoff", "reason": "native browser support but limited proxy compatibility, less predictable than SSE"}
+      ],
+      "how_it_fits": "One sentence on where in the architecture the real-time channel sits — e.g. 'Client opens SSE connection to the Notification Service via the API Gateway; fan-out worker pushes to Redis Pub/Sub which the Notification Service subscribes to and streams to the client'"
+    },
+    "endpoints": [
+      {
+        "method": "POST",
+        "path": "/v1/resource",
+        "auth": "Bearer JWT — derive user_id from token, never from request body",
+        "request": "{ field1: type, field2: type }",
+        "response": "{ id: uuid, created_at: timestamp, status: string }",
+        "note": "Rate limited to X req/min per user. Returns 201 on success, 429 on rate limit."
+      }
+    ]
+  },
+
+  "step4_data_flow": {
+    "needed": true,
+    "reason": "One sentence on why data flow matters specifically for this system",
+    "steps": [
+      "1. Client sends POST /v1/[resource] with JWT",
+      "2. API Gateway authenticates token, applies rate limit, routes to Write Service",
+      "3. Write Service validates, writes to Primary DB, publishes event to [Queue]",
+      "4. [Worker/Fan-out] Service consumes event, updates derived data / caches / search index",
+      "5. Read path: Client GETs /v1/[resource], Read Service checks Cache first, falls back to Read Replica"
+    ]
+  },
+
+  "step5_high_level_design": {
+    "diagram_simple": "VERTICAL top-to-bottom ASCII diagram — baseline design for core FRs only. Client → DNS → LB → API GW → Service → DB. Use box drawing with ┌─┐└─┘│ characters and ↓ arrows. Label each box with its specific role for this system.",
+    "diagram_simple_commentary": [
+      {"component": "Load Balancer", "says": "What to say when drawing this box — e.g. 'I'm adding a load balancer here to distribute traffic across multiple API instances, giving us horizontal scale and automatic failover'"},
+      {"component": "API Gateway", "says": "What to say — e.g. 'The API Gateway handles auth, rate limiting, and routing so our services stay stateless'"},
+      {"component": "Primary DB", "says": "What to say — e.g. 'For now a single PostgreSQL instance — this is our bottleneck and we'll address it in the scaled design'"}
+    ],
+    "diagram_scaled": "VERTICAL top-to-bottom ASCII diagram — full production design. EVERY component must show alternatives in [brackets] on same line. Must include: Client, CDN [Alt1|Alt2|Alt3], DNS, Load Balancer [Alt1|Alt2|Alt3], API Gateway [Alt1|Alt2|Alt3], Write Service, Read Service, Message Queue [Alt1|Alt2|Alt3], Worker/Fan-out, Cache [Alt1|Alt2], Primary DB [Alt1|Alt2|Alt3], Read Replica, Object Store [Alt1|Alt2] if needed, Search [Alt1|Alt2] if needed, Monitoring [Alt1|Alt2]. Use box drawing with ┌─┐└─┘│ and ↓ arrows. Show write path on left, read path on right where they diverge.",
+    "diagram_scaled_commentary": [
+      {"component": "CDN", "says": "What to say when adding CDN — e.g. 'I'm pushing static assets and read-heavy responses to the edge; CloudFront cuts p99 latency by ~40ms for geographically distributed users'"},
+      {"component": "Message Queue", "says": "What to say — e.g. 'Kafka decouples the write path from fan-out. The write service acknowledges immediately after writing to the DB, and the fan-out happens async — this is how we hit our p99 write latency NFR'"},
+      {"component": "Cache", "says": "What to say — e.g. 'Redis sits in front of the read replica. Cache hit rate target is ~95%; a cache miss falls through to the replica and back-fills the cache'"},
+      {"component": "Read Replica", "says": "What to say — e.g. 'Read replicas absorb our ~10:1 read/write ratio. Replication lag is typically <50ms — acceptable for eventual consistency on feeds'"}
+    ],
+    "components": [
+      {
+        "name": "Component Name (matches diagram box exactly)",
+        "role": "What this component does and why it exists as a separate service — the specific responsibility boundary",
+        "chosen_tech": "Specific technology name e.g. Apache Kafka 3.x",
+        "why_chosen": "Specific technical reason matching this system's needs — e.g. log-based storage gives us consumer group replay for fan-out recovery; ordered within partitions guarantees feed consistency",
+        "alternatives": [
+          {"name": "RabbitMQ", "verdict": "tradeoff", "reason": "Better for complex routing with exchanges and bindings; worse for our high-throughput fan-out because no consumer replay if fan-out service crashes"},
+          {"name": "AWS SQS", "verdict": "tradeoff", "reason": "Zero ops overhead, scales automatically; limited to 256KB messages and no replay beyond 14-day retention window"},
+          {"name": "Redis Pub/Sub", "verdict": "avoid", "reason": "No persistence — messages permanently lost if any consumer is offline at publish time, unacceptable for feed delivery"}
+        ]
+      }
+    ]
+  },
+
+  "step6_deep_dives": [
+    {
+      "topic": "Specific hard problem title e.g. 'Feed Fan-out for Celebrity Accounts with 10M+ Followers'",
+      "nfr_addressed": "which NFR from step1 this hardens",
+      "why_hard": "Why this is specifically hard for this system at this scale — not generic",
+      "naive_approach": "What a junior engineer would implement and the specific failure mode at scale — e.g. synchronous fan-out to 10M follower rows on each write = 10s write latency",
+      "real_solution": "Detailed solution with specific technologies and algorithms — e.g. hybrid push/pull: push for users <10K followers (async Kafka fan-out), pull on read for celebrities (merge at read time from tweet store + follow graph)",
+      "numbers": "Concrete numbers validating the solution — e.g. 10M followers × 100 byte cache entry = 1GB Redis per celebrity tweet; Redis cluster with 64GB RAM handles 64 concurrent celebrity writes",
+      "trade_offs": "What you explicitly give up — e.g. celebrity followers see slight delay (eventual consistency) vs follower-count < 10K users who see instant updates"
+    }
+  ],
+
+  "followup_qa": [
+    {"question": "Specific technical question an interviewer would ask, e.g. 'How would you handle the thundering herd when a celebrity posts?'", "answer": "Confident, specific 3-4 sentence answer with concrete solution — e.g. use request coalescing at the cache layer with a single in-flight key, dog-pile prevention via probabilistic early expiration (PER), and pre-warming celebrity feed caches via a background job that detects high-follower accounts"}
+  ],
+
+  "speak_guide": {
+    "opening_script": "Word-for-word what to say in the first 60 seconds — clarifying questions to ask, how to state what you're going to design",
+    "key_insight": "The one non-obvious insight that most candidates miss — the thing that makes a Staff-level answer different from a mid-level answer",
+    "common_mistakes": [
+      "Specific mistake candidates make on this problem and exactly what to do instead",
+      "Another common mistake"
+    ],
+    "closing_script": "How to wrap up confidently in the last 2 minutes — what to summarize, how to invite questions"
+  }
+}
+
+Requirements: 3 func reqs max (prioritization is a signal), 4-5 NFRs with specific numbers, 3-4 core entities each with full schema inside, 3-4 API endpoints + realtime_protocol block always, BOTH diagrams always with commentary arrays, 4-6 components each with exactly 3 inline alternatives, 3-4 deep dives each with naive+real+numbers, 5 Q&As. Make every answer specific to THIS problem — no generic advice.`;
+}
+
+/* ═══════════════════════════════════════════════════════
+   TAB HELPERS
+═══════════════════════════════════════════════════════ */
+function ptabBar(pairs){let h='<div class="ptabs">';for(let i=0;i<pairs.length;i+=2)h+=`<div class="ptab${i===0?' on':''}" data-t="${pairs[i]}" onclick="switchP('${pairs[i]}')">${pairs[i+1]}</div>`;return h+'</div>';}
+function switchP(id){document.querySelectorAll('.ptab').forEach(t=>t.classList.toggle('on',t.dataset.t===id));document.querySelectorAll('.ppanel').forEach(p=>p.classList.toggle('on',p.id==='pp_'+id));}
+function toggleQA(el){el.classList.toggle('open');el.querySelector('.chev').classList.toggle('open');el.nextElementSibling.classList.toggle('open');}
+function wireSubTabs(container){
+  const tabs=[...container.querySelectorAll(':scope > .stab-row > .stab')];
+  const panels=[...container.querySelectorAll(':scope > .spanel')];
+  tabs.forEach((t,i)=>{t.onclick=()=>{tabs.forEach(x=>x.classList.remove('on'));panels.forEach(x=>x.classList.remove('on'));t.classList.add('on');panels[i]?.classList.add('on');};});
+}
+
+/* ═══════════════════════════════════════════════════════
+   SPEAK MODE
+═══════════════════════════════════════════════════════ */
+function openSM(){
+  if(!last)return;
+  const{mode:m,data:d}=last;let h='';
+  if(m==='coding'){
+    h+=sc('🧠 How I Approached It',d.thought_process);h+=sc('🎯 One-Liner',d.summary);h+=sc('💡 Analogy',d.analogy);
+    h+=sc('🔑 Key Steps',(d.steps||[]).map((s,i)=>(i+1)+'. '+s.title+' — '+s.why).join('\n'));
+    h+=sc('⚡ Complexity',d.complexity_explanation);
+    h+=sc('⚠️ Gotchas',(d.tricky_parts||[]).map(t=>'• '+t.issue+': '+String(t.explanation).slice(0,140)).join('\n'));
+  }else{
+    const sg=d.speak_guide||{},r=d.step1_requirements||{};
+    h+=sc('🎬 Opening (say this verbatim)',sg.opening_script||'');
+    h+=sc('💡 The Key Insight',sg.key_insight||'');
+    h+=sc('📋 Requirements to State',[...(r.functional||[]).map(f=>'🔵 '+f.req),'─',...(r.non_functional||[]).map(n=>'◎ '+n.req+' ('+n.value+')')].join('\n'));
+    h+=sc('🏗️ Architecture Flow',(d.step4_data_flow?.steps||[]).join('\n'));
+    h+=sc('🔬 Deep Dives to Hit',(d.step6_deep_dives||[]).map(dd=>'• '+dd.topic+': '+String(dd.real_solution).slice(0,130)).join('\n'));
+    h+=sc('⚠️ Mistakes to Avoid',(sg.common_mistakes||[]).map(m=>'• '+m).join('\n'));
+    h+=sc('🏁 Closing (say this)',sg.closing_script||'');
+  }
+  document.getElementById('smc').innerHTML=h;document.getElementById('sovl').classList.add('on');
+}
+function closeSM(){document.getElementById('sovl').classList.remove('on');}
+function sc(lbl,txt){return '<div class="sc"><div class="sc-lbl">'+lbl+'</div><div class="sc-txt">'+String(txt||'').replace(/\n/g,'<br>')+'</div></div>';}
+
+/* ═══════════════════════════════════════════════════════
+   JAVA RENDER
+═══════════════════════════════════════════════════════ */
+function hl(code){
+  const kw=['public','private','protected','class','interface','extends','implements','new','return','if','else','for','while','do','switch','case','default','break','continue','null','true','false','void','static','final','abstract','import','package','throws','throw','try','catch','finally','int','long','double','float','boolean','char','String','List','Map','Set','ArrayList','HashMap','HashSet','LinkedList','Stack','Queue','TreeMap','TreeSet','PriorityQueue','Arrays','Collections','Math','Integer','Character','Optional','var'];
+  let h=code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  h=h.replace(/(\/\/[^\n]*)/g,'<span style="color:#6a9955">$1</span>');
+  h=h.replace(/(\/\*[\s\S]*?\*\/)/g,'<span style="color:#6a9955">$1</span>');
+  h=h.replace(/("(?:[^"\\]|\\.)*")/g,'<span style="color:#ce9178">$1</span>');
+  h=h.replace(/\b(\d+)\b/g,'<span style="color:#b5cea8">$1</span>');
+  kw.forEach(k=>{h=h.replace(new RegExp('\\b('+k+')\\b','g'),'<span style="color:#569cd6">$1</span>');});
+  return h;
+}
+const rx=t=>String(t||'').replace(/`([^`]+)`/g,'<code>$1</code>');
+const eh=t=>String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+function renderCoding(d){
+  const a=document.getElementById('rarea');
+  const stH=(d.steps||[]).map((s,i)=>`<div class="card fadein"><div class="card-head"><div class="cnum">${i+1}</div><div>${s.title}</div></div><div class="card-body">${rx(s.what)}<br><br>${rx(s.how)}</div><div class="card-sub">💡 Why: ${s.why}</div></div>`).join('');
+  const trH=(d.tricky_parts||[]).map(t=>`<div class="iblock red fadein"><div class="blbl">⚠️ ${t.issue}</div>${rx(t.explanation)}</div>`).join('');
+  const qaH=(d.followup_qa||[]).map(q=>`<div class="qa-item fadein"><div class="qa-q" onclick="toggleQA(this)"><span>${q.question}</span><span class="chev">›</span></div><div class="qa-a">${rx(q.answer)}</div></div>`).join('');
+  const vl=v=>v==='better'?'✓ Better':v==='worse'?'✗ Worse':'⇄ Trade-off';
+  const vc=v=>v==='better'?'bg':v==='worse'?'bo':'bb';
+  const alH=(d.alternatives||[]).map(al=>`<div class="card fadein"><div class="card-head" style="justify-content:space-between"><span>${al.name} <small style="color:var(--ts);font-weight:400">${al.complexity}</small></span><span class="badge ${vc(al.verdict)}">${vl(al.verdict)}</span></div><div class="card-body">${al.when_to_use}</div></div>`).join('');
+  a.innerHTML=
+    ptabBar(['overview','Overview','code','Code','steps','Walkthrough','tricky','Gotchas','qa','Q&A','alts','Alternatives'])+
+    `<div class="ppanel on" id="pp_overview">
+      <div class="iblock blue fadein"><div class="blbl">🧠 How I thought about this</div>${d.thought_process}</div>
+      <div class="iblock green fadein"><div class="blbl">💡 Real-world analogy</div>${d.analogy}</div>
+      <div class="sumbox fadein">${d.summary}</div>
+      <div class="mrow"><span class="badge ba">${d.complexity}</span><span class="badge bb">${d.pattern}</span><span class="badge bg">${d.approach}</span></div>
+      <div style="font-size:12.5px;line-height:1.7;color:var(--ts);padding:2px 0 14px">${d.complexity_explanation}</div>
+      <button class="spk-btn fadein" onclick="openSM()">📢 Open Speak Mode</button>
+    </div>
+    <div class="ppanel" id="pp_code">
+      <p style="font-size:11px;color:var(--ts);margin-bottom:9px">Lines wrap — scroll up/down only. No horizontal scroll.</p>
+      <div class="code-outer fadein"><div class="code-hdr"><span class="code-lang">JAVA</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><div class="code-body"><pre>${hl(d.code)}</pre></div></div>
+    </div>
+    <div class="ppanel" id="pp_steps"><div>${stH}</div></div>
+    <div class="ppanel" id="pp_tricky"><p style="font-size:11.5px;color:var(--ts);margin-bottom:12px;line-height:1.5">Knowing these signals thoroughness.</p>${trH}</div>
+    <div class="ppanel" id="pp_qa"><p style="font-size:11.5px;color:var(--ts);margin-bottom:12px;line-height:1.5">Tap to reveal.</p>${qaH}</div>
+    <div class="ppanel" id="pp_alts"><p style="font-size:11.5px;color:var(--ts);margin-bottom:12px;line-height:1.5">Mentioning trade-offs signals depth.</p>${alH}</div>`;
+  a._rawCode=d.code;a.classList.add('on');
+  setTimeout(()=>a.scrollIntoView({behavior:'smooth',block:'start'}),120);
+}
+
+/* ═══════════════════════════════════════════════════════
+   SD RENDER — full final render replaces skeleton
+═══════════════════════════════════════════════════════ */
+function renderSD(d){
+  const a=document.getElementById('rarea');
+  const r=d.step1_requirements||{},api=d.step3_api_design||{},flow=d.step4_data_flow||{},hld=d.step5_high_level_design||{},dives=d.step6_deep_dives||[],sg=d.speak_guide||{};
+
+  /* Requirements */
+  const funcH=(r.functional||[]).map(f=>`<div class="hrow fadein"><strong>${f.priority==='core'?'🔵':'⚪'} ${f.req}</strong>${f.technical_implication?'<br><span style="font-size:11.5px;color:var(--ts)">→ '+f.technical_implication+'</span>':''}</div>`).join('');
+  const nfrH=(r.non_functional||[]).map(n=>`<div class="hrow fadein">◎ <strong>${n.req}</strong> <span class="badge ba">${n.value}</span>${n.tradeoff?'<br><span style="font-size:11.5px;color:var(--ts)">Tradeoff: '+n.tradeoff+'</span>':''}</div>`).join('');
+  const oosH=(r.out_of_scope||[]).map(o=>`<span class="pill">✗ ${o}</span>`).join('');
+  const cap=r.capacity||{};
+  const capH=cap.write_qps?`
+    <div class="iblock orange fadein"><div class="blbl">📌 Hello Interview</div>${r.capacity_note||'Only calculate if the number changes a design decision.'}</div>
+    <div class="sublbl">Assumptions</div>${(cap.assumptions||[]).map(a=>'<div class="hrow fadein">'+a+'</div>').join('')}
+    <div class="card fadein"><div class="card-body">
+      <div style="margin-bottom:5px">✍️ <strong>Write QPS:</strong> ${cap.write_qps}</div>
+      <div style="margin-bottom:5px">📖 <strong>Read QPS:</strong> ${cap.read_qps}</div>
+      <div style="margin-bottom:5px">💾 <strong>Storage/year:</strong> ${cap.storage_per_year}</div>
+      <div>🎯 <strong>Design impact:</strong> ${cap.design_impact||'—'}</div>
+    </div></div>`:
+    '<div class="iblock orange fadein"><div class="blbl">📌 Hello Interview</div>Skip capacity unless it changes a design decision. State this explicitly to the interviewer.</div>';
+
+  /* Entities + Schema merged — each card shows entity description AND its schema */
+  const entH=(d.step2_core_entities||[]).map(e=>{
+    const sc=e.schema||{};
+    const verdictBadge={'PostgreSQL':'bb','MySQL':'bb','DynamoDB':'bp','Cassandra':'bp','Redis':'bg','S3':'ba','Elasticsearch':'bo'}[sc.storage]||'ba';
+    return `<div class="card fadein" style="margin-bottom:13px">
+      <div class="card-head" style="justify-content:space-between">
+        <span style="font-size:14px;font-weight:700">${e.name}</span>
+        ${sc.storage?`<span class="badge ${verdictBadge}">${sc.storage}</span>`:''}
+      </div>
+      <div class="card-body" style="margin-bottom:8px">${e.description}</div>
+      ${e.note?`<div class="card-sub" style="margin-bottom:10px">💡 Design insight: ${e.note}</div>`:''}
+      ${sc.key_fields?`
+        <div class="sublbl" style="margin-top:2px">Schema Fields</div>
+        <div style="background:var(--cdbg);border-radius:8px;padding:10px 12px;font-family:'SF Mono',monospace;font-size:11px;line-height:1.8;color:var(--cdtx);word-break:break-word;margin-bottom:8px">${eh(sc.key_fields)}</div>
+      `:''}
+      ${sc.key_indexes?`<div style="font-size:11.5px;color:var(--ts);margin-bottom:5px">🔑 <strong>Index:</strong> ${sc.key_indexes}</div>`:''}
+      ${sc.relationships?`<div style="font-size:11.5px;color:var(--purple);margin-bottom:5px">🔗 <strong>Relationships:</strong> ${sc.relationships}</div>`:''}
+      ${sc.why_storage?`<div class="iblock green fadein" style="padding:8px 12px;margin-top:8px;margin-bottom:0"><div class="blbl">Why ${sc.storage||'this store'}</div>${sc.why_storage}</div>`:''}
+    </div>`;
+  }).join('');
+
+  /* Realtime Protocol */
+  const rt=api.realtime_protocol||{};
+  const rtVerd=v=>v==='avoid'?'av-avoid':v==='tradeoff'?'av-trade':'av-ok';
+  const rtLbl=v=>v==='avoid'?'✗ Avoid':v==='tradeoff'?'⇄ Trade-off':'✓ OK';
+  const rtH=rt.chosen?`
+    <div class="tech-card fadein" style="border:1.5px solid rgba(45,95,160,.3)">
+      <div class="tech-top">
+        <span class="tech-name">🔄 Real-time Protocol</span>
+        <span class="chosen-tag">✓ ${rt.chosen}</span>
+      </div>
+      <div class="tech-role">${rt.reason||''}</div>
+      ${rt.how_it_fits?`<div class="tech-why"><strong>Where it fits:</strong> ${rt.how_it_fits}</div>`:''}
+      ${rt.alternatives&&rt.alternatives.length?`<div class="alt-lbl">Alternatives</div>${rt.alternatives.map(a=>`
+        <div class="alt-row">
+          <span class="alt-name">${a.name}</span>
+          <span class="av ${rtVerd(a.verdict)}">${rtLbl(a.verdict)}</span>
+          <span class="alt-why">${a.reason}</span>
+        </div>`).join('')}`:''}
+    </div>`:'';
+
+  /* API endpoints */
+  const apiH=(api.endpoints||[]).map(ep=>`<div class="card fadein" style="margin-bottom:10px">
+    <div class="card-head"><span class="badge bb" style="font-family:monospace;font-size:10px">${ep.method}</span> <code style="font-size:12.5px">${ep.path}</code></div>
+    <div class="card-body">
+      ${ep.auth?'<div style="margin-bottom:4px;font-size:11.5px;color:var(--ts)">🔐 '+ep.auth+'</div>':''}
+      <strong>Request:</strong> <code>${ep.request||''}</code><br><strong>Response:</strong> <code>${ep.response||''}</code>
+      ${ep.note?'<div style="margin-top:4px;font-size:11.5px;color:var(--ts)">'+ep.note+'</div>':''}
+    </div></div>`).join('');
+
+  /* Data flow */
+  const flowH=flow.needed?`<div class="iblock blue fadein"><div class="blbl">Why data flow here</div>${flow.reason||''}</div>${(flow.steps||[]).map(s=>'<div class="hrow fadein">'+s+'</div>').join('')}`
+    :'<div class="iblock green fadein"><div class="blbl">✓ Not needed</div>No meaningful processing pipeline here — per Hello Interview, skip to HLD for standard CRUD systems.</div>';
+
+  /* Diagram commentary — what to say when walking through each component */
+  const diagCommentaryH=(arr,label)=>{
+    if(!arr||!arr.length)return '';
+    return `<div class="sublbl" style="margin-top:12px">${label}</div>`+
+      arr.map(c=>`<div class="card fadein" style="margin-bottom:7px;border-left:3px solid var(--blue);border-radius:0 8px 8px 0;background:var(--bs)">
+        <div style="font-size:10px;font-weight:700;color:var(--blue);margin-bottom:3px;letter-spacing:.05em">${c.component}</div>
+        <div style="font-size:12.5px;line-height:1.65;color:var(--tp)">💬 "${c.says}"</div>
+      </div>`).join('');
+  };
+
+  /* TWO DIAGRAMS — syntax colouring: [alts]=amber, arrows=blue-grey */
+  const colorizeDiag=raw=>{
+    let s=eh(raw);
+    s=s.replace(/\[([^\]<]+)\]/g,'<span style="color:#e8c060;font-weight:600">[$1]</span>');
+    s=s.replace(/([→↓←↑]|──►?|━━)/g,'<span style="color:#7aabcc">$1</span>');
+    return s;
+  };
+  const diagSimple=hld.diagram_simple?`
+    <div class="diag-wrap">
+      <div class="diag-label">Diagram 1 — Baseline Design <span class="diag-pill">satisfies core FRs</span></div>
+      <div class="diagram">${colorizeDiag(hld.diagram_simple)}</div>
+      ${diagCommentaryH(hld.diagram_simple_commentary,'🗣️ What to say while drawing Diagram 1')}
+    </div>`:'';
+  const diagScaled=hld.diagram_scaled?`
+    <div class="diag-wrap">
+      <div class="diag-label">Diagram 2 — Production Design <span class="diag-pill">satisfies NFRs</span> <span class="diag-pill" style="background:var(--os);color:var(--orange)">[amber brackets] = alternatives</span></div>
+      <div class="diagram">${colorizeDiag(hld.diagram_scaled)}</div>
+      ${diagCommentaryH(hld.diagram_scaled_commentary,'🗣️ What to say while evolving to Diagram 2')}
+    </div>`:'';
+
+  /* Components with inline alternatives */
+  const compH=(hld.components||[]).map(c=>`
+    <div class="tech-card fadein">
+      <div class="tech-top"><span class="tech-name">${c.name}</span><span class="chosen-tag">✓ ${c.chosen_tech}</span></div>
+      <div class="tech-role">${c.role}</div>
+      <div class="tech-why"><strong>Why ${c.chosen_tech}:</strong> ${c.why_chosen}</div>
+      ${c.alternatives&&c.alternatives.length?`<div class="alt-lbl">Alternatives — same line as diagram [brackets]</div>${c.alternatives.map(alt=>`
+        <div class="alt-row">
+          <span class="alt-name">${alt.name}</span>
+          <span class="av ${alt.verdict==='avoid'?'av-avoid':alt.verdict==='tradeoff'?'av-trade':'av-ok'}">${alt.verdict==='avoid'?'✗ Avoid':alt.verdict==='tradeoff'?'⇄ Trade-off':'✓ OK'}</span>
+          <span class="alt-why">${alt.reason}</span>
+        </div>`).join('')}`:''}
+    </div>`).join('');
+
+  /* Deep dives */
+  const deepH=dives.map(dd=>`<div class="card fadein" style="margin-bottom:13px">
+    <div class="card-head">🔬 ${dd.topic}</div>
+    ${dd.nfr_addressed?`<div style="margin-bottom:6px"><span class="badge bb">Hardens: ${dd.nfr_addressed}</span></div>`:''}
+    <div class="sublbl" style="margin-top:4px">Why It's Hard</div><div class="card-body">${dd.why_hard}</div>
+    <div class="sublbl">❌ Naive Approach & Why It Fails</div>
+    <div class="iblock red fadein" style="margin-bottom:8px"><div class="blbl">Junior Engineer approach</div>${dd.naive_approach}</div>
+    <div class="sublbl">✅ The Real Solution</div><div class="card-body">${dd.real_solution}</div>
+    ${dd.numbers?`<div class="iblock orange fadein" style="margin-top:8px;padding:8px 12px"><div class="blbl">📊 Numbers</div>${dd.numbers}</div>`:''}
+    <div class="card-warn" style="margin-top:6px">⇄ Trade-off: ${dd.trade_offs}</div>
+  </div>`).join('');
+
+  /* Q&A */
+  const qaH=(d.followup_qa||[]).map(q=>`<div class="qa-item fadein"><div class="qa-q" onclick="toggleQA(this)"><span>${q.question}</span><span class="chev">›</span></div><div class="qa-a">${q.answer}</div></div>`).join('');
+
+  /* ══ FULL RENDER ══ */
+  a.innerHTML=
+    ptabBar(['overview','Overview','walkthrough','Design Walkthrough','deepdives','Deep Dives','qa','Q&A'])+
+
+    `<div class="ppanel on" id="pp_overview">
+      <div class="sumbox fadein">${d.problem_statement}</div>
+      <div class="sublbl">Clarifying Questions to Ask First</div>
+      ${(d.clarifying_questions||[]).map((q,i)=>'<div class="hrow fadein"><strong>Q'+(i+1)+':</strong> '+q+'</div>').join('')}
+      <div class="sublbl">🔵 Core Functional Requirements</div>
+      ${(r.functional||[]).filter(f=>f.priority==='core').map(f=>'<div class="hrow fadein">🔵 '+f.req+'</div>').join('')}
+      <div class="sublbl">◎ Key Non-Functional Requirements</div>
+      ${(r.non_functional||[]).map(n=>'<div class="hrow fadein">◎ '+n.req+' <span class="badge ba">'+n.value+'</span></div>').join('')}
+      <div class="iblock blue fadein" style="margin-top:14px"><div class="blbl">🧠 How to frame this interview</div>${d.thought_process}</div>
+      <button class="spk-btn fadein" style="margin-top:10px" onclick="openSM()">📢 Open Speak Mode</button>
+    </div>
+
+    <div class="ppanel" id="pp_walkthrough">
+      <div class="stab-row">
+        <div class="stab on"><span class="sn">1</span>Requirements<span class="step-t">~5m</span></div>
+        <div class="stab"><span class="sn">2</span>Entities & Schema<span class="step-t">~3m</span></div>
+        <div class="stab"><span class="sn">3</span>API & Realtime<span class="step-t">~5m</span></div>
+        <div class="stab"><span class="sn">4</span>Data Flow<span class="step-t">opt</span></div>
+        <div class="stab"><span class="sn">5</span>HLD + Diagrams<span class="step-t">~15m</span></div>
+      </div>
+
+      <div class="spanel on">
+        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>"Users should be able to…" — max 3. NFRs must be specific numbers. Capacity only if it changes a decision.</div>
+        <div class="sublbl">🔵 Functional Requirements</div>${funcH}
+        <div class="sublbl">◎ Non-Functional Requirements</div>${nfrH}
+        <div class="sublbl">✗ Out of Scope</div><div class="pill-row">${oosH}</div>
+        <div class="sublbl">📊 Capacity Estimation</div>${capH}
+      </div>
+
+      <div class="spanel">
+        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>State each entity as a simple noun, its role, and key schema fields together. Mentioning the storage choice and why signals depth. Relationships clarify how the data model holds together.</div>
+        ${entH}
+      </div>
+
+      <div class="spanel">
+        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>Default REST. Plural nouns. user_id always from JWT — never from request body. State the real-time protocol upfront — it affects the architecture significantly.</div>
+        ${rtH}
+        <div class="sublbl" style="margin-top:12px">REST Endpoints <span style="font-size:9px;font-weight:400;color:var(--ts)">Protocol: ${api.protocol_choice||'REST'}</span></div>
+        ${apiH}
+      </div>
+
+      <div class="spanel">
+        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>Optional — only for pipeline/data systems. Skip for standard CRUD products.</div>
+        ${flowH}
+      </div>
+
+      <div class="spanel">
+        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>Draw Diagram 1 first (simple, satisfies FRs). Read out the commentary for each box as you draw it. Then evolve to Diagram 2 (production, satisfies NFRs). Speak the rationale for each new component you add.</div>
+        ${diagSimple}${diagScaled}
+        <div class="sublbl" style="margin-top:16px">Component Decisions <span style="font-size:9.5px;font-weight:400;color:var(--ts)">— match [brackets] in Diagram 2</span></div>
+        <p style="font-size:11px;color:var(--ts);margin-bottom:10px;line-height:1.5">Each card explains the choice and shows alternatives with specific trade-offs inline — same components shown in amber [brackets] in the diagram above.</p>
+        ${compH}
+      </div>
+    </div>
+
+    <div class="ppanel" id="pp_deepdives">
+      <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>~10 min. Lead proactively for senior roles. Always naive approach first — it shows you understand WHY it's hard. Each dive hardens a specific NFR.</div>
+      ${deepH}
+    </div>
+
+    <div class="ppanel" id="pp_qa">
+      <p style="font-size:11.5px;color:var(--ts);margin-bottom:12px">Tap to reveal a confident answer.</p>${qaH}
+    </div>`;
+
+  a.classList.add('on');
+  wireSubTabs(document.querySelector('#pp_walkthrough'));
+  setTimeout(()=>a.scrollIntoView({behavior:'smooth',block:'start'}),120);
+}
+
+function copyCode(btn){const a=document.getElementById('rarea');navigator.clipboard.writeText(a._rawCode||'').then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',1500);});}
+document.getElementById('tbox').addEventListener('input',chkBtn);
 </script>
 </body>
 </html>
