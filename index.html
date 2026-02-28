@@ -395,28 +395,87 @@ async function generate(){
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:mode==='coding'?4500:7500,stream:true,system:sys,messages:[{role:'user',content:prob}]})
     });
     if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'API error '+res.status);}
-    const reader=res.body.getReader(),dec=new TextDecoder();
-    let full='',pct=5,dk=new Set();
-    /* Show skeleton immediately — don't wait for thinking */
+    const reader=res.body.getReader(), dec=new TextDecoder();
+    let full='', pct=5, dk=new Set(), buf='';
+    /* Show skeleton immediately */
     document.getElementById('thinking').classList.remove('on');
     showSkeleton();
     document.getElementById('rarea').classList.add('on');
+
     while(true){
-      const{done,value}=await reader.read();if(done)break;
-      const lines=dec.decode(value,{stream:true}).split('\n');
+      const{done,value}=await reader.read();
+      /* Flush decoder on final chunk */
+      const chunk = value ? dec.decode(value, {stream:!done}) : (done ? dec.decode() : '');
+      /* buf handles lines that span multiple chunks */
+      buf += chunk;
+      const lines = buf.split('\n');
+      buf = lines.pop(); /* keep incomplete last line in buffer */
       for(const ln of lines){
-        if(!ln.startsWith('data: '))continue;
-        const d=ln.slice(6).trim();if(d==='[DONE]')break;
-        try{const ev=JSON.parse(d);if(ev.type==='content_block_delta'&&ev.delta?.text){full+=ev.delta.text;pct=Math.min(90,pct+0.2);bar.style.width=pct+'%';patch(full,dk);}}catch(e){}
+        if(!ln.startsWith('data: ')) continue;
+        const d=ln.slice(6).trim();
+        if(d==='[DONE]') continue;
+        try{
+          const ev=JSON.parse(d);
+          if(ev.type==='content_block_delta' && ev.delta?.text){
+            full += ev.delta.text;
+            pct = Math.min(90, pct+0.2);
+            bar.style.width = pct+'%';
+            patch(full, dk);
+          }
+        }catch(e){}
+      }
+      if(done) break;
+    }
+    /* Process any remaining buffer content */
+    if(buf.startsWith('data: ')){
+      const d=buf.slice(6).trim();
+      if(d && d!=='[DONE]'){
+        try{const ev=JSON.parse(d);if(ev.type==='content_block_delta'&&ev.delta?.text)full+=ev.delta.text;}catch(e){}
       }
     }
     bar.style.width='100%';
     setTimeout(()=>{document.getElementById('sprog').classList.remove('on');bar.style.width='0%';},500);
-    try{
-      const parsed=JSON.parse(full.trim().replace(/^```json\s*/i,'').replace(/\s*```$/,''));
+
+    /* ── Robust JSON extraction ──
+       The model may wrap in ```json … ``` or have leading text before {
+       Try multiple strategies before giving up                          */
+    let parsed = null;
+    const tryParse = str => {
+      try { return JSON.parse(str); } catch(e) { return null; }
+    };
+    // Strategy 1: strip markdown fences and trim
+    let clean = full.trim();
+    clean = clean.replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+    parsed = tryParse(clean);
+
+    // Strategy 2: find first { and last } — handles any leading/trailing text
+    if(!parsed){
+      const first = clean.indexOf('{');
+      const last  = clean.lastIndexOf('}');
+      if(first>=0 && last>first) parsed = tryParse(clean.slice(first, last+1));
+    }
+
+    // Strategy 3: try to fix common JSON issues (trailing commas, unescaped quotes in values)
+    if(!parsed){
+      try{
+        // Remove trailing commas before } or ]
+        const fixed = clean.replace(/,\s*([}\]])/g,'$1');
+        parsed = tryParse(fixed);
+      }catch(e){}
+    }
+
+    if(parsed){
       last={mode,data:parsed};
-      mode==='coding'?renderCoding(parsed):renderSD(parsed);
-    }catch(e){console.warn('parse',e);}
+      mode==='coding' ? renderCoding(parsed) : renderSD(parsed);
+    } else {
+      // Show the raw text so the user isn't left with a spinning skeleton
+      document.getElementById('rarea').innerHTML=
+        '<div class="err-box">⚠️ Could not parse response as JSON. The model may have returned plain text instead.<br><br>' +
+        '<details><summary style="cursor:pointer;font-weight:600">View raw response</summary>' +
+        '<pre style="white-space:pre-wrap;word-break:break-word;font-size:11px;margin-top:8px;color:var(--tp)">' +
+        eh(full.slice(0,3000)) + (full.length>3000?'\n…[truncated]':'') +
+        '</pre></details></div>';
+    }
   }catch(err){
     document.getElementById('thinking').classList.remove('on');
     document.getElementById('rarea').innerHTML='<div class="err-box">⚠️ '+err.message+'</div>';
