@@ -5,212 +5,213 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Notes</title>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-:root {
-  --bg:#faf9f7; --sf:#ffffff; --br:#e8e5e0;
-  --tp:#1a1916; --ts:#7a7670;
-  --ac:#c8a96e; --as:#f5f0e8;
-  --cdbg:#1a1917; --cdtx:#e8e4dc;
-  --green:#3d7a52; --blue:#2d5fa0; --red:#8a3a3a; --purple:#6040a0; --orange:#b06020;
-  --gs:#eaf3ee; --bs:#e8f0fb; --rs:#faeaea; --ps:#f2edfb; --os:#fdf0e4;
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#faf9f7;--sf:#ffffff;--br:#e8e5e0;
+  --tp:#1a1916;--ts:#7a7670;
+  --ac:#c8a96e;--as:#f5f0e8;
+  --cdbg:#1a1917;--cdtx:#e8e4dc;
+  --green:#3d7a52;--blue:#2d5fa0;--red:#8a3a3a;--purple:#6040a0;--orange:#b06020;
+  --gs:#eaf3ee;--bs:#e8f0fb;--rs:#faeaea;--ps:#f2edfb;--os:#fdf0e4;
 }
-body { font-family:-apple-system,sans-serif; background:var(--bg); color:var(--tp); min-height:100vh; max-width:720px; margin:0 auto; padding:0 0 80px; }
+body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--tp);min-height:100vh;max-width:720px;margin:0 auto;padding:0 0 80px;}
 
-/* ── LIST ── */
-.app-header { padding:52px 24px 14px; border-bottom:1px solid var(--br); position:sticky; top:0; z-index:100; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); background:rgba(250,249,247,.93); }
-.app-title { font-size:28px; font-weight:700; letter-spacing:-.5px; }
-.note-count { font-size:13px; color:var(--ts); margin-top:3px; }
-.note-row { padding:16px 24px; border-bottom:1px solid var(--br); display:flex; gap:14px; align-items:flex-start; cursor:pointer; width:100%; background:none; border-left:none; border-right:none; border-top:none; text-align:left; }
-.note-row:active { background:var(--as); }
-.note-icon { width:40px; height:40px; border-radius:10px; background:var(--as); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:20px; }
-.note-preview { flex:1; min-width:0; }
-.note-title { font-size:15px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--tp); }
-.note-snippet { font-size:13px; color:var(--ts); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
-.note-date { font-size:12px; color:var(--ts); flex-shrink:0; margin-top:2px; }
+/* LIST */
+.app-header{padding:52px 24px 14px;border-bottom:1px solid var(--br);position:sticky;top:0;z-index:100;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background:rgba(250,249,247,.93);}
+.app-title{font-size:28px;font-weight:700;letter-spacing:-.5px;}
+.note-count{font-size:13px;color:var(--ts);margin-top:3px;}
+.note-row{padding:16px 24px;border-bottom:1px solid var(--br);display:flex;gap:14px;align-items:flex-start;cursor:pointer;width:100%;background:none;border-left:none;border-right:none;border-top:none;text-align:left;}
+.note-row:active{background:var(--as);}
+.note-icon{width:40px;height:40px;border-radius:10px;background:var(--as);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;}
+.note-preview{flex:1;min-width:0;}
+.note-title{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tp);}
+.note-snippet{font-size:13px;color:var(--ts);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+.note-date{font-size:12px;color:var(--ts);flex-shrink:0;margin-top:2px;}
 
-/* ── DETAIL ── */
-.note-detail { display:none; min-height:100vh; }
-.note-detail.open { display:block; }
-.detail-header { padding:13px 18px; display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--br); position:sticky; top:0; background:rgba(250,249,247,.96); backdrop-filter:blur(20px); z-index:10; }
-.back-btn { color:var(--ac); font-size:17px; font-weight:600; border:none; background:none; padding:6px 4px; min-width:56px; cursor:pointer; }
-.detail-title { flex:1; font-size:14px; font-weight:600; text-align:center; }
-.gear-btn { font-size:20px; border:none; background:none; padding:6px; min-width:40px; color:var(--ac); cursor:pointer; }
+/* DETAIL */
+.note-detail{display:none;min-height:100vh;}
+.note-detail.open{display:block;}
+.detail-header{padding:13px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--br);position:sticky;top:0;background:rgba(250,249,247,.96);backdrop-filter:blur(20px);z-index:10;}
+.back-btn{color:var(--ac);font-size:17px;font-weight:600;border:none;background:none;padding:6px 4px;min-width:56px;cursor:pointer;}
+.detail-title{flex:1;font-size:14px;font-weight:600;text-align:center;}
+.gear-btn{font-size:20px;border:none;background:none;padding:6px;min-width:40px;color:var(--ac);cursor:pointer;}
 
-/* ── SETUP ── */
-.setup-box { margin:12px 20px; padding:14px; background:var(--as); border:1px solid rgba(200,169,110,.3); border-radius:12px; }
-.setup-box input { width:100%; padding:9px 11px; border:1px solid var(--br); border-radius:8px; font-size:13px; font-family:monospace; background:#fff; color:var(--tp); outline:none; margin-bottom:7px; -webkit-appearance:none; }
-.setup-box button { width:100%; padding:9px; background:var(--tp); color:#fff; border:none; border-radius:7px; font-size:13px; font-weight:600; cursor:pointer; }
-.setup-lbl { font-size:12px; font-weight:600; margin-bottom:5px; }
-.setup-desc { font-size:11px; color:var(--ts); margin-bottom:8px; line-height:1.5; }
+/* SETUP */
+.setup-box{margin:12px 20px;padding:14px;background:var(--as);border:1px solid rgba(200,169,110,.3);border-radius:12px;}
+.setup-box input{width:100%;padding:9px 11px;border:1px solid var(--br);border-radius:8px;font-size:13px;font-family:monospace;background:#fff;color:var(--tp);outline:none;margin-bottom:7px;-webkit-appearance:none;}
+.setup-box button{width:100%;padding:9px;background:var(--tp);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;}
+.setup-lbl{font-size:12px;font-weight:600;margin-bottom:5px;}
+.setup-desc{font-size:11px;color:var(--ts);margin-bottom:8px;line-height:1.5;}
 
-/* ── MODE ── */
-.mode-row { display:flex; margin:12px 20px 8px; background:var(--br); border-radius:11px; padding:3px; gap:2px; }
-.mode-btn { flex:1; padding:8px 6px; border-radius:8px; border:none; font-size:11.5px; font-weight:700; cursor:pointer; transition:all .18s; background:none; color:var(--ts); }
-.mode-btn.on { background:var(--sf); color:var(--tp); box-shadow:0 1px 4px rgba(0,0,0,.12); }
+/* MODE */
+.mode-row{display:flex;margin:12px 20px 8px;background:var(--br);border-radius:11px;padding:3px;gap:2px;}
+.mode-btn{flex:1;padding:8px 6px;border-radius:8px;border:none;font-size:11.5px;font-weight:700;cursor:pointer;transition:all .18s;background:none;color:var(--ts);}
+.mode-btn.on{background:var(--sf);color:var(--tp);box-shadow:0 1px 4px rgba(0,0,0,.12);}
 
-/* ── VOICE ── */
-.voice-wrap { margin:0 20px 6px; background:var(--sf); border:1px solid var(--br); border-radius:14px; overflow:hidden; }
-.voice-top { padding:10px 14px 8px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--br); }
-.vlbl { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ts); }
-.vtimer { font-size:12px; color:var(--ts); font-variant-numeric:tabular-nums; }
-.mic-wrap { display:flex; justify-content:center; padding:16px 0 4px; }
-.mic-btn { width:68px; height:68px; border-radius:50%; background:var(--as); border:2px solid rgba(200,169,110,.4); font-size:28px; cursor:pointer; display:flex; align-items:center; justify-content:center; user-select:none; }
-.mic-btn:active { transform:scale(.92); }
-.mic-btn.on { background:#fff0f0; border-color:rgba(200,60,60,.5); animation:mPulse 1s ease-in-out infinite; }
-@keyframes mPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
-.waveform { display:none; align-items:flex-end; justify-content:center; gap:3px; height:26px; margin:3px auto 0; width:100px; }
-.waveform.on { display:flex; }
-.wb { width:4px; border-radius:2px; background:var(--ac); animation:wv .9s infinite ease-in-out; }
+/* VOICE */
+.voice-wrap{margin:0 20px 6px;background:var(--sf);border:1px solid var(--br);border-radius:14px;overflow:hidden;}
+.voice-top{padding:10px 14px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--br);}
+.vlbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ts);}
+.vtimer{font-size:12px;color:var(--ts);font-variant-numeric:tabular-nums;}
+.mic-wrap{display:flex;justify-content:center;padding:16px 0 4px;}
+.mic-btn{width:68px;height:68px;border-radius:50%;background:var(--as);border:2px solid rgba(200,169,110,.4);font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;}
+.mic-btn:active{transform:scale(.92);}
+.mic-btn.on{background:#fff0f0;border-color:rgba(200,60,60,.5);animation:mPulse 1s ease-in-out infinite;}
+@keyframes mPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.waveform{display:none;align-items:flex-end;justify-content:center;gap:3px;height:26px;margin:3px auto 0;width:100px;}
+.waveform.on{display:flex;}
+.wb{width:4px;border-radius:2px;background:var(--ac);animation:wv .9s infinite ease-in-out;}
 .wb:nth-child(1){animation-delay:0s}.wb:nth-child(2){animation-delay:.1s}.wb:nth-child(3){animation-delay:.2s}.wb:nth-child(4){animation-delay:.3s}.wb:nth-child(5){animation-delay:.2s}.wb:nth-child(6){animation-delay:.1s}.wb:nth-child(7){animation-delay:0s}
-@keyframes wv { 0%,100%{height:4px;opacity:.4} 50%{height:22px;opacity:1} }
-.vstatus { text-align:center; font-size:12.5px; color:var(--ts); padding:5px 14px 3px; font-style:italic; min-height:24px; }
-.vstatus.on { color:#c0392b; font-style:normal; font-weight:500; }
-.tbox { margin:7px 14px 11px; padding:10px 12px; background:var(--bg); border:1px solid var(--br); border-radius:9px; font-size:14px; line-height:1.65; color:var(--tp); min-height:48px; outline:none; -webkit-user-select:text; user-select:text; }
-.tbox:empty::before { content:attr(data-ph); color:var(--ts); font-style:italic; }
-.vactions { display:flex; gap:8px; padding:0 14px 14px; }
-.btn-cl { flex:1; padding:10px; border-radius:8px; font-size:13px; font-weight:600; border:1.5px solid var(--br); background:var(--bg); color:var(--ts); cursor:pointer; }
-.btn-go { flex:2; padding:10px; border-radius:8px; font-size:13px; font-weight:700; border:none; background:var(--tp); color:#fff; cursor:pointer; }
-.btn-go:disabled { opacity:.35; cursor:not-allowed; }
+@keyframes wv{0%,100%{height:4px;opacity:.4}50%{height:22px;opacity:1}}
+.vstatus{text-align:center;font-size:12.5px;color:var(--ts);padding:5px 14px 3px;font-style:italic;min-height:24px;}
+.vstatus.on{color:#c0392b;font-style:normal;font-weight:500;}
+.tbox{margin:7px 14px 11px;padding:10px 12px;background:var(--bg);border:1px solid var(--br);border-radius:9px;font-size:14px;line-height:1.65;color:var(--tp);min-height:48px;outline:none;-webkit-user-select:text;user-select:text;}
+.tbox:empty::before{content:attr(data-ph);color:var(--ts);font-style:italic;}
+.vactions{display:flex;gap:8px;padding:0 14px 14px;}
+.btn-cl{flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:600;border:1.5px solid var(--br);background:var(--bg);color:var(--ts);cursor:pointer;}
+.btn-go{flex:2;padding:10px;border-radius:8px;font-size:13px;font-weight:700;border:none;background:var(--tp);color:#fff;cursor:pointer;}
+.btn-go:disabled{opacity:.35;cursor:not-allowed;}
 
-/* ── CHIPS ── */
-.chips { display:flex; gap:7px; padding:8px 20px 10px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
-.chips::-webkit-scrollbar { display:none; }
-.chip { padding:6px 13px; border-radius:20px; font-size:11.5px; font-weight:600; border:1.5px solid var(--br); background:var(--sf); color:var(--ts); cursor:pointer; white-space:nowrap; flex-shrink:0; }
-.chip.on { background:var(--tp); color:#fff; border-color:var(--tp); }
+/* CHIPS */
+.chips{display:flex;gap:7px;padding:8px 20px 10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.chips::-webkit-scrollbar{display:none;}
+.chip{padding:6px 13px;border-radius:20px;font-size:11.5px;font-weight:600;border:1.5px solid var(--br);background:var(--sf);color:var(--ts);cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.chip.on{background:var(--tp);color:#fff;border-color:var(--tp);}
 
-/* ── STREAM BAR ── */
-.sprog { display:none; margin:0 20px 2px; height:2px; background:var(--br); border-radius:2px; overflow:hidden; }
-.sprog.on { display:block; }
-.sbar { height:100%; background:linear-gradient(90deg,var(--ac),#e8c878); border-radius:2px; width:0%; transition:width .5s ease; }
+/* STREAM */
+.sprog{display:none;margin:0 20px 2px;height:2px;background:var(--br);border-radius:2px;overflow:hidden;}
+.sprog.on{display:block;}
+.sbar{height:100%;background:linear-gradient(90deg,var(--ac),#e8c878);border-radius:2px;width:0%;transition:width .4s ease;}
 
-/* ── THINKING ── */
-.thinking { display:none; padding:14px 20px; align-items:center; gap:10px; }
-.thinking.on { display:flex; }
-.dots { display:flex; gap:4px; }
-.dot { width:6px; height:6px; border-radius:50%; background:var(--ac); animation:pulse 1.2s infinite; }
+/* THINKING */
+.thinking{display:none;padding:14px 20px;align-items:center;gap:10px;}
+.thinking.on{display:flex;}
+.dots{display:flex;gap:4px;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--ac);animation:pulse 1.2s infinite;}
 .dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
-@keyframes pulse { 0%,80%,100%{transform:scale(1);opacity:.5} 40%{transform:scale(1.3);opacity:1} }
-.ttext { font-size:12.5px; color:var(--ts); font-style:italic; }
+@keyframes pulse{0%,80%,100%{transform:scale(1);opacity:.5}40%{transform:scale(1.3);opacity:1}}
+.ttext{font-size:12.5px;color:var(--ts);font-style:italic;}
 
-/* ── RESPONSE ── */
-.rarea { padding:0 20px 40px; display:none; }
-.rarea.on { display:block; }
+/* RESPONSE */
+.rarea{padding:0 20px 40px;display:none;}
+.rarea.on{display:block;}
 
-/* ── PRIMARY TABS ── */
-.ptabs { display:flex; border-bottom:1px solid var(--br); margin:0 -20px; padding:0 10px; overflow-x:auto; margin-top:14px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
-.ptabs::-webkit-scrollbar { display:none; }
-.ptab { padding:9px 11px; font-size:11.5px; font-weight:700; color:var(--ts); cursor:pointer; border-bottom:2.5px solid transparent; white-space:nowrap; flex-shrink:0; }
-.ptab.on { color:var(--tp); border-bottom-color:var(--ac); }
-.ppanel { display:none; padding-top:14px; }
-.ppanel.on { display:block; }
+/* PRIMARY TABS */
+.ptabs{display:flex;border-bottom:1px solid var(--br);margin:0 -20px;padding:0 10px;overflow-x:auto;margin-top:14px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.ptabs::-webkit-scrollbar{display:none;}
+.ptab{padding:9px 11px;font-size:11.5px;font-weight:700;color:var(--ts);cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;flex-shrink:0;}
+.ptab.on{color:var(--tp);border-bottom-color:var(--ac);}
+.ppanel{display:none;padding-top:14px;}
+.ppanel.on{display:block;}
 
-/* ── SUB-TABS (Hello Interview steps) ── */
-.stab-row { display:flex; margin:10px -20px 0; padding:0; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; background:var(--sf); border-bottom:1px solid var(--br); }
-.stab-row::-webkit-scrollbar { display:none; }
-.stab { padding:8px 11px; font-size:10.5px; font-weight:700; color:var(--ts); cursor:pointer; border-bottom:2.5px solid transparent; white-space:nowrap; flex-shrink:0; letter-spacing:.01em; }
-.stab.on { color:var(--blue); border-bottom-color:var(--blue); }
+/* SUB-TABS */
+.stab-row{display:flex;margin:10px -20px 0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:var(--sf);border-bottom:1px solid var(--br);}
+.stab-row::-webkit-scrollbar{display:none;}
+.stab{padding:8px 11px;font-size:10.5px;font-weight:700;color:var(--ts);cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:4px;}
+.stab.on{color:var(--blue);border-bottom-color:var(--blue);}
+.sn{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:var(--br);color:var(--ts);font-size:9px;font-weight:800;flex-shrink:0;}
+.stab.on .sn{background:var(--blue);color:#fff;}
+.step-t{font-size:9px;font-weight:400;color:var(--ts);margin-left:2px;}
+.spanel{display:none;padding-top:12px;}
+.spanel.on{display:block;}
 
-/* Step number badge inside sub-tab label */
-.stab .sn { display:inline-flex; align-items:center; justify-content:center; width:15px; height:15px; border-radius:50%; background:var(--br); color:var(--ts); font-size:9px; font-weight:800; margin-right:4px; }
-.stab.on .sn { background:var(--blue); color:#fff; }
+/* CONTENT BLOCKS */
+.iblock{border-radius:0 10px 10px 0;padding:13px 15px;font-size:13px;line-height:1.75;margin-bottom:11px;}
+.iblock.blue{background:var(--bs);border-left:3px solid var(--blue);}
+.iblock.green{background:var(--gs);border-left:3px solid var(--green);}
+.iblock.red{background:var(--rs);border-left:3px solid var(--red);}
+.iblock.purple{background:var(--ps);border-left:3px solid var(--purple);}
+.iblock.orange{background:var(--os);border-left:3px solid var(--orange);}
+.blbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;}
+.iblock.blue .blbl{color:var(--blue);}
+.iblock.green .blbl{color:var(--green);}
+.iblock.red .blbl{color:var(--red);}
+.iblock.purple .blbl{color:var(--purple);}
+.iblock.orange .blbl{color:var(--orange);}
 
-.spanel { display:none; padding-top:12px; }
-.spanel.on { display:block; }
+.sumbox{background:var(--as);border:1px solid rgba(200,169,110,.3);border-radius:10px;padding:14px;font-size:14px;line-height:1.7;margin-bottom:12px;}
+.mrow{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;}
+.badge{font-size:10.5px;padding:3px 9px;border-radius:20px;font-weight:600;}
+.bb{background:var(--bs);color:var(--blue);border:1px solid rgba(45,95,160,.2);}
+.bg{background:var(--gs);color:var(--green);border:1px solid rgba(61,122,82,.2);}
+.ba{background:var(--as);color:var(--ac);border:1px solid rgba(200,169,110,.3);}
+.bp{background:var(--ps);color:var(--purple);border:1px solid rgba(96,64,160,.2);}
+.bo{background:var(--os);color:var(--orange);border:1px solid rgba(176,96,32,.2);}
 
-/* ── CONTENT BLOCKS ── */
-.iblock { border-radius:0 10px 10px 0; padding:13px 15px; font-size:13.5px; line-height:1.75; margin-bottom:11px; }
-.iblock.blue { background:var(--bs); border-left:3px solid var(--blue); }
-.iblock.green { background:var(--gs); border-left:3px solid var(--green); }
-.iblock.red { background:var(--rs); border-left:3px solid var(--red); }
-.iblock.purple { background:var(--ps); border-left:3px solid var(--purple); }
-.iblock.orange { background:var(--os); border-left:3px solid var(--orange); }
-.blbl { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; margin-bottom:5px; }
-.iblock.blue .blbl { color:var(--blue); }
-.iblock.green .blbl { color:var(--green); }
-.iblock.red .blbl { color:var(--red); }
-.iblock.purple .blbl { color:var(--purple); }
-.iblock.orange .blbl { color:var(--orange); }
+.sublbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ts);margin:16px 0 7px;}
+.hrow{background:var(--as);border:1px solid rgba(200,169,110,.22);border-radius:8px;padding:9px 13px;margin-bottom:7px;font-size:13px;line-height:1.6;}
+.pill-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.pill{font-size:11.5px;padding:3px 11px;border-radius:20px;border:1px solid var(--br);background:var(--sf);color:var(--tp);font-weight:500;}
+.divider{height:1px;background:var(--br);margin:14px 0;}
 
-.sumbox { background:var(--as); border:1px solid rgba(200,169,110,.3); border-radius:10px; padding:14px; font-size:14px; line-height:1.7; margin-bottom:12px; }
-.mrow { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:12px; }
-.badge { font-size:10.5px; padding:3px 9px; border-radius:20px; font-weight:600; }
-.bb { background:var(--bs); color:var(--blue); border:1px solid rgba(45,95,160,.2); }
-.bg { background:var(--gs); color:var(--green); border:1px solid rgba(61,122,82,.2); }
-.ba { background:var(--as); color:var(--ac); border:1px solid rgba(200,169,110,.3); }
-.bp { background:var(--ps); color:var(--purple); border:1px solid rgba(96,64,160,.2); }
-.bo { background:var(--os); color:var(--orange); border:1px solid rgba(176,96,32,.2); }
+/* CARD */
+.card{background:var(--sf);border:1px solid var(--br);border-radius:10px;padding:13px;margin-bottom:9px;}
+.card-head{font-size:13px;font-weight:700;margin-bottom:4px;display:flex;align-items:flex-start;gap:8px;}
+.cnum{width:22px;height:22px;border-radius:50%;background:var(--ac);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.card-body{font-size:12.5px;line-height:1.65;}
+.card-body code{font-family:monospace;font-size:11px;background:var(--as);padding:1px 4px;border-radius:3px;}
+.card-sub{font-size:11.5px;color:var(--blue);margin-top:5px;font-style:italic;}
+.card-warn{font-size:11.5px;color:var(--red);margin-top:5px;}
 
-.sublbl { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ts); margin:16px 0 7px; }
-.hrow { background:var(--as); border:1px solid rgba(200,169,110,.22); border-radius:8px; padding:9px 13px; margin-bottom:7px; font-size:13px; line-height:1.6; }
-.pill-row { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
-.pill { font-size:11.5px; padding:3px 11px; border-radius:20px; border:1px solid var(--br); background:var(--sf); color:var(--tp); font-weight:500; }
-.divider { height:1px; background:var(--br); margin:14px 0; }
+/* TECH CARD with inline alts */
+.tech-card{background:var(--sf);border:1px solid var(--br);border-radius:10px;padding:13px;margin-bottom:10px;}
+.tech-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+.tech-name{font-size:13.5px;font-weight:700;}
+.chosen-tag{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:700;background:var(--gs);color:var(--green);}
+.tech-role{font-size:12.5px;line-height:1.6;color:var(--tp);margin-bottom:3px;}
+.tech-why{font-size:12px;line-height:1.6;color:var(--ts);margin-bottom:8px;border-left:2px solid var(--green);padding-left:8px;}
+.alt-lbl{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ts);margin-bottom:5px;}
+.alt-row{display:flex;align-items:flex-start;gap:7px;padding:6px 9px;background:var(--bg);border-radius:7px;margin-bottom:4px;border:1px solid var(--br);}
+.alt-name{font-size:12px;font-weight:600;flex-shrink:0;min-width:90px;}
+.av{font-size:9.5px;padding:2px 7px;border-radius:7px;font-weight:700;flex-shrink:0;white-space:nowrap;}
+.av-ok{background:var(--bs);color:var(--blue);}
+.av-trade{background:var(--os);color:var(--orange);}
+.av-avoid{background:var(--rs);color:var(--red);}
+.alt-why{font-size:11.5px;color:var(--ts);line-height:1.5;}
 
-/* ── CARD ── */
-.card { background:var(--sf); border:1px solid var(--br); border-radius:10px; padding:13px; margin-bottom:9px; }
-.card-head { font-size:13px; font-weight:700; margin-bottom:4px; display:flex; align-items:flex-start; gap:8px; }
-.cnum { width:22px; height:22px; border-radius:50%; background:var(--ac); color:#fff; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
-.card-body { font-size:12.5px; line-height:1.65; }
-.card-body code { font-family:monospace; font-size:11px; background:var(--as); padding:1px 4px; border-radius:3px; }
-.card-sub { font-size:11.5px; color:var(--blue); margin-top:5px; font-style:italic; }
-.card-warn { font-size:11.5px; color:var(--red); margin-top:5px; }
+/* DIAGRAM — two diagrams stacked, pre-wrap so no horizontal scroll */
+.diag-wrap{margin-bottom:14px;}
+.diag-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ts);margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+.diag-pill{font-size:9px;padding:2px 7px;border-radius:10px;background:var(--bs);color:var(--blue);font-weight:600;}
+.diagram{background:var(--cdbg);border-radius:12px;padding:14px 16px;font-family:'SF Mono',monospace;font-size:11.5px;line-height:1.9;color:#c8c4bc;white-space:pre-wrap;word-break:break-word;overflow-x:auto;}
+/* colour accents inside diagram */
+.diagram .chosen{color:#7ec87e;}
+.diagram .alt{color:#e8c878;}
 
-/* ── TECH CARD (component + inline alternatives) ── */
-.tech-card { background:var(--sf); border:1px solid var(--br); border-radius:10px; padding:13px; margin-bottom:10px; }
-.tech-top { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
-.tech-name { font-size:13.5px; font-weight:700; }
-.chosen-tag { font-size:10px; padding:2px 8px; border-radius:8px; font-weight:700; background:var(--gs); color:var(--green); }
-.tech-role { font-size:12.5px; line-height:1.6; color:var(--tp); margin-bottom:4px; }
-.tech-why { font-size:12px; line-height:1.6; color:var(--ts); margin-bottom:8px; }
-.alt-lbl { font-size:9.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--ts); margin-bottom:5px; }
-.alt-row { display:flex; align-items:flex-start; gap:7px; padding:6px 9px; background:var(--bg); border-radius:7px; margin-bottom:4px; border:1px solid var(--br); }
-.alt-name { font-size:12px; font-weight:600; flex-shrink:0; min-width:90px; }
-.av { font-size:9.5px; padding:2px 7px; border-radius:7px; font-weight:700; flex-shrink:0; white-space:nowrap; }
-.av-ok { background:var(--bs); color:var(--blue); }
-.av-trade { background:var(--os); color:var(--orange); }
-.av-avoid { background:var(--rs); color:var(--red); }
-.alt-why { font-size:11.5px; color:var(--ts); line-height:1.5; }
+/* CODE — pre-wrap no horizontal scroll */
+.code-outer{background:var(--cdbg);border-radius:12px;overflow:hidden;margin-bottom:10px;}
+.code-hdr{padding:9px 14px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.08);}
+.code-lang{font-size:10px;color:#8a8580;font-family:monospace;letter-spacing:.05em;}
+.copy-btn{font-size:11px;color:var(--ac);background:none;border:none;cursor:pointer;padding:3px 8px;border-radius:4px;font-weight:500;}
+.code-body{padding:14px;}
+.code-body pre{font-family:'SF Mono',monospace;font-size:12px;line-height:1.7;color:var(--cdtx);white-space:pre-wrap;word-break:break-word;}
 
-/* ── CODE (pre-wrap so no horizontal scroll) ── */
-.code-outer { background:var(--cdbg); border-radius:12px; overflow:hidden; margin-bottom:10px; }
-.code-hdr { padding:9px 14px; display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,.05); border-bottom:1px solid rgba(255,255,255,.08); }
-.code-lang { font-size:10px; color:#8a8580; font-family:monospace; letter-spacing:.05em; }
-.copy-btn { font-size:11px; color:var(--ac); background:none; border:none; cursor:pointer; padding:3px 8px; border-radius:4px; font-weight:500; }
-.code-body { padding:14px; }
-.code-body pre { font-family:'SF Mono',monospace; font-size:12px; line-height:1.7; color:var(--cdtx); white-space:pre-wrap; word-break:break-word; }
+/* Q&A */
+.qa-item{border:1px solid var(--br);border-radius:10px;overflow:hidden;margin-bottom:9px;}
+.qa-q{padding:12px 14px;font-size:13px;font-weight:600;background:var(--sf);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.chev{color:var(--ts);transition:transform .2s;font-size:13px;flex-shrink:0;}
+.chev.open{transform:rotate(90deg);}
+.qa-a{display:none;padding:11px 14px;font-size:12.5px;line-height:1.7;background:var(--bg);border-top:1px solid var(--br);}
+.qa-a.open{display:block;}
 
-/* ── Q&A ── */
-.qa-item { border:1px solid var(--br); border-radius:10px; overflow:hidden; margin-bottom:9px; }
-.qa-q { padding:12px 14px; font-size:13px; font-weight:600; background:var(--sf); cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:8px; }
-.chev { color:var(--ts); transition:transform .2s; font-size:13px; flex-shrink:0; }
-.chev.open { transform:rotate(90deg); }
-.qa-a { display:none; padding:11px 14px; font-size:12.5px; line-height:1.7; background:var(--bg); border-top:1px solid var(--br); }
-.qa-a.open { display:block; }
+/* SKELETON shimmer */
+.skel{background:linear-gradient(90deg,var(--br) 25%,var(--as) 50%,var(--br) 75%);background-size:200% 100%;animation:sk 1.2s infinite;border-radius:5px;height:13px;margin-bottom:7px;}
+@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-/* ── DIAGRAM ── */
-.diagram { background:var(--cdbg); border-radius:12px; padding:16px; margin-bottom:11px; font-family:'SF Mono',monospace; font-size:11.5px; line-height:1.85; color:#c8c4bc; white-space:pre-wrap; overflow-x:auto; }
+/* SPEAK MODE */
+#sovl{display:none;position:fixed;inset:0;background:rgba(12,11,10,.97);z-index:999;flex-direction:column;padding:60px 22px 40px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#sovl.on{display:flex;}
+.sovl-close{position:fixed;top:16px;right:18px;color:var(--ac);font-size:26px;cursor:pointer;background:none;border:none;z-index:1000;padding:8px;}
+.sovl-title{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ac);margin-bottom:18px;}
+.sc{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:13px;padding:16px 18px;margin-bottom:13px;}
+.sc-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ac);margin-bottom:8px;}
+.sc-txt{font-size:15px;line-height:1.9;color:#ede9e2;}
 
-/* ── SKELETON ── */
-.skel { background:linear-gradient(90deg,var(--br) 25%,var(--as) 50%,var(--br) 75%); background-size:200% 100%; animation:sk 1.2s infinite; border-radius:5px; height:13px; margin-bottom:7px; }
-@keyframes sk { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-
-/* ── SPEAK MODE ── */
-#sovl { display:none; position:fixed; inset:0; background:rgba(12,11,10,.97); z-index:999; flex-direction:column; padding:60px 22px 40px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
-#sovl.on { display:flex; }
-.sovl-close { position:fixed; top:16px; right:18px; color:var(--ac); font-size:26px; cursor:pointer; background:none; border:none; z-index:1000; padding:8px; }
-.sovl-title { font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--ac); margin-bottom:18px; }
-.sc { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09); border-radius:13px; padding:16px 18px; margin-bottom:13px; }
-.sc-lbl { font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--ac); margin-bottom:8px; }
-.sc-txt { font-size:15px; line-height:1.9; color:#ede9e2; }
-
-.spk-btn { width:100%; padding:12px; background:var(--as); border:1.5px solid rgba(200,169,110,.4); border-radius:9px; font-size:13px; font-weight:600; color:var(--tp); cursor:pointer; margin-top:4px; }
-.err-box { background:#fff0f0; border:1px solid #ffcccc; border-radius:9px; padding:13px 15px; font-size:13px; color:#c0392b; margin-top:10px; }
-.fadein { animation:fadeIn .35s ease forwards; }
-@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
-.toast { position:fixed; bottom:36px; left:50%; transform:translateX(-50%); background:#1a1916; color:#fff; padding:8px 20px; border-radius:20px; font-size:13px; z-index:9999; opacity:0; transition:opacity .25s; white-space:nowrap; pointer-events:none; }
-
-/* Step timing badge */
-.step-timing { display:inline-block; font-size:9px; font-weight:600; color:var(--ts); background:var(--br); border-radius:6px; padding:1px 6px; margin-left:6px; vertical-align:middle; }
+.spk-btn{width:100%;padding:12px;background:var(--as);border:1.5px solid rgba(200,169,110,.4);border-radius:9px;font-size:13px;font-weight:600;color:var(--tp);cursor:pointer;margin-top:4px;}
+.err-box{background:#fff0f0;border:1px solid #ffcccc;border-radius:9px;padding:13px 15px;font-size:13px;color:#c0392b;margin-top:10px;}
+.fadein{animation:fadeIn .3s ease forwards;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.toast{position:fixed;bottom:36px;left:50%;transform:translateX(-50%);background:#1a1916;color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;z-index:9999;opacity:0;transition:opacity .25s;white-space:nowrap;pointer-events:none;}
 </style>
 </head>
 <body>
@@ -255,7 +256,7 @@ body { font-family:-apple-system,sans-serif; background:var(--bg); color:var(--t
 
   <div id="setup" class="setup-box" style="display:none;margin-top:12px">
     <div class="setup-lbl">🔑 API Key</div>
-    <div class="setup-desc">Stored locally only — never sent anywhere except Anthropic.</div>
+    <div class="setup-desc">Stored locally — never sent anywhere except Anthropic.</div>
     <input type="password" id="apikey" placeholder="sk-ant-…" autocomplete="off"/>
     <button onclick="saveKey()">Save & Close</button>
   </div>
@@ -307,43 +308,22 @@ body { font-family:-apple-system,sans-serif; background:var(--bg); color:var(--t
 <div class="toast" id="toast"></div>
 
 <script>
-/* ═══════════════════════════ STATE ═══════════════════════════ */
-const SK = 'nt_v5';
-let mode='coding', depth='interview', last=null;
-let rec=null, listening=false, silT=null, timerI=null, elapsed=0, accTxt='';
+/* ═══ STATE ═══ */
+const SK='nt_v6';
+let mode='coding',depth='interview',last=null;
+let rec=null,listening=false,silT=null,timerI=null,elapsed=0,accTxt='';
 
-/* ═══════════════════════════ KEY ═══════════════════════════ */
-const getKey = () => localStorage.getItem(SK)||'';
-function saveKey() {
-  const v=document.getElementById('apikey').value.trim();
-  if(!v){toast('Enter a key');return;}
-  localStorage.setItem(SK,v);
-  document.getElementById('setup').style.display='none';
-  toast('Saved ✓');
-}
-function toggleSetup() {
-  const s=document.getElementById('setup');
-  const show=s.style.display==='none';
-  s.style.display=show?'block':'none';
-  if(show&&getKey()) document.getElementById('apikey').value=getKey();
-}
+/* ═══ KEY ═══ */
+const getKey=()=>localStorage.getItem(SK)||'';
+function saveKey(){const v=document.getElementById('apikey').value.trim();if(!v){toast('Enter a key');return;}localStorage.setItem(SK,v);document.getElementById('setup').style.display='none';toast('Saved ✓');}
+function toggleSetup(){const s=document.getElementById('setup');const show=s.style.display==='none';s.style.display=show?'block':'none';if(show&&getKey())document.getElementById('apikey').value=getKey();}
 
-/* ═══════════════════════════ NAV ═══════════════════════════ */
-function openTool(m) {
-  document.getElementById('list').style.display='none';
-  document.getElementById('tool').classList.add('open');
-  setMode(m);
-  if(!getKey()) document.getElementById('setup').style.display='block';
-}
-function goBack() {
-  stopMic(false);
-  document.getElementById('tool').classList.remove('open');
-  document.getElementById('list').style.display='block';
-  clearAll(); last=null;
-}
+/* ═══ NAV ═══ */
+function openTool(m){document.getElementById('list').style.display='none';document.getElementById('tool').classList.add('open');setMode(m);if(!getKey())document.getElementById('setup').style.display='block';}
+function goBack(){stopMic(false);document.getElementById('tool').classList.remove('open');document.getElementById('list').style.display='block';clearAll();last=null;}
 
-/* ═══════════════════════════ MODE ═══════════════════════════ */
-function setMode(m) {
+/* ═══ MODE ═══ */
+function setMode(m){
   mode=m;
   document.getElementById('mCoding').classList.toggle('on',m==='coding');
   document.getElementById('mSD').classList.toggle('on',m==='sd');
@@ -351,122 +331,92 @@ function setMode(m) {
   document.getElementById('vlbl').textContent=m==='coding'?'🎙 Speak your coding problem':'🎙 Describe the system to design';
   document.getElementById('tbox').setAttribute('data-ph',m==='coding'?'Tap mic to speak your problem…':'e.g. "Design Twitter" or "Design a URL shortener"');
   const ch=document.getElementById('chips');
-  if(m==='sd'){
-    ch.innerHTML=`<div class="chip on" data-d="senior" onclick="setDepth(this)">🎯 Senior/Staff</div><div class="chip" data-d="mid" onclick="setDepth(this)">👨‍💻 Mid-level</div><div class="chip" data-d="deep" onclick="setDepth(this)">📖 Deep Dive</div>`;
-    depth='senior';
-  } else {
-    ch.innerHTML=`<div class="chip on" data-d="interview" onclick="setDepth(this)">🎯 Interview</div><div class="chip" data-d="explain" onclick="setDepth(this)">🗣️ Team</div><div class="chip" data-d="beginner" onclick="setDepth(this)">📖 Beginner</div>`;
-    depth='interview';
-  }
+  if(m==='sd'){ch.innerHTML=`<div class="chip on" data-d="senior" onclick="setDepth(this)">🎯 Senior/Staff</div><div class="chip" data-d="mid" onclick="setDepth(this)">👨‍💻 Mid-level</div><div class="chip" data-d="deep" onclick="setDepth(this)">📖 Deep Dive</div>`;depth='senior';}
+  else{ch.innerHTML=`<div class="chip on" data-d="interview" onclick="setDepth(this)">🎯 Interview</div><div class="chip" data-d="explain" onclick="setDepth(this)">🗣️ Team</div><div class="chip" data-d="beginner" onclick="setDepth(this)">📖 Beginner</div>`;depth='interview';}
   clearAll();
 }
-function setDepth(el){
-  el.closest('.chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
-  el.classList.add('on'); depth=el.dataset.d;
-}
+function setDepth(el){el.closest('.chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');depth=el.dataset.d;}
 
-/* ═══════════════════════════ TOAST / TIMER ═══════════════════════════ */
+/* ═══ TOAST / TIMER ═══ */
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',2400);}
 function startTimer(){elapsed=0;clearInterval(timerI);timerI=setInterval(()=>{elapsed++;document.getElementById('vtimer').textContent=pad(Math.floor(elapsed/60))+':'+pad(elapsed%60);},1000);}
 function stopTimer(){clearInterval(timerI);document.getElementById('vtimer').textContent='';}
 const pad=n=>String(n).padStart(2,'0');
 
-/* ═══════════════════════════ MIC ═══════════════════════════ */
+/* ═══ MIC ═══ */
 function toggleMic(){listening?stopMic(true):startMic();}
 function startMic(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){toast('Voice not supported — type instead');return;}
   accTxt=document.getElementById('tbox').textContent.trim();
-  rec=new SR(); rec.continuous=true; rec.interimResults=true; rec.lang='en-US';
-  rec.onstart=()=>{
-    listening=true;
-    document.getElementById('micBtn').classList.add('on');
-    document.getElementById('micBtn').textContent='⏹️';
-    document.getElementById('wf').classList.add('on');
-    document.getElementById('vs').textContent='Listening… speak clearly';
-    document.getElementById('vs').classList.add('on');
-    startTimer();
-  };
+  rec=new SR();rec.continuous=true;rec.interimResults=true;rec.lang='en-US';
+  rec.onstart=()=>{listening=true;document.getElementById('micBtn').classList.add('on');document.getElementById('micBtn').textContent='⏹️';document.getElementById('wf').classList.add('on');document.getElementById('vs').textContent='Listening… speak clearly';document.getElementById('vs').classList.add('on');startTimer();};
   rec.onresult=e=>{
-    clearTimeout(silT); silT=setTimeout(()=>stopMic(true),2800);
-    let fin=accTxt?accTxt+' ':'', int='';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      const t=e.results[i][0].transcript;
-      e.results[i].isFinal?(fin+=t,accTxt=fin.trim()):int=t;
-    }
-    document.getElementById('tbox').textContent=(accTxt+(int?' '+int:'')).trim();
-    chkBtn();
+    clearTimeout(silT);silT=setTimeout(()=>stopMic(true),2800);
+    let fin=accTxt?accTxt+' ':'',int='';
+    for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;e.results[i].isFinal?(fin+=t,accTxt=fin.trim()):int=t;}
+    document.getElementById('tbox').textContent=(accTxt+(int?' '+int:'')).trim();chkBtn();
   };
   rec.onerror=e=>{if(e.error==='not-allowed')toast('Mic blocked — allow in Safari settings');stopMic(false);};
   rec.onend=()=>{if(listening){try{rec.start();}catch(e){stopMic(false);}}};
   try{rec.start();}catch(e){toast('Cannot start mic');}
 }
 function stopMic(auto){
-  const was=listening; listening=false; clearTimeout(silT); stopTimer();
-  if(rec){try{rec.stop();}catch(e){} rec=null;}
-  document.getElementById('micBtn').classList.remove('on');
-  document.getElementById('micBtn').textContent='🎙️';
-  document.getElementById('wf').classList.remove('on');
-  document.getElementById('vs').classList.remove('on');
+  const was=listening;listening=false;clearTimeout(silT);stopTimer();
+  if(rec){try{rec.stop();}catch(e){}rec=null;}
+  document.getElementById('micBtn').classList.remove('on');document.getElementById('micBtn').textContent='🎙️';
+  document.getElementById('wf').classList.remove('on');document.getElementById('vs').classList.remove('on');
   const txt=document.getElementById('tbox').textContent.trim();
   if(was&&auto&&txt.length>5){document.getElementById('vs').textContent='Got it — generating…';setTimeout(generate,500);}
   else{document.getElementById('vs').textContent=txt.length>5?'Ready — tap Generate':'Tap the mic and speak clearly';}
 }
 function chkBtn(){document.getElementById('goBtn').disabled=document.getElementById('tbox').textContent.trim().length<5;}
-function clearAll(){
-  accTxt='';
-  document.getElementById('tbox').textContent='';
-  document.getElementById('goBtn').disabled=true;
-  document.getElementById('vs').textContent='Tap the mic and speak clearly';
-  document.getElementById('rarea').innerHTML='';
-  document.getElementById('rarea').classList.remove('on');
-  document.getElementById('thinking').classList.remove('on');
-  document.getElementById('sprog').classList.remove('on');
-  document.getElementById('sbar').style.width='0%';
-  last=null;
-}
+function clearAll(){accTxt='';document.getElementById('tbox').textContent='';document.getElementById('goBtn').disabled=true;document.getElementById('vs').textContent='Tap the mic and speak clearly';document.getElementById('rarea').innerHTML='';document.getElementById('rarea').classList.remove('on');document.getElementById('thinking').classList.remove('on');document.getElementById('sprog').classList.remove('on');document.getElementById('sbar').style.width='0%';last=null;}
 
-/* ═══════════════════════════ GENERATE ═══════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   GENERATE — STREAMING
+═══════════════════════════════════════════════════════ */
 async function generate(){
   const prob=document.getElementById('tbox').textContent.trim();
   if(prob.length<4){toast('Say or type a problem first');return;}
-  const key=getKey(); if(!key){toggleSetup();toast('Add API key first');return;}
+  const key=getKey();if(!key){toggleSetup();toast('Add API key first');return;}
   document.getElementById('goBtn').disabled=true;
   document.getElementById('rarea').innerHTML='';
   document.getElementById('rarea').classList.remove('on');
   document.getElementById('thinking').classList.add('on');
   document.getElementById('ttext').textContent=mode==='coding'?'Solving your problem…':'Architecting your system…';
   document.getElementById('sprog').classList.add('on');
-  const bar=document.getElementById('sbar'); bar.style.width='6%';
+  const bar=document.getElementById('sbar');bar.style.width='5%';
   const sys=mode==='coding'?codingPrompt():sdPrompt();
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:mode==='coding'?4500:7000,stream:true,system:sys,messages:[{role:'user',content:prob}]})
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:mode==='coding'?4500:7500,stream:true,system:sys,messages:[{role:'user',content:prob}]})
     });
-    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'API error');}
-    const reader=res.body.getReader(), dec=new TextDecoder();
-    let full='', pct=6, done_keys=new Set();
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'API error '+res.status);}
+    const reader=res.body.getReader(),dec=new TextDecoder();
+    let full='',pct=5,dk=new Set();
+    /* Show skeleton immediately — don't wait for thinking */
     document.getElementById('thinking').classList.remove('on');
     showSkeleton();
     document.getElementById('rarea').classList.add('on');
     while(true){
-      const{done,value}=await reader.read(); if(done) break;
+      const{done,value}=await reader.read();if(done)break;
       const lines=dec.decode(value,{stream:true}).split('\n');
       for(const ln of lines){
-        if(!ln.startsWith('data: ')) continue;
-        const d=ln.slice(6).trim(); if(d==='[DONE]') break;
-        try{const ev=JSON.parse(d); if(ev.type==='content_block_delta'&&ev.delta?.text){full+=ev.delta.text;pct=Math.min(90,pct+0.22);bar.style.width=pct+'%';streamPatch(full,done_keys);}}catch(e){}
+        if(!ln.startsWith('data: '))continue;
+        const d=ln.slice(6).trim();if(d==='[DONE]')break;
+        try{const ev=JSON.parse(d);if(ev.type==='content_block_delta'&&ev.delta?.text){full+=ev.delta.text;pct=Math.min(90,pct+0.2);bar.style.width=pct+'%';patch(full,dk);}}catch(e){}
       }
     }
     bar.style.width='100%';
-    setTimeout(()=>{document.getElementById('sprog').classList.remove('on');bar.style.width='0%';},600);
+    setTimeout(()=>{document.getElementById('sprog').classList.remove('on');bar.style.width='0%';},500);
     try{
       const parsed=JSON.parse(full.trim().replace(/^```json\s*/i,'').replace(/\s*```$/,''));
       last={mode,data:parsed};
       mode==='coding'?renderCoding(parsed):renderSD(parsed);
-    }catch(e){console.warn('Final parse',e);}
+    }catch(e){console.warn('parse',e);}
   }catch(err){
     document.getElementById('thinking').classList.remove('on');
     document.getElementById('rarea').innerHTML='<div class="err-box">⚠️ '+err.message+'</div>';
@@ -479,163 +429,319 @@ async function generate(){
   }
 }
 
-/* ═══════════════════════════ STREAM PATCH ═══════════════════════════ */
-function streamPatch(txt, done){
-  const get=key=>{const m=txt.match(new RegExp('"'+key+'"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"','s'));return m?m[1].replace(/\\n/g,'\n').replace(/\\"/g,'"'):null;};
-  const upd=(id,val,html=false)=>{const el=document.getElementById(id);if(!el)return;html?el.innerHTML=val:el.textContent=val;el.classList.add('fadein');el.closest?.('[data-skel]')?.querySelectorAll('.skel').forEach(s=>s.remove());};
+/* ═══════════════════════════════════════════════════════
+   STREAM PATCH — renders content progressively as tokens arrive.
+   Uses TWO extraction strategies:
+   A) strComplete — only fires when JSON string is fully closed (safe for short fields)
+   B) strPartial  — fires as soon as MIN_CHARS arrived (for long fields like thought_process)
+   Priority: problem_statement (partial, ~40 chars) → FR items → NFR items → thought_process
+═══════════════════════════════════════════════════════ */
+function patch(txt,dk){
+  /* A: fully-closed string — safe value */
+  const strComplete=key=>{
+    const m=txt.match(new RegExp('"'+key+'"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*?)"\\s*[,}\\n]','s'));
+    return m?unescape(m[1]):null;
+  };
+  /* B: partial string — grab whatever has arrived so far (no closing quote required) */
+  const strPartial=(key,minLen=40)=>{
+    const m=txt.match(new RegExp('"'+key+'"\\s*:\\s*"((?:[^"\\\\]|\\\\.){'+minLen+',})','s'));
+    return m?unescape(m[1]):null;
+  };
+  const unescape=s=>s.replace(/\\n/g,'\n').replace(/\\"/g,'"').replace(/\\\\/g,'\\');
+
+  /* Write to a named slot, removing skeleton shimmer lines */
+  const slot=(id,html)=>{
+    const el=document.getElementById(id);
+    if(!el||el.dataset.filled)return;
+    el.dataset.filled='1';
+    el.innerHTML=html;
+    el.classList.add('fadein');
+  };
+
   if(mode==='coding'){
     ['thought_process','analogy','summary','complexity'].forEach(k=>{
-      if(!done.has(k)){const v=get(k);if(v&&v.length>15){done.add(k);upd('sk_'+k,v);}}
+      if(!dk.has(k)){
+        const v=strComplete(k)||strPartial(k,30);
+        if(v&&v.length>15){dk.add(k);slot('sk_'+k,v.replace(/\n/g,'<br>'));}
+      }
     });
-  } else {
-    ['thought_process','problem_statement'].forEach(k=>{
-      if(!done.has(k)){const v=get(k);if(v&&v.length>20){done.add(k);upd('sk_'+k,v);}}
-    });
-    if(!done.has('fr')){
-      const m=txt.match(/"functional_requirements"\s*:\s*\[([\s\S]*?)\]/);
-      if(m&&m[1].includes('"req"')){done.add('fr');const el=document.getElementById('sk_fr');if(el){el.innerHTML=parseFR(m[1]);el.classList.add('fadein');}}
-    }
-    if(!done.has('nfr')){
-      const m=txt.match(/"non_functional_requirements"\s*:\s*\[([\s\S]*?)\]/);
-      if(m&&m[1].includes('"req"')){done.add('nfr');const el=document.getElementById('sk_nfr');if(el){el.innerHTML=parseNFR(m[1]);el.classList.add('fadein');}}
+    return;
+  }
+
+  /* ── SD mode ── */
+
+  /* PRIORITY 1: problem_statement — partial, fires as soon as ~50 chars arrive (~1s) */
+  if(!dk.has('ps')){
+    const v=strComplete('problem_statement')||strPartial('problem_statement',50);
+    if(v&&v.length>15){dk.add('ps');slot('sk_ps',v);}
+  }
+
+  /* PRIORITY 2: functional requirements — parse objects as each closes */
+  if(!dk.has('fr')){
+    const m=txt.match(/"functional"\s*:\s*\[([\s\S]*?)(?:\]|(?="non_functional"))/);
+    if(m&&m[1]){
+      const reqs=[];let rx2=/"req"\s*:\s*"([^"\\\\]+)"/g,hit;
+      while((hit=rx2.exec(m[1]))!==null)reqs.push(hit[1]);
+      if(reqs.length>=1){
+        dk.add('fr');
+        /* Don't lock — keep updating until NFR starts */
+        const el=document.getElementById('sk_fr');
+        if(el){el.innerHTML=reqs.map(r=>'<div class="hrow fadein">🔵 '+r+'</div>').join('');el.classList.add('fadein');}
+      }
     }
   }
-}
-function parseFR(raw){
-  const reqs=[];let m;const rx=/"req"\s*:\s*"([^"]+)"/g;
-  while((m=rx.exec(raw))!==null) reqs.push(m[1]);
-  return reqs.map(r=>'<div class="hrow">🔵 '+r+'</div>').join('');
-}
-function parseNFR(raw){
-  const items=[];let pos=0;
-  while(true){const s=raw.indexOf('{',pos);if(s<0)break;const e=raw.indexOf('}',s);if(e<0)break;
-    const chunk=raw.slice(s,e+1);
-    const r=(chunk.match(/"req"\s*:\s*"([^"]+)"/)||['',''])[1];
-    const v=(chunk.match(/"value"\s*:\s*"([^"]+)"/)||['',''])[1];
-    if(r)items.push({r,v});pos=e+1;}
-  return items.map(i=>'<div class="hrow">◎ <strong>'+i.r+'</strong>'+(i.v?' <span class="badge ba">'+i.v+'</span>':'')+'</div>').join('');
+
+  /* PRIORITY 3: NFRs — same rolling parse */
+  if(!dk.has('nfr')){
+    const m=txt.match(/"non_functional"\s*:\s*\[([\s\S]*?)(?:\]|(?="out_of_scope"))/);
+    if(m&&m[1]){
+      const items=[];let pos=0;
+      while(true){
+        const s=m[1].indexOf('"req"',pos);if(s<0)break;
+        const rM=m[1].slice(s).match(/"req"\s*:\s*"([^"\\\\]+)"/);
+        const vM=m[1].slice(s).match(/"value"\s*:\s*"([^"\\\\]+)"/);
+        if(rM)items.push({r:rM[1],v:vM?vM[1]:''});
+        pos=s+5;
+      }
+      if(items.length>=1){
+        dk.add('nfr');
+        const el=document.getElementById('sk_nfr');
+        if(el){el.innerHTML=items.map(i=>'<div class="hrow fadein">◎ <strong>'+i.r+'</strong>'+(i.v?' <span class="badge ba">'+i.v+'</span>':'')+'</div>').join('');el.classList.add('fadein');}
+      }
+    }
+  }
+
+  /* PRIORITY 4: thought_process — partial after 80 chars (~4-5s) */
+  if(!dk.has('tp')){
+    const v=strComplete('thought_process')||strPartial('thought_process',80);
+    if(v&&v.length>40){dk.add('tp');slot('sk_tp',v.replace(/\n/g,'<br>'));}
+  }
 }
 
-/* ═══════════════════════════ SKELETON ═══════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   SKELETON — shown instantly before any stream arrives
+═══════════════════════════════════════════════════════ */
 function showSkeleton(){
   const a=document.getElementById('rarea');
   if(mode==='coding'){
     a.innerHTML=`<div style="padding-top:12px">
-      <div class="iblock blue" data-skel><div class="blbl">🧠 How I thought about this</div><div id="sk_thought_process"><div class="skel" style="width:100%"></div><div class="skel" style="width:84%"></div><div class="skel" style="width:66%"></div></div></div>
-      <div class="iblock green" data-skel><div class="blbl">💡 Analogy</div><div id="sk_analogy"><div class="skel" style="width:100%"></div><div class="skel" style="width:72%"></div></div></div>
-      <div class="sumbox" data-skel id="sk_summary"><div class="skel" style="width:100%"></div><div class="skel" style="width:58%"></div></div>
-      <div id="sk_complexity" style="font-size:12.5px;line-height:1.7;color:var(--ts);padding:2px 0 10px"><div class="skel" style="width:78%"></div><div class="skel" style="width:54%"></div></div>
-      <div style="text-align:center;font-size:11.5px;color:var(--ts);font-style:italic;padding:6px 0">⏳ Code, walkthrough & Q&A loading…</div></div>`;
+      <div class="iblock blue"><div class="blbl">🧠 Approach</div><div id="sk_thought_process"><div class="skel" style="width:100%"></div><div class="skel" style="width:84%"></div><div class="skel" style="width:66%"></div></div></div>
+      <div class="iblock green"><div class="blbl">💡 Analogy</div><div id="sk_analogy"><div class="skel" style="width:100%"></div><div class="skel" style="width:72%"></div></div></div>
+      <div class="sumbox" id="sk_summary"><div class="skel" style="width:100%"></div><div class="skel" style="width:55%"></div></div>
+      <div id="sk_complexity" style="font-size:12.5px;color:var(--ts);padding:2px 0 10px"><div class="skel" style="width:76%"></div><div class="skel" style="width:52%"></div></div>
+      <div style="text-align:center;font-size:11px;color:var(--ts);font-style:italic;padding:6px 0">⏳ Code & walkthrough loading…</div></div>`;
   } else {
     a.innerHTML=`<div style="padding-top:12px">
-      <div class="iblock blue" data-skel><div class="blbl">🧠 Interview approach</div><div id="sk_thought_process"><div class="skel" style="width:100%"></div><div class="skel" style="width:88%"></div><div class="skel" style="width:70%"></div><div class="skel" style="width:80%"></div></div></div>
-      <div class="sumbox" data-skel id="sk_problem_statement"><div class="skel" style="width:100%"></div><div class="skel" style="width:68%"></div></div>
-      <div class="sublbl">🔵 Functional Requirements</div><div id="sk_fr"><div class="skel" style="width:90%"></div><div class="skel" style="width:76%"></div><div class="skel" style="width:83%"></div></div>
-      <div class="sublbl">◎ Non-Functional Requirements</div><div id="sk_nfr"><div class="skel" style="width:88%"></div><div class="skel" style="width:72%"></div><div class="skel" style="width:80%"></div></div>
-      <div style="text-align:center;font-size:11.5px;color:var(--ts);font-style:italic;padding:14px 0">⏳ Full design loading…</div></div>`;
+      <!-- Problem statement arrives FIRST ~1-2s -->
+      <div class="sumbox" id="sk_ps" style="min-height:52px"><div class="skel" style="width:100%"></div><div class="skel" style="width:68%"></div></div>
+
+      <!-- FRs arrive ~2-3s — you can start speaking requirements immediately -->
+      <div class="sublbl">🔵 Functional Requirements <span style="font-size:9px;font-weight:400;color:var(--ts)">(streaming…)</span></div>
+      <div id="sk_fr"><div class="skel" style="width:90%"></div><div class="skel" style="width:76%"></div><div class="skel" style="width:83%"></div></div>
+
+      <!-- NFRs arrive ~3-4s -->
+      <div class="sublbl">◎ Non-Functional Requirements <span style="font-size:9px;font-weight:400;color:var(--ts)">(streaming…)</span></div>
+      <div id="sk_nfr"><div class="skel" style="width:86%"></div><div class="skel" style="width:72%"></div><div class="skel" style="width:79%"></div></div>
+
+      <!-- Interview framing arrives ~4-5s -->
+      <div class="sublbl">🧠 Interview Framing</div>
+      <div class="iblock blue" id="sk_tp"><div class="skel" style="width:100%"></div><div class="skel" style="width:88%"></div><div class="skel" style="width:70%"></div><div class="skel" style="width:80%"></div></div>
+
+      <div style="text-align:center;font-size:11px;color:var(--ts);font-style:italic;padding:10px 0">⏳ Diagrams, components & deep dives loading…</div></div>`;
   }
 }
 
-/* ═══════════════════════════ PROMPTS ═══════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   PROMPTS
+═══════════════════════════════════════════════════════ */
 function codingPrompt(){
   const ctx={interview:'Crisp, confident. Anticipate follow-ups.',explain:'Conversational, real-world trade-offs.',beginner:'Simple language, vivid analogies.'}[depth];
   return `Elite Java coding coach. Context: ${ctx}
-Return ONLY valid JSON starting with { (no markdown):
-{"summary":"One confident sentence","complexity":"Time: O(?) | Space: O(?)","complexity_explanation":"2-3 sentences WHY","pattern":"Algorithm pattern name","approach":"Core technique","thought_process":"4-5 sentences: aha moment, why naive fails, why this clicks. First person.","analogy":"Vivid 2-3 sentence real-world analogy.","code":"Complete clean well-commented Java code","steps":[{"title":"step title","what":"1-2 sentences what it does","how":"mechanics with backtick \`varName\` formatting","why":"the reasoning behind this choice"}],"tricky_parts":[{"issue":"gotcha name","explanation":"why tricky, exactly how code handles it"}],"followup_qa":[{"question":"realistic interviewer question","answer":"confident 3-4 sentence answer"}],"alternatives":[{"name":"approach name","complexity":"T/S complexity","when_to_use":"when to prefer this","verdict":"better|tradeoff|worse"}]}
-5-6 steps, 3 tricky_parts, 5 followup_qa, 3 alternatives. Sound expert and organic.`;
+Return ONLY valid JSON starting with { :
+{"summary":"confident one-liner","complexity":"Time: O(?) | Space: O(?)","complexity_explanation":"2-3 sentences WHY","pattern":"algorithm pattern","approach":"core technique","thought_process":"4-5 sentences first-person: aha moment, why naive fails, why this clicks","analogy":"vivid 2-3 sentence real-world analogy","code":"complete clean well-commented Java — use meaningful variable names","steps":[{"title":"title","what":"1-2 sentences","how":"mechanics with backtick \`varName\`","why":"reasoning"}],"tricky_parts":[{"issue":"gotcha","explanation":"why tricky, exactly how handled"}],"followup_qa":[{"question":"realistic question","answer":"confident 3-4 sentence answer"}],"alternatives":[{"name":"approach","complexity":"T/S","when_to_use":"when to prefer","verdict":"better|tradeoff|worse"}]}
+5-6 steps, 3 tricky_parts, 5 followup_qa, 3 alternatives.`;
 }
 
 function sdPrompt(){
-  const ctx={senior:'Senior/Staff level — deep technical trade-offs, justify every choice with specific reasoning and numbers.',mid:'Mid-level — clear architecture and solid reasoning on key trade-offs.',deep:'Deep walkthrough — explain every component and decision thoroughly.'}[depth];
-  return `You are a MAANG Staff Engineer expert in system design interviews. Follow the EXACT Hello Interview delivery framework by Evan King — the precise sequence is: Requirements (functional + non-functional + capacity estimation inside requirements) → Core Entities → API Design → [Optional] Data Flow → High Level Design (schema evolves here alongside boxes) → Deep Dives.
+  const ctx={
+    senior:'Senior/Staff — deep trade-offs, real scale numbers, justify every decision with specific reasoning.',
+    mid:'Mid-level — clear architecture, solid reasoning, key trade-offs explained.',
+    deep:'Deep walkthrough — explain every component, every decision, as if teaching a junior engineer.'
+  }[depth];
+
+  return `You are a MAANG Staff Engineer who has passed 50+ system design interviews. Follow Hello Interview's exact framework by Evan King. Produce world-class, specific answers — never generic.
 
 Context: ${ctx}
 
-CRITICAL RULES:
-- Every component must list 2-3 inline alternatives with verdicts and specific reasons
-- Capacity numbers must show actual calculations
-- Deep dives must show naive approach first, then your real solution
-- Schema/data model fields belong inside high_level_design, not as a separate section
-- Keep functional requirements to 3 max — prioritization is a skill
+════════════════════════════════════
+DIAGRAM RULES — follow exactly:
+════════════════════════════════════
+You must produce TWO ASCII diagrams. Both must be vertical top-to-bottom flows using ↓ arrows. Every line must be accurate for the specific system being designed.
 
-Return ONLY valid JSON starting with { (no markdown):
+DIAGRAM 1 (diagram_simple) — baseline satisfying only core functional requirements:
+- Include exactly: Client → DNS → Load Balancer → API Gateway → [main services] → Primary Database
+- Keep it minimal — just what's needed for the core write and read paths
+- Use this exact style (adapt names/services to the actual system):
+
+  ┌─────────┐
+  │  Client │ (Web / Mobile)
+  └────┬────┘
+       ↓
+  ┌──────────────────────────┐
+  │  DNS  (Route 53)         │
+  └────┬─────────────────────┘
+       ↓
+  ┌──────────────────────────┐
+  │  Load Balancer (Nginx)   │
+  └────┬─────────────────────┘
+       ↓
+  ┌──────────────────────────┐
+  │  API Gateway (Kong)      │ Auth / Rate Limit / Routing
+  └────┬─────────────────────┘
+       ↓
+  ┌──────────────────────────┐
+  │  [Service Name]          │
+  └────┬─────────────────────┘
+       ↓
+  ┌──────────────────────────┐
+  │  Primary DB (PostgreSQL) │
+  └──────────────────────────┘
+
+DIAGRAM 2 (diagram_scaled) — full production design satisfying all NFRs:
+- Must include ALL of: Client, CDN, DNS, Load Balancer, API Gateway, Auth Service, Write Service, Read Service, Message Queue, Fan-out/Worker Service, Cache layer, Primary DB, Read Replica(s), Object/Blob Storage (if needed), Search (if needed), Monitoring
+- Every component line MUST show alternatives in [brackets] on the SAME line
+- Use this exact style (adapt to actual system):
+
+  ┌──────────────────────────────────────────────────┐
+  │  Client  (Web / iOS / Android)                   │
+  └───────────────────┬──────────────────────────────┘
+                      ↓
+  ┌──────────────────────────────────────────────────┐
+  │  CDN  [CloudFront | Akamai | Fastly]             │ Static assets, edge caching
+  └───────────────────┬──────────────────────────────┘
+                      ↓
+  ┌──────────────────────────────────────────────────┐
+  │  DNS  (Route 53 / GeoDNS)                        │
+  └───────────────────┬──────────────────────────────┘
+                      ↓
+  ┌──────────────────────────────────────────────────┐
+  │  Load Balancer  [Nginx | HAProxy | AWS ALB]      │ L7, health checks, SSL termination
+  └───────────────────┬──────────────────────────────┘
+                      ↓
+  ┌──────────────────────────────────────────────────┐
+  │  API Gateway  [Kong | AWS API GW | Envoy]        │ Auth, rate limit, routing
+  └──────┬──────────────────────┬────────────────────┘
+         ↓ (writes)             ↓ (reads)
+  ┌──────────────┐    ┌─────────────────────────────┐
+  │ Write Service│    │ Read Service                │
+  └──────┬───────┘    └──────────┬──────────────────┘
+         ↓                       ↓
+  ┌─────────────────┐   ┌────────────────────────────┐
+  │ [Kafka |        │   │ Cache [Redis | Memcached]  │
+  │  RabbitMQ | SQS]│   │ (read-through, TTL 5 min)  │
+  │ (Event Queue)   │   └──────────┬─────────────────┘
+  └──────┬──────────┘              ↓ (cache miss)
+         ↓                ┌────────────────────────────┐
+  ┌──────────────┐        │ Read Replica               │
+  │ Worker/Fan-  │        │ [PostgreSQL RR | Aurora RR]│
+  │ out Service  │        └────────────────────────────┘
+  └──────┬───────┘
+         ↓
+  ┌─────────────────────────────────────────────────┐
+  │  Primary DB  [PostgreSQL | MySQL | Aurora]      │
+  └─────────────────────────────────────────────────┘
+  
+  ┌─────────────────────────────────────────────────┐
+  │  Object Store  [S3 | GCS | Azure Blob]          │ Media, files
+  └─────────────────────────────────────────────────┘
+  
+  ┌─────────────────────────────────────────────────┐
+  │  Monitoring  [Datadog | Prometheus + Grafana]   │
+  └─────────────────────────────────────────────────┘
+
+IMPORTANT: The above is a TEMPLATE — adapt every component name, service name, and alternative to be accurate and specific for the system being designed. Do not just copy the template literally.
+════════════════════════════════════
+
+Return ONLY valid JSON starting with { — no markdown, no preamble:
 {
-  "problem_statement": "Precise restatement of what we are building",
-  "thought_process": "5-6 sentences — how a Staff engineer frames this problem in an interview: what to clarify first, what makes this uniquely hard, the core trade-off (e.g. consistency vs availability), your high-level approach. Sound like you are thinking out loud.",
+  "problem_statement": "Precise 2-3 sentence restatement: what we are building, the core challenge, the key scale dimension",
+  "thought_process": "5-6 sentences first person — how a Staff engineer frames this in an interview: what to clarify first, what makes this uniquely hard vs a simple CRUD app, the core trade-off (consistency vs availability / read vs write heavy / etc), your high-level approach",
   "clarifying_questions": [
-    "Specific question you'd ask the interviewer to scope the problem",
-    "Another scoping question",
-    "Question to surface a key trade-off"
+    "Specific question to scope scale (e.g. how many DAU?)",
+    "Question to scope features (e.g. do we need real-time notifications?)",
+    "Question surfacing a key trade-off (e.g. is eventual consistency acceptable for the feed?)"
   ],
 
   "step1_requirements": {
     "functional": [
-      {"req": "Users should be able to...", "priority": "core", "technical_implication": "what this means for the design"}
+      {"req": "Users should be able to [verb] [noun]", "priority": "core", "technical_implication": "what this means architecturally — e.g. requires fan-out on write"}
     ],
     "non_functional": [
-      {"req": "The system should...", "value": "specific measurable target e.g. p99 < 200ms", "tradeoff": "what we sacrifice for this"}
+      {"req": "The system should be [quality]", "value": "specific measurable target e.g. p99 read latency < 100ms", "tradeoff": "what we give up to achieve this"}
     ],
-    "out_of_scope": ["item explicitly excluded"],
-    "capacity_note": "One sentence on whether estimation is needed here and why — per Hello Interview, skip unless the number changes a design decision",
+    "out_of_scope": ["explicitly excluded feature and why"],
+    "capacity_note": "State whether capacity estimation is needed and why — per Hello Interview, skip unless the number changes a design decision",
     "capacity": {
-      "assumptions": ["100M DAU", "avg 10 reads/user/day", "avg 1 write/user/day"],
-      "write_qps": "~1,160 writes/sec (100M × 1 / 86,400)",
-      "read_qps": "~11,600 reads/sec (100M × 10 / 86,400)",
-      "storage_per_year": "~X TB/year — show calculation",
-      "design_impact": "Does this number change a design decision? If yes, what?"
+      "assumptions": ["X MAU", "Y active users/day", "Z writes/user/day", "W reads/user/day"],
+      "write_qps": "~X,XXX writes/sec  (calc: Y_MAU × 0.1 × Z / 86,400)",
+      "read_qps": "~XX,XXX reads/sec  (calc: Y_MAU × 0.1 × W / 86,400)",
+      "storage_per_year": "~X TB/year  (calc: show row size × write_qps × seconds_per_year)",
+      "design_impact": "Does this number change a specific design choice? State which one."
     }
   },
 
   "step2_core_entities": [
-    {"name": "EntityName", "description": "What this entity represents in the system", "note": "Key naming or modeling decision"}
+    {"name": "EntityName", "description": "what this entity represents in the domain", "note": "key design decision about this entity — e.g. why denormalized, why separate table"}
   ],
 
   "step3_api_design": {
-    "protocol_choice": "REST (default) | GraphQL | gRPC — and one sentence on why",
+    "protocol_choice": "REST (default) / GraphQL / gRPC — and one sentence on why for this system",
     "endpoints": [
       {
         "method": "POST",
-        "path": "/v1/tweets",
-        "auth": "JWT — derive user_id from token, never from body",
-        "request": "{ text: string }",
-        "response": "{ id: uuid, created_at: timestamp }",
-        "note": "Rate limited. Returns 201."
+        "path": "/v1/resource",
+        "auth": "Bearer JWT — derive user_id from token, never from request body",
+        "request": "{ field1: type, field2: type }",
+        "response": "{ id: uuid, created_at: timestamp, status: string }",
+        "note": "Rate limited to X req/min per user. Returns 201 on success, 429 on rate limit."
       }
     ]
   },
 
   "step4_data_flow": {
     "needed": true,
-    "reason": "One sentence on why data flow is worth stating for this specific system",
+    "reason": "One sentence on why data flow matters specifically for this system",
     "steps": [
-      "1. Client sends POST /v1/tweets",
-      "2. API Gateway authenticates via JWT...",
-      "3. ..."
+      "1. Client sends POST /v1/[resource] with JWT",
+      "2. API Gateway authenticates token, applies rate limit, routes to Write Service",
+      "3. Write Service validates, writes to Primary DB, publishes event to [Queue]",
+      "4. [Worker/Fan-out] Service consumes event, updates derived data / caches / search index",
+      "5. Read path: Client GETs /v1/[resource], Read Service checks Cache first, falls back to Read Replica"
     ]
   },
 
   "step5_high_level_design": {
-    "approach": "One sentence: how you build this up endpoint by endpoint",
-    "ascii_diagram": "Clear ASCII diagram of all components with → arrows. Include: Client, API Gateway/LB, core services, databases, caches, queues.",
+    "diagram_simple": "VERTICAL top-to-bottom ASCII diagram — baseline design for core FRs only. Client → DNS → LB → API GW → Service → DB. Use box drawing with ┌─┐└─┘│ characters and ↓ arrows. Label each box with its specific role for this system.",
+    "diagram_scaled": "VERTICAL top-to-bottom ASCII diagram — full production design. EVERY component must show alternatives in [brackets] on same line. Must include: Client, CDN [Alt1|Alt2|Alt3], DNS, Load Balancer [Alt1|Alt2|Alt3], API Gateway [Alt1|Alt2|Alt3], Write Service, Read Service, Message Queue [Alt1|Alt2|Alt3], Worker/Fan-out, Cache [Alt1|Alt2], Primary DB [Alt1|Alt2|Alt3], Read Replica, Object Store [Alt1|Alt2] if needed, Search [Alt1|Alt2] if needed, Monitoring [Alt1|Alt2]. Use box drawing with ┌─┐└─┘│ and ↓ arrows. Show write path on left, read path on right where they diverge.",
     "schema": [
       {
         "table": "TableName",
-        "key_fields": "id UUID PK, user_id UUID FK, content TEXT, created_at TIMESTAMP, [other design-relevant fields]",
-        "storage": "PostgreSQL | DynamoDB | Cassandra | S3 etc.",
-        "why": "Specific reason for this storage choice",
-        "key_indexes": "INDEX on (user_id, created_at DESC) — why this index matters"
+        "key_fields": "id UUID PK, user_id UUID FK, [relevant fields only — skip name/email/created_at unless they affect query patterns], status ENUM('active','deleted'), created_at TIMESTAMP",
+        "storage": "PostgreSQL | DynamoDB | Cassandra | Redis",
+        "why": "Specific reason — e.g. relational integrity needed for transactions / wide-column for time-series / key-value for session speed",
+        "key_indexes": "INDEX on (user_id, created_at DESC) — enables efficient feed queries ordered by time"
       }
     ],
     "components": [
       {
-        "name": "Component Name",
-        "role": "What this component does and why it is a separate service",
-        "chosen_tech": "Specific technology e.g. Apache Kafka",
-        "why_chosen": "Specific reason — e.g. Kafka log-based storage gives replay and ordering guarantees within partitions",
+        "name": "Component Name (matches diagram box exactly)",
+        "role": "What this component does and why it exists as a separate service — the specific responsibility boundary",
+        "chosen_tech": "Specific technology name e.g. Apache Kafka 3.x",
+        "why_chosen": "Specific technical reason matching this system's needs — e.g. log-based storage gives us consumer group replay for fan-out recovery; ordered within partitions guarantees feed consistency",
         "alternatives": [
-          {"name": "RabbitMQ", "verdict": "tradeoff", "reason": "Better for complex routing logic; worse for high-throughput fan-out — no consumer replay"},
-          {"name": "AWS SQS", "verdict": "tradeoff", "reason": "Fully managed, less ops burden; no replay, 256KB message limit"},
-          {"name": "Redis Pub/Sub", "verdict": "avoid", "reason": "No persistence — messages lost if consumer is offline"}
+          {"name": "RabbitMQ", "verdict": "tradeoff", "reason": "Better for complex routing with exchanges and bindings; worse for our high-throughput fan-out because no consumer replay if fan-out service crashes"},
+          {"name": "AWS SQS", "verdict": "tradeoff", "reason": "Zero ops overhead, scales automatically; limited to 256KB messages and no replay beyond 14-day retention window"},
+          {"name": "Redis Pub/Sub", "verdict": "avoid", "reason": "No persistence — messages permanently lost if any consumer is offline at publish time, unacceptable for feed delivery"}
         ]
       }
     ]
@@ -643,92 +749,77 @@ Return ONLY valid JSON starting with { (no markdown):
 
   "step6_deep_dives": [
     {
-      "topic": "Specific hard problem title e.g. Fan-out for Celebrity Accounts",
-      "nfr_addressed": "Which NFR from step 1 this hardens",
-      "why_hard": "Why this is specifically hard at the scale of this system",
-      "naive_approach": "What a junior engineer would do and exactly why it breaks at scale",
-      "real_solution": "Your solution — specific technologies, algorithms, data structures",
-      "numbers": "Concrete numbers showing the solution works e.g. 10M followers × 100 bytes = 1 GB — manageable with Redis cluster",
-      "trade_offs": "What you give up with this solution"
+      "topic": "Specific hard problem title e.g. 'Feed Fan-out for Celebrity Accounts with 10M+ Followers'",
+      "nfr_addressed": "which NFR from step1 this hardens",
+      "why_hard": "Why this is specifically hard for this system at this scale — not generic",
+      "naive_approach": "What a junior engineer would implement and the specific failure mode at scale — e.g. synchronous fan-out to 10M follower rows on each write = 10s write latency",
+      "real_solution": "Detailed solution with specific technologies and algorithms — e.g. hybrid push/pull: push for users <10K followers (async Kafka fan-out), pull on read for celebrities (merge at read time from tweet store + follow graph)",
+      "numbers": "Concrete numbers validating the solution — e.g. 10M followers × 100 byte cache entry = 1GB Redis per celebrity tweet; Redis cluster with 64GB RAM handles 64 concurrent celebrity writes",
+      "trade_offs": "What you explicitly give up — e.g. celebrity followers see slight delay (eventual consistency) vs follower-count < 10K users who see instant updates"
     }
   ],
 
   "followup_qa": [
-    {"question": "Specific technical follow-up an interviewer would ask", "answer": "Confident, specific, 3-4 sentence answer showing depth"}
+    {"question": "Specific technical question an interviewer would ask, e.g. 'How would you handle the thundering herd when a celebrity posts?'", "answer": "Confident, specific 3-4 sentence answer with concrete solution — e.g. use request coalescing at the cache layer with a single in-flight key, dog-pile prevention via probabilistic early expiration (PER), and pre-warming celebrity feed caches via a background job that detects high-follower accounts"}
   ],
 
   "speak_guide": {
-    "opening_script": "Word-for-word what to say in the first 60 seconds of the interview",
-    "key_insight": "The one non-obvious insight that distinguishes a great answer — what most candidates miss",
-    "common_mistakes": ["Specific mistake and what to do instead", "Another common mistake"],
-    "closing_script": "How to wrap up confidently in the last 2 minutes"
+    "opening_script": "Word-for-word what to say in the first 60 seconds — clarifying questions to ask, how to state what you're going to design",
+    "key_insight": "The one non-obvious insight that most candidates miss — the thing that makes a Staff-level answer different from a mid-level answer",
+    "common_mistakes": [
+      "Specific mistake candidates make on this problem and exactly what to do instead",
+      "Another common mistake"
+    ],
+    "closing_script": "How to wrap up confidently in the last 2 minutes — what to summarize, how to invite questions"
   }
 }
 
-Requirements: 3 func reqs max, 4 NFRs, 3-4 core entities, 3-4 API endpoints, data flow only if relevant, 4-6 components each with 3 inline alternatives, 3-4 deep dives, 5 Q&As. Make everything specific to THIS problem.`;
+Requirements: 3 func reqs max (prioritization is a signal), 4-5 NFRs with specific numbers, 3-4 core entities, 3-4 API endpoints, BOTH diagrams always required, 4-6 components each with exactly 3 inline alternatives with specific reasons, 3-4 deep dives each with naive+real+numbers, 5 Q&As. Make every answer specific to THIS problem — no generic advice.`;
 }
 
-/* ═══════════════════════════ TAB HELPERS ═══════════════════════════ */
-function ptabBar(pairs){
-  let h='<div class="ptabs">';
-  for(let i=0;i<pairs.length;i+=2) h+=`<div class="ptab${i===0?' on':''}" data-t="${pairs[i]}" onclick="switchP('${pairs[i]}')">${pairs[i+1]}</div>`;
-  return h+'</div>';
-}
-function switchP(id){
-  document.querySelectorAll('.ptab').forEach(t=>t.classList.toggle('on',t.dataset.t===id));
-  document.querySelectorAll('.ppanel').forEach(p=>p.classList.toggle('on',p.id==='pp_'+id));
-}
+/* ═══════════════════════════════════════════════════════
+   TAB HELPERS
+═══════════════════════════════════════════════════════ */
+function ptabBar(pairs){let h='<div class="ptabs">';for(let i=0;i<pairs.length;i+=2)h+=`<div class="ptab${i===0?' on':''}" data-t="${pairs[i]}" onclick="switchP('${pairs[i]}')">${pairs[i+1]}</div>`;return h+'</div>';}
+function switchP(id){document.querySelectorAll('.ptab').forEach(t=>t.classList.toggle('on',t.dataset.t===id));document.querySelectorAll('.ppanel').forEach(p=>p.classList.toggle('on',p.id==='pp_'+id));}
 function toggleQA(el){el.classList.toggle('open');el.querySelector('.chev').classList.toggle('open');el.nextElementSibling.classList.toggle('open');}
-
-/* Sub-tabs wired after render */
-function wireSubTabs(containerSelector){
-  const container=document.querySelector(containerSelector);
-  if(!container) return;
-  const tabs=[...container.querySelectorAll('.stab')];
-  const panels=[...container.querySelectorAll('.spanel')];
-  tabs.forEach((t,i)=>{
-    t.onclick=()=>{
-      tabs.forEach(x=>x.classList.remove('on'));
-      panels.forEach(x=>x.classList.remove('on'));
-      t.classList.add('on');
-      panels[i]?.classList.add('on');
-    };
-  });
+function wireSubTabs(container){
+  const tabs=[...container.querySelectorAll(':scope > .stab-row > .stab')];
+  const panels=[...container.querySelectorAll(':scope > .spanel')];
+  tabs.forEach((t,i)=>{t.onclick=()=>{tabs.forEach(x=>x.classList.remove('on'));panels.forEach(x=>x.classList.remove('on'));t.classList.add('on');panels[i]?.classList.add('on');};});
 }
 
-/* ═══════════════════════════ SPEAK MODE ═══════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   SPEAK MODE
+═══════════════════════════════════════════════════════ */
 function openSM(){
-  if(!last) return;
-  const{mode:m,data:d}=last;
-  let h='';
+  if(!last)return;
+  const{mode:m,data:d}=last;let h='';
   if(m==='coding'){
-    h+=sc('🧠 How I Approached It',d.thought_process);
-    h+=sc('🎯 One-Liner',d.summary);
-    h+=sc('💡 Analogy',d.analogy);
+    h+=sc('🧠 How I Approached It',d.thought_process);h+=sc('🎯 One-Liner',d.summary);h+=sc('💡 Analogy',d.analogy);
     h+=sc('🔑 Key Steps',(d.steps||[]).map((s,i)=>(i+1)+'. '+s.title+' — '+s.why).join('\n'));
-    h+=sc('⚡ On Complexity',d.complexity_explanation);
+    h+=sc('⚡ Complexity',d.complexity_explanation);
     h+=sc('⚠️ Gotchas',(d.tricky_parts||[]).map(t=>'• '+t.issue+': '+String(t.explanation).slice(0,140)).join('\n'));
-  } else {
-    const sg=d.speak_guide||{};
-    h+=sc('🎬 Opening Script',sg.opening_script||'');
-    h+=sc('💡 Key Insight',sg.key_insight||'');
-    const fr=(d.step1_requirements?.functional||[]).map(r=>'🔵 '+r.req);
-    const nfr=(d.step1_requirements?.non_functional||[]).map(r=>'◎ '+r.req+' ('+r.value+')');
-    h+=sc('📋 Requirements to State',[...fr,'─',...nfr].join('\n'));
-    h+=sc('🏗️ Architecture Flow',(d.step4_data_flow?.steps||d.step5_high_level_design?.approach||'').replace(/,/g,'\n'));
-    h+=sc('🔬 Deep Dives',(d.step6_deep_dives||[]).map(dd=>'• '+dd.topic+': '+String(dd.real_solution).slice(0,130)).join('\n'));
+  }else{
+    const sg=d.speak_guide||{},r=d.step1_requirements||{};
+    h+=sc('🎬 Opening (say this verbatim)',sg.opening_script||'');
+    h+=sc('💡 The Key Insight',sg.key_insight||'');
+    h+=sc('📋 Requirements to State',[...(r.functional||[]).map(f=>'🔵 '+f.req),'─',...(r.non_functional||[]).map(n=>'◎ '+n.req+' ('+n.value+')')].join('\n'));
+    h+=sc('🏗️ Architecture Flow',(d.step4_data_flow?.steps||[]).join('\n'));
+    h+=sc('🔬 Deep Dives to Hit',(d.step6_deep_dives||[]).map(dd=>'• '+dd.topic+': '+String(dd.real_solution).slice(0,130)).join('\n'));
     h+=sc('⚠️ Mistakes to Avoid',(sg.common_mistakes||[]).map(m=>'• '+m).join('\n'));
-    h+=sc('🏁 Closing',sg.closing_script||'');
+    h+=sc('🏁 Closing (say this)',sg.closing_script||'');
   }
-  document.getElementById('smc').innerHTML=h;
-  document.getElementById('sovl').classList.add('on');
+  document.getElementById('smc').innerHTML=h;document.getElementById('sovl').classList.add('on');
 }
 function closeSM(){document.getElementById('sovl').classList.remove('on');}
 function sc(lbl,txt){return '<div class="sc"><div class="sc-lbl">'+lbl+'</div><div class="sc-txt">'+String(txt||'').replace(/\n/g,'<br>')+'</div></div>';}
 
-/* ═══════════════════════════ JAVA RENDER ═══════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   JAVA RENDER
+═══════════════════════════════════════════════════════ */
 function hl(code){
-  const kw=['public','private','protected','class','interface','extends','implements','new','return','if','else','for','while','do','switch','case','default','break','continue','null','true','false','void','static','final','abstract','import','package','throws','throw','try','catch','finally','int','long','double','float','boolean','char','String','List','Map','Set','ArrayList','HashMap','HashSet','LinkedList','Stack','Queue','TreeMap','TreeSet','Arrays','Collections','Math','Integer','Character','Optional','var'];
+  const kw=['public','private','protected','class','interface','extends','implements','new','return','if','else','for','while','do','switch','case','default','break','continue','null','true','false','void','static','final','abstract','import','package','throws','throw','try','catch','finally','int','long','double','float','boolean','char','String','List','Map','Set','ArrayList','HashMap','HashSet','LinkedList','Stack','Queue','TreeMap','TreeSet','PriorityQueue','Arrays','Collections','Math','Integer','Character','Optional','var'];
   let h=code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   h=h.replace(/(\/\/[^\n]*)/g,'<span style="color:#6a9955">$1</span>');
   h=h.replace(/(\/\*[\s\S]*?\*\/)/g,'<span style="color:#6a9955">$1</span>');
@@ -747,8 +838,7 @@ function renderCoding(d){
   const qaH=(d.followup_qa||[]).map(q=>`<div class="qa-item fadein"><div class="qa-q" onclick="toggleQA(this)"><span>${q.question}</span><span class="chev">›</span></div><div class="qa-a">${rx(q.answer)}</div></div>`).join('');
   const vl=v=>v==='better'?'✓ Better':v==='worse'?'✗ Worse':'⇄ Trade-off';
   const vc=v=>v==='better'?'bg':v==='worse'?'bo':'bb';
-  const alH=(d.alternatives||[]).map(a=>`<div class="card fadein"><div class="card-head" style="justify-content:space-between"><span>${a.name} <small style="color:var(--ts);font-weight:400">${a.complexity}</small></span><span class="badge ${vc(a.verdict)}">${vl(a.verdict)}</span></div><div class="card-body">${a.when_to_use}</div></div>`).join('');
-
+  const alH=(d.alternatives||[]).map(al=>`<div class="card fadein"><div class="card-head" style="justify-content:space-between"><span>${al.name} <small style="color:var(--ts);font-weight:400">${al.complexity}</small></span><span class="badge ${vc(al.verdict)}">${vl(al.verdict)}</span></div><div class="card-body">${al.when_to_use}</div></div>`).join('');
   a.innerHTML=
     ptabBar(['overview','Overview','code','Code','steps','Walkthrough','tricky','Gotchas','qa','Q&A','alts','Alternatives'])+
     `<div class="ppanel on" id="pp_overview">
@@ -760,86 +850,90 @@ function renderCoding(d){
       <button class="spk-btn fadein" onclick="openSM()">📢 Open Speak Mode</button>
     </div>
     <div class="ppanel" id="pp_code">
-      <p style="font-size:11.5px;color:var(--ts);margin-bottom:10px;line-height:1.5">Lines wrap fully — scroll up/down only.</p>
+      <p style="font-size:11px;color:var(--ts);margin-bottom:9px">Lines wrap — scroll up/down only. No horizontal scroll.</p>
       <div class="code-outer fadein"><div class="code-hdr"><span class="code-lang">JAVA</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><div class="code-body"><pre>${hl(d.code)}</pre></div></div>
     </div>
     <div class="ppanel" id="pp_steps"><div>${stH}</div></div>
     <div class="ppanel" id="pp_tricky"><p style="font-size:11.5px;color:var(--ts);margin-bottom:12px;line-height:1.5">Knowing these signals thoroughness.</p>${trH}</div>
-    <div class="ppanel" id="pp_qa"><p style="font-size:11.5px;color:var(--ts);margin-bottom:12px;line-height:1.5">Tap to reveal a confident answer.</p>${qaH}</div>
+    <div class="ppanel" id="pp_qa"><p style="font-size:11.5px;color:var(--ts);margin-bottom:12px;line-height:1.5">Tap to reveal.</p>${qaH}</div>
     <div class="ppanel" id="pp_alts"><p style="font-size:11.5px;color:var(--ts);margin-bottom:12px;line-height:1.5">Mentioning trade-offs signals depth.</p>${alH}</div>`;
-  a._rawCode=d.code;
-  a.classList.add('on');
+  a._rawCode=d.code;a.classList.add('on');
   setTimeout(()=>a.scrollIntoView({behavior:'smooth',block:'start'}),120);
 }
 
-/* ═══════════════════════════ SD RENDER ═══════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   SD RENDER — full final render replaces skeleton
+═══════════════════════════════════════════════════════ */
 function renderSD(d){
   const a=document.getElementById('rarea');
-  const r=d.step1_requirements||{};
-  const entities=d.step2_core_entities||[];
-  const api=d.step3_api_design||{};
-  const flow=d.step4_data_flow||{};
-  const hld=d.step5_high_level_design||{};
-  const dives=d.step6_deep_dives||[];
-  const sg=d.speak_guide||{};
+  const r=d.step1_requirements||{},api=d.step3_api_design||{},flow=d.step4_data_flow||{},hld=d.step5_high_level_design||{},dives=d.step6_deep_dives||[],sg=d.speak_guide||{};
 
-  /* ── Step 1: Requirements ── */
-  const funcH=(r.functional||[]).map(f=>
-    `<div class="hrow fadein"><strong>${f.priority==='core'?'🔵':'⚪'} ${f.req}</strong>${f.technical_implication?'<br><span style="font-size:11.5px;color:var(--ts)">→ '+f.technical_implication+'</span>':''}</div>`).join('');
-  const nfrH=(r.non_functional||[]).map(n=>
-    `<div class="hrow fadein">◎ <strong>${n.req}</strong> <span class="badge ba">${n.value}</span>${n.tradeoff?'<br><span style="font-size:11.5px;color:var(--ts)">Tradeoff: '+n.tradeoff+'</span>':''}</div>`).join('');
+  /* Requirements */
+  const funcH=(r.functional||[]).map(f=>`<div class="hrow fadein"><strong>${f.priority==='core'?'🔵':'⚪'} ${f.req}</strong>${f.technical_implication?'<br><span style="font-size:11.5px;color:var(--ts)">→ '+f.technical_implication+'</span>':''}</div>`).join('');
+  const nfrH=(r.non_functional||[]).map(n=>`<div class="hrow fadein">◎ <strong>${n.req}</strong> <span class="badge ba">${n.value}</span>${n.tradeoff?'<br><span style="font-size:11.5px;color:var(--ts)">Tradeoff: '+n.tradeoff+'</span>':''}</div>`).join('');
   const oosH=(r.out_of_scope||[]).map(o=>`<span class="pill">✗ ${o}</span>`).join('');
   const cap=r.capacity||{};
   const capH=cap.write_qps?`
-    <div class="iblock orange fadein"><div class="blbl">📊 When to do this math</div>${r.capacity_note||'Only calculate when the number changes a design decision.'}</div>
+    <div class="iblock orange fadein"><div class="blbl">📌 Hello Interview</div>${r.capacity_note||'Only calculate if the number changes a design decision.'}</div>
     <div class="sublbl">Assumptions</div>${(cap.assumptions||[]).map(a=>'<div class="hrow fadein">'+a+'</div>').join('')}
-    <div class="sublbl">Numbers</div>
     <div class="card fadein"><div class="card-body">
       <div style="margin-bottom:5px">✍️ <strong>Write QPS:</strong> ${cap.write_qps}</div>
       <div style="margin-bottom:5px">📖 <strong>Read QPS:</strong> ${cap.read_qps}</div>
       <div style="margin-bottom:5px">💾 <strong>Storage/year:</strong> ${cap.storage_per_year}</div>
       <div>🎯 <strong>Design impact:</strong> ${cap.design_impact||'—'}</div>
-    </div></div>`:'<div class="iblock orange fadein"><div class="blbl">💡 Hello Interview note</div>Skip capacity estimation unless the number directly changes a design decision. State this explicitly to the interviewer.</div>';
+    </div></div>`:
+    '<div class="iblock orange fadein"><div class="blbl">📌 Hello Interview</div>Skip capacity unless it changes a design decision. State this explicitly to the interviewer.</div>';
 
-  /* ── Step 2: Core Entities ── */
-  const entH=entities.map(e=>
-    `<div class="card fadein"><div class="card-head">${e.name}</div><div class="card-body">${e.description}${e.note?'<div class="card-sub">'+e.note+'</div>':''}</div></div>`).join('');
+  /* Entities */
+  const entH=(d.step2_core_entities||[]).map(e=>`<div class="card fadein"><div class="card-head">${e.name}</div><div class="card-body">${e.description}${e.note?'<div class="card-sub">'+e.note+'</div>':''}</div></div>`).join('');
 
-  /* ── Step 3: API Design ── */
-  const apiH=(api.endpoints||[]).map(ep=>
-    `<div class="card fadein" style="margin-bottom:10px">
-      <div class="card-head"><span class="badge bb" style="font-family:monospace;font-size:10px">${ep.method}</span> <code style="font-size:12.5px">${ep.path}</code></div>
-      <div class="card-body">
-        ${ep.auth?'<div style="margin-bottom:4px;font-size:11.5px;color:var(--ts)">🔐 '+ep.auth+'</div>':''}
-        <strong>Request:</strong> <code>${ep.request||''}</code><br>
-        <strong>Response:</strong> <code>${ep.response||''}</code>
-        ${ep.note?'<div style="margin-top:4px;font-size:11.5px;color:var(--ts)">'+ep.note+'</div>':''}
-      </div>
-    </div>`).join('');
+  /* API */
+  const apiH=(api.endpoints||[]).map(ep=>`<div class="card fadein" style="margin-bottom:10px">
+    <div class="card-head"><span class="badge bb" style="font-family:monospace;font-size:10px">${ep.method}</span> <code style="font-size:12.5px">${ep.path}</code></div>
+    <div class="card-body">
+      ${ep.auth?'<div style="margin-bottom:4px;font-size:11.5px;color:var(--ts)">🔐 '+ep.auth+'</div>':''}
+      <strong>Request:</strong> <code>${ep.request||''}</code><br><strong>Response:</strong> <code>${ep.response||''}</code>
+      ${ep.note?'<div style="margin-top:4px;font-size:11.5px;color:var(--ts)">'+ep.note+'</div>':''}
+    </div></div>`).join('');
 
-  /* ── Step 4: Data Flow (optional) ── */
-  const flowH=flow.needed?`
-    <div class="iblock blue fadein"><div class="blbl">Why data flow matters here</div>${flow.reason||''}</div>
-    ${(flow.steps||[]).map(s=>'<div class="hrow fadein">'+s+'</div>').join('')}`
-    :'<div class="iblock green fadein"><div class="blbl">✓ Not needed here</div>This problem does not involve a complex data pipeline, so we skip to High Level Design. Hello Interview says to include this only when there is a meaningful processing sequence.</div>';
+  /* Data flow */
+  const flowH=flow.needed?`<div class="iblock blue fadein"><div class="blbl">Why data flow here</div>${flow.reason||''}</div>${(flow.steps||[]).map(s=>'<div class="hrow fadein">'+s+'</div>').join('')}`
+    :'<div class="iblock green fadein"><div class="blbl">✓ Not needed</div>No meaningful processing pipeline here — per Hello Interview, skip to HLD for standard CRUD systems.</div>';
 
-  /* ── Step 5: High Level Design ── */
-  const diagH=hld.ascii_diagram?`<div class="diagram fadein">${eh(hld.ascii_diagram)}</div>`:'';
-  const schemaH=(hld.schema||[]).map(t=>
-    `<div class="card fadein" style="margin-bottom:10px">
-      <div class="card-head">${t.table} <span class="badge bp" style="margin-left:6px">${t.storage}</span></div>
-      <div class="card-body">
-        <code style="font-size:11px;word-break:break-all;line-height:1.8">${t.key_fields}</code>
-        <div class="card-sub">Why ${t.storage}: ${t.why}</div>
-        ${t.key_indexes?'<div style="font-size:11.5px;color:var(--ts);margin-top:4px">🔑 Index: '+t.key_indexes+'</div>':''}
-      </div>
-    </div>`).join('');
+  /* TWO DIAGRAMS — syntax colouring: [alts]=amber, arrows=blue-grey */
+  const colorizeDiag=raw=>{
+    let s=eh(raw);
+    s=s.replace(/\[([^\]<]+)\]/g,'<span style="color:#e8c060;font-weight:600">[$1]</span>');
+    s=s.replace(/([→↓←↑]|──►?|━━)/g,'<span style="color:#7aabcc">$1</span>');
+    return s;
+  };
+  const diagSimple=hld.diagram_simple?`
+    <div class="diag-wrap">
+      <div class="diag-label">Diagram 1 — Baseline Design <span class="diag-pill">satisfies core FRs</span></div>
+      <div class="diagram">${colorizeDiag(hld.diagram_simple)}</div>
+    </div>`:'';
+  const diagScaled=hld.diagram_scaled?`
+    <div class="diag-wrap">
+      <div class="diag-label">Diagram 2 — Production Design <span class="diag-pill">satisfies NFRs</span> <span class="diag-pill" style="background:var(--os);color:var(--orange)">[amber brackets] = alternatives</span></div>
+      <div class="diagram">${colorizeDiag(hld.diagram_scaled)}</div>
+    </div>`:'';
+
+  /* Schema */
+  const schemaH=(hld.schema||[]).map(t=>`<div class="card fadein" style="margin-bottom:10px">
+    <div class="card-head">${t.table} <span class="badge bp" style="margin-left:6px">${t.storage}</span></div>
+    <div class="card-body">
+      <code style="font-size:11px;word-break:break-all;line-height:1.8">${t.key_fields}</code>
+      <div class="card-sub">Why ${t.storage}: ${t.why}</div>
+      ${t.key_indexes?'<div style="font-size:11.5px;color:var(--ts);margin-top:4px">🔑 Index: '+t.key_indexes+'</div>':''}
+    </div></div>`).join('');
+
+  /* Components with inline alternatives */
   const compH=(hld.components||[]).map(c=>`
     <div class="tech-card fadein">
       <div class="tech-top"><span class="tech-name">${c.name}</span><span class="chosen-tag">✓ ${c.chosen_tech}</span></div>
       <div class="tech-role">${c.role}</div>
       <div class="tech-why"><strong>Why ${c.chosen_tech}:</strong> ${c.why_chosen}</div>
-      ${c.alternatives&&c.alternatives.length?`<div class="alt-lbl">Alternative Options</div>${c.alternatives.map(alt=>`
+      ${c.alternatives&&c.alternatives.length?`<div class="alt-lbl">Alternatives — same line as diagram [brackets]</div>${c.alternatives.map(alt=>`
         <div class="alt-row">
           <span class="alt-name">${alt.name}</span>
           <span class="av ${alt.verdict==='avoid'?'av-avoid':alt.verdict==='tradeoff'?'av-trade':'av-ok'}">${alt.verdict==='avoid'?'✗ Avoid':alt.verdict==='tradeoff'?'⇄ Trade-off':'✓ OK'}</span>
@@ -847,53 +941,49 @@ function renderSD(d){
         </div>`).join('')}`:''}
     </div>`).join('');
 
-  /* ── Step 6: Deep Dives ── */
-  const deepH=dives.map(dd=>`
-    <div class="card fadein" style="margin-bottom:13px">
-      <div class="card-head">🔬 ${dd.topic}</div>
-      ${dd.nfr_addressed?`<div style="margin-bottom:6px"><span class="badge bb">Hardens NFR: ${dd.nfr_addressed}</span></div>`:''}
-      <div class="sublbl" style="margin-top:4px">Why It's Hard</div><div class="card-body">${dd.why_hard}</div>
-      <div class="sublbl">Naive Approach & Why It Fails</div>
-      <div class="iblock red fadein" style="margin-bottom:8px"><div class="blbl">❌ What a junior engineer does</div>${dd.naive_approach}</div>
-      <div class="sublbl">The Real Solution</div><div class="card-body">${dd.real_solution}</div>
-      ${dd.numbers?`<div class="iblock orange fadein" style="margin-top:8px;padding:8px 12px"><div class="blbl">📊 Numbers</div>${dd.numbers}</div>`:''}
-      <div class="card-warn" style="margin-top:6px">⇄ Trade-off: ${dd.trade_offs}</div>
-    </div>`).join('');
+  /* Deep dives */
+  const deepH=dives.map(dd=>`<div class="card fadein" style="margin-bottom:13px">
+    <div class="card-head">🔬 ${dd.topic}</div>
+    ${dd.nfr_addressed?`<div style="margin-bottom:6px"><span class="badge bb">Hardens: ${dd.nfr_addressed}</span></div>`:''}
+    <div class="sublbl" style="margin-top:4px">Why It's Hard</div><div class="card-body">${dd.why_hard}</div>
+    <div class="sublbl">❌ Naive Approach & Why It Fails</div>
+    <div class="iblock red fadein" style="margin-bottom:8px"><div class="blbl">Junior Engineer approach</div>${dd.naive_approach}</div>
+    <div class="sublbl">✅ The Real Solution</div><div class="card-body">${dd.real_solution}</div>
+    ${dd.numbers?`<div class="iblock orange fadein" style="margin-top:8px;padding:8px 12px"><div class="blbl">📊 Numbers</div>${dd.numbers}</div>`:''}
+    <div class="card-warn" style="margin-top:6px">⇄ Trade-off: ${dd.trade_offs}</div>
+  </div>`).join('');
 
-  /* ── Q&A ── */
-  const qaH=(d.followup_qa||[]).map(q=>`
-    <div class="qa-item fadein">
-      <div class="qa-q" onclick="toggleQA(this)"><span>${q.question}</span><span class="chev">›</span></div>
-      <div class="qa-a">${q.answer}</div>
-    </div>`).join('');
+  /* Q&A */
+  const qaH=(d.followup_qa||[]).map(q=>`<div class="qa-item fadein"><div class="qa-q" onclick="toggleQA(this)"><span>${q.question}</span><span class="chev">›</span></div><div class="qa-a">${q.answer}</div></div>`).join('');
 
-  /* ══ ASSEMBLE — Overview + 6 sub-tabs exactly matching Hello Interview steps ══ */
+  /* ══ FULL RENDER ══ */
   a.innerHTML=
     ptabBar(['overview','Overview','walkthrough','Design Walkthrough','deepdives','Deep Dives','qa','Q&A'])+
 
-    /* OVERVIEW — streams in first, can talk immediately */
     `<div class="ppanel on" id="pp_overview">
-      <div class="iblock blue fadein"><div class="blbl">🧠 How to frame this interview</div>${d.thought_process}</div>
       <div class="sumbox fadein">${d.problem_statement}</div>
-      <div class="sublbl">Clarifying Questions to Ask First</div>${(d.clarifying_questions||[]).map((q,i)=>'<div class="hrow fadein"><strong>Q'+(i+1)+':</strong> '+q+'</div>').join('')}
-      <div class="sublbl">🔵 Core Functional Requirements</div>${(r.functional||[]).filter(f=>f.priority==='core').map(f=>'<div class="hrow fadein">🔵 '+f.req+'</div>').join('')}
-      <div class="sublbl">◎ Key NFRs</div>${(r.non_functional||[]).slice(0,4).map(n=>'<div class="hrow fadein">◎ '+n.req+' <span class="badge ba">'+n.value+'</span></div>').join('')}
-      <button class="spk-btn fadein" style="margin-top:14px" onclick="openSM()">📢 Open Speak Mode</button>
+      <div class="sublbl">Clarifying Questions to Ask First</div>
+      ${(d.clarifying_questions||[]).map((q,i)=>'<div class="hrow fadein"><strong>Q'+(i+1)+':</strong> '+q+'</div>').join('')}
+      <div class="sublbl">🔵 Core Functional Requirements</div>
+      ${(r.functional||[]).filter(f=>f.priority==='core').map(f=>'<div class="hrow fadein">🔵 '+f.req+'</div>').join('')}
+      <div class="sublbl">◎ Key Non-Functional Requirements</div>
+      ${(r.non_functional||[]).map(n=>'<div class="hrow fadein">◎ '+n.req+' <span class="badge ba">'+n.value+'</span></div>').join('')}
+      <div class="iblock blue fadein" style="margin-top:14px"><div class="blbl">🧠 How to frame this interview</div>${d.thought_process}</div>
+      <button class="spk-btn fadein" style="margin-top:10px" onclick="openSM()">📢 Open Speak Mode</button>
     </div>
 
-    /* DESIGN WALKTHROUGH — 6 sub-tabs matching exact Hello Interview sequence */
     <div class="ppanel" id="pp_walkthrough">
       <div class="stab-row">
-        <div class="stab on"><span class="sn">1</span>Requirements<span class="step-timing">~5 min</span></div>
-        <div class="stab"><span class="sn">2</span>Core Entities<span class="step-timing">~2 min</span></div>
-        <div class="stab"><span class="sn">3</span>API Design<span class="step-timing">~5 min</span></div>
-        <div class="stab"><span class="sn">4</span>Data Flow<span class="step-timing">optional</span></div>
-        <div class="stab"><span class="sn">5</span>High Level Design<span class="step-timing">~15 min</span></div>
-        <div class="stab"><span class="sn">6</span>Schema<span class="step-timing">inside HLD</span></div>
+        <div class="stab on"><span class="sn">1</span>Requirements<span class="step-t">~5m</span></div>
+        <div class="stab"><span class="sn">2</span>Core Entities<span class="step-t">~2m</span></div>
+        <div class="stab"><span class="sn">3</span>API Design<span class="step-t">~5m</span></div>
+        <div class="stab"><span class="sn">4</span>Data Flow<span class="step-t">opt</span></div>
+        <div class="stab"><span class="sn">5</span>HLD + Diagrams<span class="step-t">~15m</span></div>
+        <div class="stab"><span class="sn">6</span>Schema<span class="step-t">in HLD</span></div>
       </div>
 
       <div class="spanel on">
-        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>State functional requirements as "Users should be able to…" statements. Keep to 3 max — prioritisation is itself a signal. Include NFRs with specific numbers. Capacity estimation lives here but skip it unless the result changes a design decision.</div>
+        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>"Users should be able to…" — max 3. NFRs must be specific numbers. Capacity only if it changes a decision.</div>
         <div class="sublbl">🔵 Functional Requirements</div>${funcH}
         <div class="sublbl">◎ Non-Functional Requirements</div>${nfrH}
         <div class="sublbl">✗ Out of Scope</div><div class="pill-row">${oosH}</div>
@@ -901,49 +991,45 @@ function renderSD(d){
       </div>
 
       <div class="spanel">
-        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>List core entities as simple nouns — no fields yet. These are the nouns your API will exchange and your system will persist. Fields get filled in during HLD as you trace each request.</div>
+        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>Just nouns. No fields yet — those emerge during HLD as you trace each API request.</div>
         ${entH}
       </div>
 
       <div class="spanel">
-        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>Default to REST. Use plural resource nouns. Derive the current user from the JWT auth token — never from the request body. Design endpoints to satisfy each functional requirement one by one.</div>
-        <div class="sublbl">Protocol: ${api.protocol_choice||'REST (default)'}</div>
-        ${apiH}
+        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>Default REST. Plural nouns. user_id always from JWT — never from request body.</div>
+        <div class="sublbl">Protocol: ${api.protocol_choice||'REST (default)'}</div>${apiH}
       </div>
 
       <div class="spanel">
-        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>Data flow is optional — only include it for backend/data-pipeline systems where there is a meaningful sequence of transformations. Skip for standard product CRUD systems.</div>
+        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>Optional — only for pipeline/data systems. Skip for standard CRUD products.</div>
         ${flowH}
       </div>
 
       <div class="spanel">
-        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>Build boxes and arrows to satisfy each API endpoint in turn. Keep it simple first — satisfy the core functional requirements, then layer complexity in Deep Dives. Call out caches and queues verbally and come back to them later.</div>
-        ${diagH}
-        <div class="sublbl">Architecture & Components</div>
-        <p style="font-size:11.5px;color:var(--ts);margin-bottom:10px;line-height:1.5">Each card shows chosen tech + why, with inline alternatives so you never have to go hunting.</p>
+        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>Draw Diagram 1 first (simple, satisfies FRs). Then evolve to Diagram 2 (production, satisfies NFRs). Components are in the diagram with [Alt1|Alt2] brackets — detail cards below explain the choice.</div>
+        ${diagSimple}${diagScaled}
+        <div class="sublbl">Component Decisions <span style="font-size:9.5px;font-weight:400;color:var(--ts)">— same components as diagram [brackets]</span></div>
+        <p style="font-size:11px;color:var(--ts);margin-bottom:10px;line-height:1.5">Each card explains the choice and shows alternatives with specific trade-offs inline.</p>
         ${compH}
       </div>
 
       <div class="spanel">
-        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>Schema evolves during HLD as you trace each request to the persistence layer. Only document fields relevant to your design — skip obvious ones like name, email, created_at. Place schema notes beside the database in your diagram.</div>
+        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>Schema emerges during HLD. Only fields relevant to your design — skip name, email, created_at unless they affect a query pattern.</div>
         ${schemaH}
       </div>
     </div>
 
-    /* DEEP DIVES */
     <div class="ppanel" id="pp_deepdives">
-      <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>Use the remaining ~10 minutes to harden your design. Proactively lead this section for senior roles. Always show the naive approach first — it proves you understand why the problem is hard. Each dive should address a specific NFR from Step 1.</div>
+      <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>~10 min. Lead proactively for senior roles. Always naive approach first — it shows you understand WHY it's hard. Each dive hardens a specific NFR.</div>
       ${deepH}
     </div>
 
-    /* Q&A */
     <div class="ppanel" id="pp_qa">
-      <p style="font-size:11.5px;color:var(--ts);margin-bottom:12px;line-height:1.5">Tap to reveal a confident, specific answer.</p>
-      ${qaH}
+      <p style="font-size:11.5px;color:var(--ts);margin-bottom:12px">Tap to reveal a confident answer.</p>${qaH}
     </div>`;
 
   a.classList.add('on');
-  wireSubTabs('#pp_walkthrough');
+  wireSubTabs(document.querySelector('#pp_walkthrough'));
   setTimeout(()=>a.scrollIntoView({behavior:'smooth',block:'start'}),120);
 }
 
