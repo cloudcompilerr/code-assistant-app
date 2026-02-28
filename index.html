@@ -395,87 +395,28 @@ async function generate(){
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:mode==='coding'?4500:7500,stream:true,system:sys,messages:[{role:'user',content:prob}]})
     });
     if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'API error '+res.status);}
-    const reader=res.body.getReader(), dec=new TextDecoder();
-    let full='', pct=5, dk=new Set(), buf='';
-    /* Show skeleton immediately */
+    const reader=res.body.getReader(),dec=new TextDecoder();
+    let full='',pct=5,dk=new Set();
+    /* Show skeleton immediately — don't wait for thinking */
     document.getElementById('thinking').classList.remove('on');
     showSkeleton();
     document.getElementById('rarea').classList.add('on');
-
     while(true){
-      const{done,value}=await reader.read();
-      /* Flush decoder on final chunk */
-      const chunk = value ? dec.decode(value, {stream:!done}) : (done ? dec.decode() : '');
-      /* buf handles lines that span multiple chunks */
-      buf += chunk;
-      const lines = buf.split('\n');
-      buf = lines.pop(); /* keep incomplete last line in buffer */
+      const{done,value}=await reader.read();if(done)break;
+      const lines=dec.decode(value,{stream:true}).split('\n');
       for(const ln of lines){
-        if(!ln.startsWith('data: ')) continue;
-        const d=ln.slice(6).trim();
-        if(d==='[DONE]') continue;
-        try{
-          const ev=JSON.parse(d);
-          if(ev.type==='content_block_delta' && ev.delta?.text){
-            full += ev.delta.text;
-            pct = Math.min(90, pct+0.2);
-            bar.style.width = pct+'%';
-            patch(full, dk);
-          }
-        }catch(e){}
-      }
-      if(done) break;
-    }
-    /* Process any remaining buffer content */
-    if(buf.startsWith('data: ')){
-      const d=buf.slice(6).trim();
-      if(d && d!=='[DONE]'){
-        try{const ev=JSON.parse(d);if(ev.type==='content_block_delta'&&ev.delta?.text)full+=ev.delta.text;}catch(e){}
+        if(!ln.startsWith('data: '))continue;
+        const d=ln.slice(6).trim();if(d==='[DONE]')break;
+        try{const ev=JSON.parse(d);if(ev.type==='content_block_delta'&&ev.delta?.text){full+=ev.delta.text;pct=Math.min(90,pct+0.2);bar.style.width=pct+'%';patch(full,dk);}}catch(e){}
       }
     }
     bar.style.width='100%';
     setTimeout(()=>{document.getElementById('sprog').classList.remove('on');bar.style.width='0%';},500);
-
-    /* ── Robust JSON extraction ──
-       The model may wrap in ```json … ``` or have leading text before {
-       Try multiple strategies before giving up                          */
-    let parsed = null;
-    const tryParse = str => {
-      try { return JSON.parse(str); } catch(e) { return null; }
-    };
-    // Strategy 1: strip markdown fences and trim
-    let clean = full.trim();
-    clean = clean.replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
-    parsed = tryParse(clean);
-
-    // Strategy 2: find first { and last } — handles any leading/trailing text
-    if(!parsed){
-      const first = clean.indexOf('{');
-      const last  = clean.lastIndexOf('}');
-      if(first>=0 && last>first) parsed = tryParse(clean.slice(first, last+1));
-    }
-
-    // Strategy 3: try to fix common JSON issues (trailing commas, unescaped quotes in values)
-    if(!parsed){
-      try{
-        // Remove trailing commas before } or ]
-        const fixed = clean.replace(/,\s*([}\]])/g,'$1');
-        parsed = tryParse(fixed);
-      }catch(e){}
-    }
-
-    if(parsed){
+    try{
+      const parsed=JSON.parse(full.trim().replace(/^```json\s*/i,'').replace(/\s*```$/,''));
       last={mode,data:parsed};
-      mode==='coding' ? renderCoding(parsed) : renderSD(parsed);
-    } else {
-      // Show the raw text so the user isn't left with a spinning skeleton
-      document.getElementById('rarea').innerHTML=
-        '<div class="err-box">⚠️ Could not parse response as JSON. The model may have returned plain text instead.<br><br>' +
-        '<details><summary style="cursor:pointer;font-weight:600">View raw response</summary>' +
-        '<pre style="white-space:pre-wrap;word-break:break-word;font-size:11px;margin-top:8px;color:var(--tp)">' +
-        eh(full.slice(0,3000)) + (full.length>3000?'\n…[truncated]':'') +
-        '</pre></details></div>';
-    }
+      mode==='coding'?renderCoding(parsed):renderSD(parsed);
+    }catch(e){console.warn('parse',e);}
   }catch(err){
     document.getElementById('thinking').classList.remove('on');
     document.getElementById('rarea').innerHTML='<div class="err-box">⚠️ '+err.message+'</div>';
@@ -752,30 +693,28 @@ Return ONLY valid JSON starting with { — no markdown, no preamble:
   "step2_core_entities": [
     {
       "name": "EntityName",
-      "description": "what this entity represents — the real-world noun",
-      "note": "key design insight about this entity — e.g. why denormalized, why split, what's non-obvious",
-      "schema": {
-        "storage": "PostgreSQL | DynamoDB | Cassandra | Redis | S3",
-        "why_storage": "Specific reason for this store — e.g. relational integrity for transactions / wide-column for time-series / key-value for O(1) lookup",
-        "key_fields": "id UUID PK, user_id UUID FK, [design-relevant fields only — skip obvious ones], status ENUM, created_at TIMESTAMP",
-        "key_indexes": "INDEX on (user_id, created_at DESC) — one sentence on why this index matters for the query pattern",
-        "relationships": "How this entity relates to others — e.g. User 1:N Tweets, Tweet N:M Hashtags via TweetHashtag"
-      }
+      "description": "what this entity represents in the domain",
+      "note": "key design decision — e.g. why denormalized, why separate table",
+      "storage": "PostgreSQL | DynamoDB | Cassandra | Redis",
+      "why_storage": "specific reason for this store — e.g. relational integrity for joins / wide-column for time-series / key-value for O(1) lookup",
+      "key_fields": "id UUID PK, user_id UUID FK, [design-relevant fields only], created_at TIMESTAMP",
+      "key_indexes": "INDEX on (user_id, created_at DESC) — one sentence on why this index matters",
+      "relationships": "e.g. User 1:N Posts, Post N:M Tags via PostTag"
     }
   ],
 
   "step3_api_design": {
-    "protocol_choice": "REST (default) / GraphQL / gRPC — and one sentence on why for this system",
+    "protocol_choice": "REST (default) / GraphQL / gRPC — one sentence on why for this system",
     "realtime_protocol": {
       "needed": true,
-      "chosen": "WebSocket | SSE | Long Polling | HTTP/2 Server Push | None",
-      "reason": "Why this specific protocol fits this system — e.g. 'SSE because updates are server-to-client only (notifications, feed updates), no need for bidirectional channel, and SSE auto-reconnects and is simpler than WebSocket for this use case'",
+      "chosen": "WebSocket | SSE | Long Polling | HTTP/2 Push | None",
+      "reason": "why this protocol fits — e.g. SSE because updates are server-to-client only; auto-reconnects; simpler than WebSocket for this use case",
+      "where_in_arch": "where it sits — e.g. Client opens SSE to Notification Service via API Gateway; fan-out worker pushes to Redis Pub/Sub which Notification Service subscribes to",
       "alternatives": [
-        {"name": "WebSocket", "verdict": "tradeoff|avoid|ok", "reason": "specific reason for or against here — e.g. 'bidirectional, lower overhead for chat; overkill if clients only receive, not send'"},
-        {"name": "Long Polling", "verdict": "avoid", "reason": "specific reason — e.g. 'simpler but holds open HTTP connections, wasteful at 10M concurrent users vs SSE'"},
-        {"name": "HTTP/2 Push", "verdict": "tradeoff", "reason": "native browser support but limited proxy compatibility, less predictable than SSE"}
-      ],
-      "how_it_fits": "One sentence on where in the architecture the real-time channel sits — e.g. 'Client opens SSE connection to the Notification Service via the API Gateway; fan-out worker pushes to Redis Pub/Sub which the Notification Service subscribes to and streams to the client'"
+        {"name": "WebSocket", "verdict": "tradeoff", "reason": "bidirectional, lower overhead per message; overkill if client never sends on the channel"},
+        {"name": "Long Polling", "verdict": "avoid", "reason": "holds open HTTP connections, wasteful at scale vs persistent SSE/WS"},
+        {"name": "HTTP/2 Push", "verdict": "tradeoff", "reason": "native but limited proxy support; less predictable reconnect than SSE"}
+      ]
     },
     "endpoints": [
       {
@@ -804,16 +743,25 @@ Return ONLY valid JSON starting with { — no markdown, no preamble:
   "step5_high_level_design": {
     "diagram_simple": "VERTICAL top-to-bottom ASCII diagram — baseline design for core FRs only. Client → DNS → LB → API GW → Service → DB. Use box drawing with ┌─┐└─┘│ characters and ↓ arrows. Label each box with its specific role for this system.",
     "diagram_simple_commentary": [
-      {"component": "Load Balancer", "says": "What to say when drawing this box — e.g. 'I'm adding a load balancer here to distribute traffic across multiple API instances, giving us horizontal scale and automatic failover'"},
-      {"component": "API Gateway", "says": "What to say — e.g. 'The API Gateway handles auth, rate limiting, and routing so our services stay stateless'"},
-      {"component": "Primary DB", "says": "What to say — e.g. 'For now a single PostgreSQL instance — this is our bottleneck and we'll address it in the scaled design'"}
+      {"component": "Load Balancer", "say": "say this aloud while drawing it — e.g. I'm adding a load balancer to distribute traffic across API instances, giving us horizontal scale and automatic failover"},
+      {"component": "API Gateway", "say": "e.g. The API Gateway handles auth, rate limiting and routing so all downstream services stay stateless"},
+      {"component": "Primary DB", "say": "e.g. Single PostgreSQL instance for now — this is the bottleneck we'll address when we scale up"}
     ],
     "diagram_scaled": "VERTICAL top-to-bottom ASCII diagram — full production design. EVERY component must show alternatives in [brackets] on same line. Must include: Client, CDN [Alt1|Alt2|Alt3], DNS, Load Balancer [Alt1|Alt2|Alt3], API Gateway [Alt1|Alt2|Alt3], Write Service, Read Service, Message Queue [Alt1|Alt2|Alt3], Worker/Fan-out, Cache [Alt1|Alt2], Primary DB [Alt1|Alt2|Alt3], Read Replica, Object Store [Alt1|Alt2] if needed, Search [Alt1|Alt2] if needed, Monitoring [Alt1|Alt2]. Use box drawing with ┌─┐└─┘│ and ↓ arrows. Show write path on left, read path on right where they diverge.",
     "diagram_scaled_commentary": [
-      {"component": "CDN", "says": "What to say when adding CDN — e.g. 'I'm pushing static assets and read-heavy responses to the edge; CloudFront cuts p99 latency by ~40ms for geographically distributed users'"},
-      {"component": "Message Queue", "says": "What to say — e.g. 'Kafka decouples the write path from fan-out. The write service acknowledges immediately after writing to the DB, and the fan-out happens async — this is how we hit our p99 write latency NFR'"},
-      {"component": "Cache", "says": "What to say — e.g. 'Redis sits in front of the read replica. Cache hit rate target is ~95%; a cache miss falls through to the replica and back-fills the cache'"},
-      {"component": "Read Replica", "says": "What to say — e.g. 'Read replicas absorb our ~10:1 read/write ratio. Replication lag is typically <50ms — acceptable for eventual consistency on feeds'"}
+      {"component": "CDN", "say": "e.g. I'm adding a CDN to serve static assets and cache edge responses — cuts p99 latency for distributed users by ~40ms and removes load from origin"},
+      {"component": "Message Queue", "say": "e.g. Kafka decouples write from fan-out — the write service acks immediately after DB write, fan-out is async. This is how we hit our write latency NFR"},
+      {"component": "Cache", "say": "e.g. Redis in front of the read replica — target 95% hit rate, cache miss falls through to replica and back-fills"},
+      {"component": "Read Replica", "say": "e.g. Read replicas absorb our read-heavy load, replication lag ~50ms which is acceptable for eventual consistency on feeds"}
+    ],
+    "schema": [
+      {
+        "table": "TableName",
+        "key_fields": "id UUID PK, user_id UUID FK, [relevant fields only — skip name/email/created_at unless they affect query patterns], status ENUM('active','deleted'), created_at TIMESTAMP",
+        "storage": "PostgreSQL | DynamoDB | Cassandra | Redis",
+        "why": "Specific reason — e.g. relational integrity needed for transactions / wide-column for time-series / key-value for session speed",
+        "key_indexes": "INDEX on (user_id, created_at DESC) — enables efficient feed queries ordered by time"
+      }
     ],
     "components": [
       {
@@ -857,7 +805,7 @@ Return ONLY valid JSON starting with { — no markdown, no preamble:
   }
 }
 
-Requirements: 3 func reqs max (prioritization is a signal), 4-5 NFRs with specific numbers, 3-4 core entities each with full schema inside, 3-4 API endpoints + realtime_protocol block always, BOTH diagrams always with commentary arrays, 4-6 components each with exactly 3 inline alternatives, 3-4 deep dives each with naive+real+numbers, 5 Q&As. Make every answer specific to THIS problem — no generic advice.`;
+Requirements: 3 func reqs max (prioritization is a signal), 4-5 NFRs with specific numbers, 3-4 core entities, 3-4 API endpoints, BOTH diagrams always required, 4-6 components each with exactly 3 inline alternatives with specific reasons, 3-4 deep dives each with naive+real+numbers, 5 Q&As. Make every answer specific to THIS problem — no generic advice.`;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -967,43 +915,38 @@ function renderSD(d){
     </div></div>`:
     '<div class="iblock orange fadein"><div class="blbl">📌 Hello Interview</div>Skip capacity unless it changes a design decision. State this explicitly to the interviewer.</div>';
 
-  /* Entities + Schema merged — each card shows entity description AND its schema */
-  const entH=(d.step2_core_entities||[]).map(e=>{
-    const sc=e.schema||{};
-    const verdictBadge={'PostgreSQL':'bb','MySQL':'bb','DynamoDB':'bp','Cassandra':'bp','Redis':'bg','S3':'ba','Elasticsearch':'bo'}[sc.storage]||'ba';
-    return `<div class="card fadein" style="margin-bottom:13px">
-      <div class="card-head" style="justify-content:space-between">
+  /* Entities + Schema merged — one card per entity showing domain + storage + fields */
+  const entSchemaH=(d.step2_core_entities||[]).map(e=>`
+    <div class="card fadein" style="margin-bottom:13px">
+      <div class="card-head" style="justify-content:space-between;align-items:flex-start">
         <span style="font-size:14px;font-weight:700">${e.name}</span>
-        ${sc.storage?`<span class="badge ${verdictBadge}">${sc.storage}</span>`:''}
+        ${e.storage?`<span class="badge bp">${e.storage}</span>`:''}
       </div>
-      <div class="card-body" style="margin-bottom:8px">${e.description}</div>
-      ${e.note?`<div class="card-sub" style="margin-bottom:10px">💡 Design insight: ${e.note}</div>`:''}
-      ${sc.key_fields?`
-        <div class="sublbl" style="margin-top:2px">Schema Fields</div>
-        <div style="background:var(--cdbg);border-radius:8px;padding:10px 12px;font-family:'SF Mono',monospace;font-size:11px;line-height:1.8;color:var(--cdtx);word-break:break-word;margin-bottom:8px">${eh(sc.key_fields)}</div>
+      <div class="card-body" style="margin-bottom:6px">${e.description}</div>
+      ${e.note?`<div class="card-sub" style="margin-bottom:8px">💡 ${e.note}</div>`:''}
+      ${e.key_fields?`
+        <div style="font-size:10px;font-weight:700;color:var(--ts);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px">Key Fields</div>
+        <div style="background:var(--cdbg);border-radius:8px;padding:9px 12px;font-family:'SF Mono',monospace;font-size:11px;line-height:1.85;color:var(--cdtx);word-break:break-word;margin-bottom:7px">${eh(e.key_fields)}</div>
       `:''}
-      ${sc.key_indexes?`<div style="font-size:11.5px;color:var(--ts);margin-bottom:5px">🔑 <strong>Index:</strong> ${sc.key_indexes}</div>`:''}
-      ${sc.relationships?`<div style="font-size:11.5px;color:var(--purple);margin-bottom:5px">🔗 <strong>Relationships:</strong> ${sc.relationships}</div>`:''}
-      ${sc.why_storage?`<div class="iblock green fadein" style="padding:8px 12px;margin-top:8px;margin-bottom:0"><div class="blbl">Why ${sc.storage||'this store'}</div>${sc.why_storage}</div>`:''}
-    </div>`;
-  }).join('');
+      ${e.key_indexes?`<div style="font-size:11.5px;color:var(--ts);margin-bottom:4px">🔑 <strong>Index:</strong> ${e.key_indexes}</div>`:''}
+      ${e.relationships?`<div style="font-size:11.5px;color:var(--purple);margin-bottom:6px">🔗 <strong>Relationships:</strong> ${e.relationships}</div>`:''}
+      ${e.why_storage?`<div class="iblock green fadein" style="padding:8px 11px;margin-top:6px;margin-bottom:0"><div class="blbl">Why ${e.storage||'this store'}</div>${e.why_storage}</div>`:''}
+    </div>`).join('');
 
-  /* Realtime Protocol */
+  /* Realtime protocol */
   const rt=api.realtime_protocol||{};
-  const rtVerd=v=>v==='avoid'?'av-avoid':v==='tradeoff'?'av-trade':'av-ok';
-  const rtLbl=v=>v==='avoid'?'✗ Avoid':v==='tradeoff'?'⇄ Trade-off':'✓ OK';
   const rtH=rt.chosen?`
-    <div class="tech-card fadein" style="border:1.5px solid rgba(45,95,160,.3)">
+    <div class="tech-card fadein" style="border-color:rgba(45,95,160,.35);margin-bottom:14px">
       <div class="tech-top">
         <span class="tech-name">🔄 Real-time Protocol</span>
         <span class="chosen-tag">✓ ${rt.chosen}</span>
       </div>
       <div class="tech-role">${rt.reason||''}</div>
-      ${rt.how_it_fits?`<div class="tech-why"><strong>Where it fits:</strong> ${rt.how_it_fits}</div>`:''}
-      ${rt.alternatives&&rt.alternatives.length?`<div class="alt-lbl">Alternatives</div>${rt.alternatives.map(a=>`
+      ${rt.where_in_arch?`<div class="tech-why"><strong>Where it sits:</strong> ${rt.where_in_arch}</div>`:''}
+      ${(rt.alternatives||[]).length?`<div class="alt-lbl">Alternatives</div>${(rt.alternatives||[]).map(a=>`
         <div class="alt-row">
           <span class="alt-name">${a.name}</span>
-          <span class="av ${rtVerd(a.verdict)}">${rtLbl(a.verdict)}</span>
+          <span class="av ${a.verdict==='avoid'?'av-avoid':a.verdict==='tradeoff'?'av-trade':'av-ok'}">${a.verdict==='avoid'?'✗ Avoid':a.verdict==='tradeoff'?'⇄ Trade-off':'✓ OK'}</span>
           <span class="alt-why">${a.reason}</span>
         </div>`).join('')}`:''}
     </div>`:'';
@@ -1021,13 +964,13 @@ function renderSD(d){
   const flowH=flow.needed?`<div class="iblock blue fadein"><div class="blbl">Why data flow here</div>${flow.reason||''}</div>${(flow.steps||[]).map(s=>'<div class="hrow fadein">'+s+'</div>').join('')}`
     :'<div class="iblock green fadein"><div class="blbl">✓ Not needed</div>No meaningful processing pipeline here — per Hello Interview, skip to HLD for standard CRUD systems.</div>';
 
-  /* Diagram commentary — what to say when walking through each component */
-  const diagCommentaryH=(arr,label)=>{
+  /* Diagram commentary — "what to say" callouts per component */
+  const commentaryH=arr=>{
     if(!arr||!arr.length)return '';
-    return `<div class="sublbl" style="margin-top:12px">${label}</div>`+
-      arr.map(c=>`<div class="card fadein" style="margin-bottom:7px;border-left:3px solid var(--blue);border-radius:0 8px 8px 0;background:var(--bs)">
-        <div style="font-size:10px;font-weight:700;color:var(--blue);margin-bottom:3px;letter-spacing:.05em">${c.component}</div>
-        <div style="font-size:12.5px;line-height:1.65;color:var(--tp)">💬 "${c.says}"</div>
+    return '<div class="sublbl" style="margin-top:10px">🗣️ What to say while drawing</div>'+
+      arr.map(c=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 11px;background:var(--bs);border-radius:8px;margin-bottom:5px;border-left:3px solid var(--blue)">
+        <div style="font-size:10px;font-weight:700;color:var(--blue);min-width:90px;padding-top:2px;flex-shrink:0">${c.component}</div>
+        <div style="font-size:12.5px;line-height:1.6;color:var(--tp);font-style:italic">"${c.say}"</div>
       </div>`).join('');
   };
 
@@ -1042,14 +985,23 @@ function renderSD(d){
     <div class="diag-wrap">
       <div class="diag-label">Diagram 1 — Baseline Design <span class="diag-pill">satisfies core FRs</span></div>
       <div class="diagram">${colorizeDiag(hld.diagram_simple)}</div>
-      ${diagCommentaryH(hld.diagram_simple_commentary,'🗣️ What to say while drawing Diagram 1')}
+      ${commentaryH(hld.diagram_simple_commentary)}
     </div>`:'';
   const diagScaled=hld.diagram_scaled?`
     <div class="diag-wrap">
-      <div class="diag-label">Diagram 2 — Production Design <span class="diag-pill">satisfies NFRs</span> <span class="diag-pill" style="background:var(--os);color:var(--orange)">[amber brackets] = alternatives</span></div>
+      <div class="diag-label">Diagram 2 — Production Design <span class="diag-pill">satisfies NFRs</span> <span class="diag-pill" style="background:var(--os);color:var(--orange)">[amber] = alternatives</span></div>
       <div class="diagram">${colorizeDiag(hld.diagram_scaled)}</div>
-      ${diagCommentaryH(hld.diagram_scaled_commentary,'🗣️ What to say while evolving to Diagram 2')}
+      ${commentaryH(hld.diagram_scaled_commentary)}
     </div>`:'';
+
+  /* Schema */
+  const schemaH=(hld.schema||[]).map(t=>`<div class="card fadein" style="margin-bottom:10px">
+    <div class="card-head">${t.table} <span class="badge bp" style="margin-left:6px">${t.storage}</span></div>
+    <div class="card-body">
+      <code style="font-size:11px;word-break:break-all;line-height:1.8">${t.key_fields}</code>
+      <div class="card-sub">Why ${t.storage}: ${t.why}</div>
+      ${t.key_indexes?'<div style="font-size:11.5px;color:var(--ts);margin-top:4px">🔑 Index: '+t.key_indexes+'</div>':''}
+    </div></div>`).join('');
 
   /* Components with inline alternatives */
   const compH=(hld.components||[]).map(c=>`
@@ -1100,7 +1052,7 @@ function renderSD(d){
       <div class="stab-row">
         <div class="stab on"><span class="sn">1</span>Requirements<span class="step-t">~5m</span></div>
         <div class="stab"><span class="sn">2</span>Entities & Schema<span class="step-t">~3m</span></div>
-        <div class="stab"><span class="sn">3</span>API & Realtime<span class="step-t">~5m</span></div>
+        <div class="stab"><span class="sn">3</span>API & Protocol<span class="step-t">~5m</span></div>
         <div class="stab"><span class="sn">4</span>Data Flow<span class="step-t">opt</span></div>
         <div class="stab"><span class="sn">5</span>HLD + Diagrams<span class="step-t">~15m</span></div>
       </div>
@@ -1114,14 +1066,14 @@ function renderSD(d){
       </div>
 
       <div class="spanel">
-        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>State each entity as a simple noun, its role, and key schema fields together. Mentioning the storage choice and why signals depth. Relationships clarify how the data model holds together.</div>
-        ${entH}
+        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>State each entity as a noun, its domain role, and key schema fields together. Mentioning storage choice + why signals senior thinking. Relationships show you understand data modeling.</div>
+        ${entSchemaH}
       </div>
 
       <div class="spanel">
-        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>Default REST. Plural nouns. user_id always from JWT — never from request body. State the real-time protocol upfront — it affects the architecture significantly.</div>
+        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>State the real-time protocol upfront — it's a design decision that affects the architecture. Then cover REST endpoints: plural nouns, user_id always from JWT.</div>
         ${rtH}
-        <div class="sublbl" style="margin-top:12px">REST Endpoints <span style="font-size:9px;font-weight:400;color:var(--ts)">Protocol: ${api.protocol_choice||'REST'}</span></div>
+        <div class="sublbl">REST Endpoints <span style="font-size:9px;font-weight:400;color:var(--ts)"> — ${api.protocol_choice||'REST'}</span></div>
         ${apiH}
       </div>
 
@@ -1131,10 +1083,10 @@ function renderSD(d){
       </div>
 
       <div class="spanel">
-        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>Draw Diagram 1 first (simple, satisfies FRs). Read out the commentary for each box as you draw it. Then evolve to Diagram 2 (production, satisfies NFRs). Speak the rationale for each new component you add.</div>
+        <div class="iblock blue fadein"><div class="blbl">📌 Hello Interview guidance</div>Draw Diagram 1 first, narrate each box as you draw it. Then evolve to Diagram 2, explaining each new component you add. Use the commentary below each diagram as your speaking script.</div>
         ${diagSimple}${diagScaled}
-        <div class="sublbl" style="margin-top:16px">Component Decisions <span style="font-size:9.5px;font-weight:400;color:var(--ts)">— match [brackets] in Diagram 2</span></div>
-        <p style="font-size:11px;color:var(--ts);margin-bottom:10px;line-height:1.5">Each card explains the choice and shows alternatives with specific trade-offs inline — same components shown in amber [brackets] in the diagram above.</p>
+        <div class="sublbl" style="margin-top:14px">Component Decisions <span style="font-size:9.5px;font-weight:400;color:var(--ts)">— match [amber brackets] in Diagram 2</span></div>
+        <p style="font-size:11px;color:var(--ts);margin-bottom:10px;line-height:1.5">Each card explains the choice and shows alternatives with specific trade-offs inline.</p>
         ${compH}
       </div>
     </div>
