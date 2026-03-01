@@ -585,6 +585,44 @@ function patch(txt,dk){
     const v=strComplete('thought_process')||strPartial('thought_process',80);
     if(v&&v.length>40){dk.add('tp');slot('sk_tp',v.replace(/\n/g,'<br>'));}
   }
+
+  /* PRIORITY 6: clarifying questions — stream as each object closes */
+  if(!dk.has('cq')){
+    const m=txt.match(/"clarifying_questions"\s*:\s*\[([\s\S]*?)(?:\]|(?="step1_requirements"))/);
+    if(m&&m[1]){
+      const items=[];let rx=/"q"\s*:\s*"([^"\\]+)"/g,hit;
+      while((hit=rx.exec(m[1]))!==null)items.push(hit[1]);
+      if(items.length>=1){
+        dk.add('cq');
+        const el=document.getElementById('sk_cq');
+        if(el){el.innerHTML=items.map((q,i)=>'<div class="hrow fadein"><strong>Q'+(i+1)+':</strong> '+q+'</div>').join('');el.classList.add('fadein');}
+      }
+    }
+  }
+
+  /* PRIORITY 7: out_of_scope — stream as array closes */
+  if(!dk.has('oos')){
+    const m=txt.match(/"out_of_scope"\s*:\s*\[([\s\S]*?)\]/);
+    if(m&&m[1]){
+      const items=[];let rx=/"([^"\\]+)"/g,hit;
+      while((hit=rx.exec(m[1]))!==null)items.push(hit[1]);
+      if(items.length>=1){
+        dk.add('oos');
+        const el=document.getElementById('sk_oos');
+        if(el){el.innerHTML=items.map(o=>'<span class="pill">✗ '+o+'</span>').join('');el.classList.add('fadein');}
+      }
+    }
+  }
+
+  /* PRIORITY 8: capacity plain_english — fires as soon as ~60 chars arrive */
+  if(!dk.has('cap_txt')){
+    const v=strComplete('plain_english')||strPartial('plain_english',60);
+    if(v&&v.length>40){
+      dk.add('cap_txt');
+      const el=document.getElementById('sk_cap_txt');
+      if(el){el.innerHTML=v;el.classList.add('fadein');}
+    }
+  }
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -601,33 +639,42 @@ function showSkeleton(){
       <div style="text-align:center;font-size:11px;color:var(--ts);font-style:italic;padding:6px 0">⏳ Code & walkthrough loading…</div></div>`;
   } else {
     a.innerHTML=`<div style="padding-top:12px">
-      <!-- Problem statement arrives FIRST ~1-2s -->
-      <div class="sumbox" id="sk_ps" style="min-height:52px"><div class="skel" style="width:100%"></div><div class="skel" style="width:68%"></div></div>
 
-      <!-- FRs stream in ~2-3s -->
-      <div class="sublbl">🔵 Functional Requirements <span style="font-size:9px;font-weight:400;color:var(--ts)">(streaming…)</span></div>
+      <!-- CLARIFYING QUESTIONS (~1s) -->
+      <div class="sublbl">❓ Clarifying Questions to Ask First <span style="font-size:9px;font-weight:400;color:var(--ts)">(ask these before drawing anything)</span></div>
+      <div id="sk_cq"><div class="skel" style="width:88%"></div><div class="skel" style="width:72%"></div><div class="skel" style="width:80%"></div></div>
+
+      <!-- Problem statement (~1-2s) -->
+      <div class="sumbox" id="sk_ps" style="min-height:52px;margin-top:10px"><div class="skel" style="width:100%"></div><div class="skel" style="width:68%"></div></div>
+
+      <!-- FRs (~2-3s) -->
+      <div class="sublbl">🔵 Functional Requirements</div>
       <div id="sk_fr"><div class="skel" style="width:90%"></div><div class="skel" style="width:76%"></div><div class="skel" style="width:83%"></div></div>
 
-      <!-- NFRs stream in ~3-4s -->
-      <div class="sublbl">◎ Non-Functional Requirements <span style="font-size:9px;font-weight:400;color:var(--ts)">(streaming…)</span></div>
+      <!-- NFRs (~3-4s) -->
+      <div class="sublbl">◎ Non-Functional Requirements</div>
       <div id="sk_nfr"><div class="skel" style="width:86%"></div><div class="skel" style="width:72%"></div><div class="skel" style="width:79%"></div></div>
 
-      <!-- Capacity numbers stream in ~4-5s -->
-      <div class="sublbl">📊 Scale Assumptions & QPS</div>
-      <div id="sk_cap" style="background:var(--sf);border:1px solid var(--br);border-radius:10px;padding:11px 13px;margin-bottom:10px">
-        <div class="skel" style="width:80%;margin-bottom:6px"></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <div style="flex:1;min-width:120px"><div class="skel" style="width:100%;height:32px;border-radius:6px"></div></div>
-          <div style="flex:1;min-width:120px"><div class="skel" style="width:100%;height:32px;border-radius:6px"></div></div>
-          <div style="flex:1;min-width:120px"><div class="skel" style="width:100%;height:32px;border-radius:6px"></div></div>
+      <!-- Out of scope (~3-4s) -->
+      <div class="sublbl">✗ Out of Scope</div>
+      <div id="sk_oos" class="pill-row"><div class="skel" style="width:60%;height:22px;border-radius:11px;display:inline-block;margin-right:6px"></div><div class="skel" style="width:40%;height:22px;border-radius:11px;display:inline-block"></div></div>
+
+      <!-- Capacity (~4-5s) -->
+      <div class="sublbl">📊 Scale & Capacity</div>
+      <div style="background:var(--sf);border:1px solid var(--br);border-radius:10px;padding:11px 13px;margin-bottom:10px">
+        <div id="sk_cap_txt" style="font-size:13px;line-height:1.7;color:var(--tp);margin-bottom:10px"><div class="skel" style="width:100%"></div><div class="skel" style="width:80%"></div><div class="skel" style="width:65%"></div></div>
+        <div id="sk_cap" style="display:flex;gap:8px;flex-wrap:wrap">
+          <div style="flex:1;min-width:110px"><div class="skel" style="width:100%;height:36px;border-radius:7px"></div></div>
+          <div style="flex:1;min-width:110px"><div class="skel" style="width:100%;height:36px;border-radius:7px"></div></div>
+          <div style="flex:1;min-width:110px"><div class="skel" style="width:100%;height:36px;border-radius:7px"></div></div>
         </div>
       </div>
 
-      <!-- Interview framing ~5-6s -->
+      <!-- Interview framing (~5-6s) -->
       <div class="sublbl">🧠 Interview Framing</div>
       <div class="iblock blue" id="sk_tp"><div class="skel" style="width:100%"></div><div class="skel" style="width:88%"></div><div class="skel" style="width:70%"></div><div class="skel" style="width:80%"></div></div>
 
-      <div style="text-align:center;font-size:11px;color:var(--ts);font-style:italic;padding:10px 0">⏳ Diagrams, components & deep dives loading…</div></div>`;
+      <div style="text-align:center;font-size:11px;color:var(--ts);font-style:italic;padding:10px 0">⏳ Full design with diagrams loading…</div></div>`;
   }
 }
 
@@ -726,7 +773,13 @@ JSON FORMAT — return valid JSON starting with {
   ],
   "step3_api_design": {
     "system_interface": "Input: {fields}. Output: {fields}. OR REST endpoints for product systems.",
-    "protocol_choice": "REST or event-driven — one sentence why for THIS system",
+    "protocol_choice": "REST / gRPC / GraphQL / event-driven — chosen base protocol name",
+    "protocol_why": "one sentence: WHY this protocol over alternatives for this specific system — e.g. REST because reads dominate and HTTP caching helps, or gRPC because high-throughput internal service calls need binary encoding",
+    "protocol_alternatives": [
+      {"name": "gRPC", "verdict": "tradeoff", "reason": "faster binary for internal services but browser support needs proxy; overkill for external-facing API"},
+      {"name": "GraphQL", "verdict": "tradeoff", "reason": "flexible queries but N+1 problems and overhead not justified unless clients have radically different data needs"},
+      {"name": "WebSocket", "verdict": "tradeoff", "reason": "only if bidirectional streaming needed — see real-time section"}
+    ],
     "realtime_protocol": {
       "needed": false,
       "chosen": "None",
@@ -898,8 +951,19 @@ function renderCoding(d){
 function renderSD(d){
   const a=document.getElementById('rarea');
   const r=d.step1_requirements||{},api=d.step3_api_design||{};
-  const hlds=d.hld_sections||[],dives=d.step6_deep_dives||[],sg=d.speak_guide||{};
+  const hld5=d.step5_high_level_design||{};
+  /* KEY FIX: resolve all JSON paths from actual prompt output */
+  const hlds=d.hld_fr_walkthroughs||d.hld_sections||[];
+  const dives=d.step6_deep_dives||[];
+  const sg=d.speak_guide||{};
   const cap=r.capacity||{};
+  /* step5 sub-fields */
+  const schema=hld5.schema||d.schema||[];
+  const components=hld5.components||d.components||[];
+  const diagScaled=hld5.diagram_scaled||d.diagram_scaled||'';
+  const diagScaledComm=hld5.diagram_scaled_commentary||d.diagram_scaled_commentary||[];
+  const diagSimple=hld5.diagram_simple||d.diagram_simple||'';
+  const diagSimpleComm=hld5.diagram_simple_commentary||d.diagram_simple_commentary||[];
   const eh2=t=>String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
   /* Requirements */
@@ -923,14 +987,22 @@ function renderSD(d){
   /* Entities */
   const entH=(d.step2_core_entities||[]).map(e=>`<div class="card fadein" style="margin-bottom:9px"><div class="card-head" style="font-weight:700">${e.name}</div><div class="card-body">${e.description}</div>${e.note?`<div class="card-sub">💡 ${e.note}</div>`:''}</div>`).join('');
 
-  /* Real-time protocol */
+  /* API Protocol section — base protocol + real-time */
   const rt=api.realtime_protocol||{};
-  const rtH=(rt.chosen&&rt.chosen!=='None')?`<div class="tech-card fadein" style="border-color:rgba(45,95,160,.35);margin-bottom:14px">
+  /* Base protocol card */
+  const protoCard=`<div class="tech-card fadein" style="border-color:rgba(61,122,82,.35);margin-bottom:14px">
+    <div class="tech-top"><span class="tech-name">🌐 Base Protocol</span><span class="chosen-tag">✓ ${api.protocol_choice||'REST / HTTP'}</span></div>
+    <div class="tech-role">${api.protocol_why||api.protocol_choice||'REST over HTTPS — stateless, cacheable, wide tooling support. Default for most web-facing systems.'}</div>
+    <div class="alt-lbl">Protocol alternatives for this system</div>
+    ${(api.protocol_alternatives||[]).map(a=>`<div class="alt-row"><span class="alt-name">${a.name}</span><span class="av ${a.verdict==='avoid'?'av-avoid':a.verdict==='tradeoff'?'av-trade':'av-ok'}">${a.verdict==='avoid'?'✗ Avoid':a.verdict==='tradeoff'?'⇄ Trade-off':'✓ OK'}</span><span class="alt-why">${a.reason}</span></div>`).join('')||'<div style="font-size:12px;color:var(--ts);padding:4px 0">• <strong>gRPC</strong> — faster binary, ideal for internal service-to-service; harder to debug, browser support needs proxy<br>• <strong>GraphQL</strong> — flexible queries from client; overhead not justified unless clients have very different data needs<br>• <strong>WebSocket</strong> — see real-time section below</div>'}
+  </div>`;
+  /* Real-time protocol card */
+  const rtH=(rt.chosen&&rt.chosen!=='None'&&rt.chosen!=='')?`${protoCard}<div class="tech-card fadein" style="border-color:rgba(45,95,160,.35);margin-bottom:14px">
     <div class="tech-top"><span class="tech-name">🔄 Real-time: ${rt.chosen}</span><span class="chosen-tag">✓ chosen</span></div>
     <div class="tech-role">${rt.reason||''}</div>
-    ${rt.where_in_arch?`<div class="tech-why"><strong>Where:</strong> ${rt.where_in_arch}</div>`:''}
-    ${(rt.alternatives||[]).length?`<div class="alt-lbl">Alternatives</div>${rt.alternatives.map(a=>`<div class="alt-row"><span class="alt-name">${a.name}</span><span class="av ${a.verdict==='avoid'?'av-avoid':a.verdict==='tradeoff'?'av-trade':'av-ok'}">${a.verdict==='avoid'?'✗ Avoid':a.verdict==='tradeoff'?'⇄ Trade-off':'✓ OK'}</span><span class="alt-why">${a.reason}</span></div>`).join('')}`:''}
-  </div>`:`<div class="iblock green fadein"><div class="blbl">Real-time</div>Standard REST — no persistent connection needed.</div>`;
+    ${rt.where_in_arch?`<div class="tech-why"><strong>Where in arch:</strong> ${rt.where_in_arch}</div>`:''}
+    ${(rt.alternatives||[]).length?`<div class="alt-lbl">Real-time alternatives</div>${rt.alternatives.map(a=>`<div class="alt-row"><span class="alt-name">${a.name}</span><span class="av ${a.verdict==='avoid'?'av-avoid':a.verdict==='tradeoff'?'av-trade':'av-ok'}">${a.verdict==='avoid'?'✗ Avoid':a.verdict==='tradeoff'?'⇄ Trade-off':'✓ OK'}</span><span class="alt-why">${a.reason}</span></div>`).join('')}`:''}
+  </div>`:protoCard;
 
   /* API endpoints */
   const apiH=(api.endpoints||[]).map(ep=>`<div class="card fadein" style="margin-bottom:10px">
@@ -953,40 +1025,63 @@ function renderSD(d){
     return s;
   };
 
-  const hldH=hlds.map((sec,i)=>`<div style="margin-bottom:22px">
-    <div style="font-size:13px;font-weight:700;padding:9px 13px;background:var(--as);border-radius:9px;border-left:3px solid var(--ac);margin-bottom:10px">${sec.fr_title||'Section '+(i+1)}</div>
-    ${sec.narrative?`<div style="font-size:13px;line-height:1.78;color:var(--tp);margin-bottom:11px">${sec.narrative}</div>`:''}
-    ${(sec.new_components||[]).length?`<div style="font-size:10px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">New components</div>
-      ${sec.new_components.map(c=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 12px;background:var(--sf);border:1px solid var(--br);border-radius:8px;margin-bottom:5px">
-        <div style="font-size:11.5px;font-weight:700;color:var(--tp);min-width:120px;flex-shrink:0">${c.name}</div>
-        <div style="font-size:12px;color:var(--ts);line-height:1.6">${c.role}</div>
+  /* HLD walkthroughs — handles both hld_fr_walkthroughs and hld_sections key formats */
+  const hldH=hlds.map((sec,i)=>{
+    /* normalize field names from prompt variants */
+    const title=sec.fr||sec.fr_title||('Section '+(i+1));
+    const narrative=sec.narrative||'';
+    const steps=sec.flow||sec.flow_steps||[];
+    const keyPt=sec.key_point||sec.key_insight||'';
+    const whatToDraw=sec.what_to_draw||'';
+    /* new_components from prompt variant — may be inline or named */
+    const comps=sec.new_components||[];
+    return `<div style="margin-bottom:22px">
+    <div style="font-size:13px;font-weight:700;padding:9px 13px;background:var(--as);border-radius:9px;border-left:3px solid var(--ac);margin-bottom:10px">🔵 ${title}</div>
+    ${whatToDraw?`<div style="background:var(--os);border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:12.5px"><strong style="color:var(--orange)">✏️ Draw:</strong> ${whatToDraw}</div>`:''}
+    ${narrative?`<div style="font-size:13px;line-height:1.78;color:var(--tp);margin-bottom:11px">${narrative}</div>`:''}
+    ${comps.length?`<div style="font-size:10px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">New components</div>
+      ${comps.map(c=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 12px;background:var(--sf);border:1px solid var(--br);border-radius:8px;margin-bottom:5px">
+        <div style="font-size:11.5px;font-weight:700;color:var(--tp);min-width:120px;flex-shrink:0">${c.name||''}</div>
+        <div style="font-size:12px;color:var(--ts);line-height:1.6">${c.role||''}</div>
       </div>`).join('')}`:''}
-    ${(sec.flow_steps||[]).length?`<div style="font-size:10px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin:11px 0 6px">Step-by-step flow</div>
-      ${sec.flow_steps.map(s=>`<div style="display:flex;gap:9px;padding:6px 0;border-bottom:1px solid var(--br);font-size:12.5px;line-height:1.65">
-        <span style="color:var(--ac);font-weight:700;flex-shrink:0;min-width:16px">${s.match(/^\d+/)?.[0]||''}</span>
-        <span style="color:var(--tp)">${s.replace(/^\d+\.\s*/,'')}</span>
+    ${steps.length?`<div style="font-size:10px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin:11px 0 6px">Step-by-step flow</div>
+      ${steps.map(s=>`<div style="display:flex;gap:9px;padding:6px 0;border-bottom:1px solid var(--br);font-size:12.5px;line-height:1.65">
+        <span style="color:var(--ac);font-weight:700;flex-shrink:0;min-width:16px">${String(s).match(/^\d+/)?.[0]||'→'}</span>
+        <span style="color:var(--tp)">${String(s).replace(/^\d+\.\s*/,'')}</span>
       </div>`).join('')}`:''}
-    ${sec.diagram?`<div style="margin-top:13px"><div style="font-size:10px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Diagram after this FR <span style="font-weight:400;color:var(--orange);font-style:normal">★ = new this FR</span></div><div class="diagram">${colorizeDiag(sec.diagram)}</div></div>`:''}
-  </div>`).join('<hr style="border:none;border-top:2px solid var(--br);margin:4px 0 22px">');
+    ${keyPt?`<div style="background:var(--bs);border-left:3px solid var(--blue);border-radius:0 8px 8px 0;padding:9px 12px;margin-top:10px;font-size:12.5px;line-height:1.65"><strong style="color:var(--blue)">💡 Key insight (say this aloud):</strong> ${keyPt}</div>`:''}
+  </div>`;
+  }).join('<hr style="border:none;border-top:2px solid var(--br);margin:4px 0 22px">');
+
+  /* Diagram 1 baseline with commentary */
+  const diagSimpleH=diagSimple?`<div class="diag-wrap" style="margin-bottom:14px">
+    <div class="diag-label">Diagram 1 — Baseline <span class="diag-pill">satisfies core FRs</span></div>
+    <div style="font-size:11.5px;color:var(--ts);margin-bottom:8px;font-style:italic">Draw this first. Narrate each box as you add it using the speaking notes below.</div>
+    <div class="diagram">${colorizeDiag(diagSimple)}</div>
+    ${diagSimpleComm.length?`<div style="margin-top:10px">${diagSimpleComm.map(c=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 12px;background:var(--gs);border-radius:8px;margin-bottom:5px;border-left:3px solid var(--green)">
+      <div style="font-size:10px;font-weight:700;color:var(--green);min-width:88px;flex-shrink:0">${c.component||''}</div>
+      <div style="font-size:12.5px;line-height:1.65;color:var(--tp);font-style:italic">"${c.say||''}"</div>
+    </div>`).join('')}</div>`:''}
+  </div>`:'';
 
   /* Diagram 2 scaled with commentary */
-  const d2c=d.diagram_scaled_commentary||[];
-  const diagScaledH=d.diagram_scaled?`<div class="diag-wrap">
+  const diagScaledH=diagScaled?`<div class="diag-wrap">
     <div class="diag-label">Diagram 2 — Production Design
       <span class="diag-pill">satisfies NFRs</span>
-      <span class="diag-pill" style="background:var(--os);color:var(--orange)">★ = evolved from Diagram 1</span>
+      <span class="diag-pill" style="background:var(--os);color:var(--orange)">★ = new vs Diagram 1</span>
       <span class="diag-pill" style="background:rgba(232,192,96,.15);color:#9a7820">[amber] = alternatives</span>
     </div>
-    <div class="diagram">${colorizeDiag(d.diagram_scaled)}</div>
-  </div>
-  ${d2c.length?`<div style="margin-top:11px"><div style="font-size:10px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px">🗣️ Say while drawing each new component</div>
-  ${d2c.map(c=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 12px;background:var(--bs);border-radius:8px;margin-bottom:5px;border-left:3px solid var(--blue)">
-    <div style="font-size:10px;font-weight:700;color:var(--blue);min-width:88px;padding-top:1px;flex-shrink:0;text-transform:uppercase;letter-spacing:.04em">${c.component}</div>
-    <div style="font-size:12.5px;line-height:1.65;color:var(--tp);font-style:italic">"${c.say}"</div>
-  </div>`).join('')}</div>`:''}`:'' ;
+    <div style="font-size:11.5px;color:var(--ts);margin-bottom:8px;font-style:italic">For each ★ component you add, say WHY — which NFR it satisfies and what bottleneck it removes.</div>
+    <div class="diagram">${colorizeDiag(diagScaled)}</div>
+    ${diagScaledComm.length?`<div style="margin-top:11px"><div style="font-size:10px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px">🗣️ Say while drawing each ★ component</div>
+    ${diagScaledComm.map(c=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 12px;background:var(--bs);border-radius:8px;margin-bottom:5px;border-left:3px solid var(--blue)">
+      <div style="font-size:10px;font-weight:700;color:var(--blue);min-width:88px;padding-top:1px;flex-shrink:0;text-transform:uppercase;letter-spacing:.04em">${c.component||''}</div>
+      <div style="font-size:12.5px;line-height:1.65;color:var(--tp);font-style:italic">"${c.say||''}"</div>
+    </div>`).join('')}</div>`:''}
+  </div>`:'';
 
-  /* Schema */
-  const schemaH=(d.schema||[]).map(t=>`<div class="card fadein" style="margin-bottom:11px">
+  /* Schema — from step5_high_level_design.schema */
+  const schemaH=schema.map(t=>`<div class="card fadein" style="margin-bottom:11px">
     <div class="card-head" style="justify-content:space-between"><span style="font-weight:700">${t.table}</span><span class="badge bp">${t.storage}</span></div>
     <div class="card-body">
       ${t.access_pattern?`<div style="font-size:11.5px;color:var(--blue);margin-bottom:7px;font-weight:600">📊 ${t.access_pattern}</div>`:''}
@@ -996,27 +1091,49 @@ function renderSD(d){
     </div>
   </div>`).join('');
 
-  /* Components */
-  const compH=(d.components||[]).map(c=>`<div class="tech-card fadein">
+  /* Components — from step5_high_level_design.components */
+  const compH=components.map(c=>`<div class="tech-card fadein">
     <div class="tech-top"><span class="tech-name">${c.name}</span><span class="chosen-tag">✓ ${c.chosen_tech}</span></div>
     <div class="tech-role">${c.role}</div>
     <div class="tech-why"><strong>Why ${c.chosen_tech}:</strong> ${c.why_chosen}</div>
     ${c.alternatives&&c.alternatives.length?`<div class="alt-lbl">Alternatives</div>${c.alternatives.map(alt=>`<div class="alt-row"><span class="alt-name">${alt.name}</span><span class="av ${alt.verdict==='avoid'?'av-avoid':alt.verdict==='tradeoff'?'av-trade':'av-ok'}">${alt.verdict==='avoid'?'✗ Avoid':alt.verdict==='tradeoff'?'⇄ Trade-off':'✓ OK'}</span><span class="alt-why">${alt.reason}</span></div>`).join('')}`:''}
   </div>`).join('');
 
-  /* Deep dives — Bad/Good/Great */
-  const deepH=dives.map(dd=>`<div class="card fadein" style="margin-bottom:18px">
+  /* Deep dives — handles {bad,good,great} objects AND flat string fields */
+  const deepH=dives.map(dd=>{
+    /* normalize: bad/good/great can be objects {label,approach,why_fails,limitation,numbers,trade_offs} */
+    const badObj=dd.bad||{};const goodObj=dd.good||{};const greatObj=dd.great||{};
+    const badTxt=typeof dd.bad==='string'?dd.bad:(badObj.approach?`${badObj.approach}${badObj.why_fails?' — <em>'+badObj.why_fails+'</em>':''}`:'');
+    const goodTxt=typeof dd.good==='string'?dd.good:(goodObj.approach?`${goodObj.approach}${goodObj.limitation?' — <em>Limitation: '+goodObj.limitation+'</em>':''}`:'');
+    const greatTxt=typeof dd.great==='string'?dd.great:(greatObj.approach||'');
+    const nums=greatObj.numbers||dd.numbers||'';
+    const tradeoffs=greatObj.trade_offs||dd.trade_offs||'';
+    const whyHard=dd.why_hard||badObj.why_fails||'';
+    /* flat string fallbacks for old format */
+    const badFinal=badTxt||dd.bad_solution||'';
+    const goodFinal=goodTxt||dd.good_solution||'';
+    const greatFinal=greatTxt||dd.great_solution||dd.real_solution||'';
+    const badLabel=(typeof dd.bad==='object'&&dd.bad?.label)||'Bad Solution — why it fails';
+    const goodLabel=(typeof dd.good==='object'&&dd.good?.label)||'Good Solution';
+    const greatLabel=(typeof dd.great==='object'&&dd.great?.label)||'Great Solution';
+    return `<div class="card fadein" style="margin-bottom:18px">
     <div class="card-head" style="flex-direction:column;align-items:flex-start;gap:5px">
-      <div style="font-size:14px;font-weight:700">🔬 ${dd.topic}</div>
+      <div style="font-size:14px;font-weight:700">🔬 ${dd.topic||''}</div>
       ${dd.nfr_addressed?`<span class="badge bb" style="font-weight:500">Hardens: ${dd.nfr_addressed}</span>`:''}
     </div>
-    <div class="card-body" style="margin-bottom:9px"><strong>Why hard:</strong> ${dd.why_hard}</div>
-    ${dd.bad_solution?`<div style="background:var(--rs);border-radius:9px;padding:10px 13px;margin-bottom:7px"><div style="font-size:9.5px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">❌ Bad solution — why it fails</div><div style="font-size:12.5px;line-height:1.68">${dd.bad_solution}</div></div>`:''}
-    ${dd.good_solution?`<div style="background:var(--os);border-radius:9px;padding:10px 13px;margin-bottom:7px"><div style="font-size:9.5px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">🟡 Good solution</div><div style="font-size:12.5px;line-height:1.68">${dd.good_solution}</div></div>`:''}
-    <div style="background:var(--gs);border-radius:9px;padding:10px 13px;margin-bottom:7px"><div style="font-size:9.5px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">✅ Great solution</div><div style="font-size:12.5px;line-height:1.68">${dd.great_solution||dd.real_solution||''}</div></div>
-    ${dd.numbers?`<div class="iblock orange fadein" style="padding:8px 12px;margin-bottom:7px"><div class="blbl">📊 The numbers</div>${dd.numbers}</div>`:''}
-    <div class="card-warn">⇄ Trade-off: ${dd.trade_offs||''}</div>
-  </div>`).join('');
+    ${whyHard?`<div class="card-body" style="margin-bottom:9px"><strong>Why hard:</strong> ${whyHard}</div>`:''}
+    ${badFinal?`<div style="background:var(--rs);border-radius:9px;padding:10px 13px;margin-bottom:7px">
+      <div style="font-size:9.5px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">❌ ${badLabel}</div>
+      <div style="font-size:12.5px;line-height:1.68">${badFinal}</div></div>`:''}
+    ${goodFinal?`<div style="background:var(--os);border-radius:9px;padding:10px 13px;margin-bottom:7px">
+      <div style="font-size:9.5px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">🟡 ${goodLabel}</div>
+      <div style="font-size:12.5px;line-height:1.68">${goodFinal}</div></div>`:''}
+    ${greatFinal?`<div style="background:var(--gs);border-radius:9px;padding:10px 13px;margin-bottom:7px">
+      <div style="font-size:9.5px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">✅ ${greatLabel}</div>
+      <div style="font-size:12.5px;line-height:1.68">${greatFinal}</div>
+      ${nums?`<div style="font-size:11.5px;font-family:monospace;background:rgba(0,0,0,.06);border-radius:5px;padding:5px 8px;margin-top:6px">📊 ${nums}</div>`:''}</div>`:''}
+    ${tradeoffs?`<div class="card-warn">⇄ Trade-off: ${tradeoffs}</div>`:''}
+  </div>`;}).join('');
 
   /* Q&A */
   const qaH=(d.followup_qa||[]).map(q=>`<div class="qa-item fadein"><div class="qa-q" onclick="toggleQA(this)"><span>${q.question}</span><span class="chev">›</span></div><div class="qa-a">${q.answer}</div></div>`).join('');
@@ -1062,7 +1179,8 @@ function renderSD(d){
       </div>
 
       <div class="spanel">
-        <div class="iblock blue fadein"><div class="blbl">📌 Evan King — Scaled design</div>Start from your final FR diagram. Layer in production components explaining which NFR each satisfies. Use the speaking script below each component.</div>
+        <div class="iblock blue fadein"><div class="blbl">📌 Evan King — Scaled design</div>Start from Diagram 1 (baseline). Add ★ components one at a time — for each say the NFR it satisfies and the bottleneck it removes. This evolution story is what separates Staff from Mid.</div>
+        ${diagSimpleH}
         ${diagScaledH}
         <div class="sublbl" style="margin-top:16px">Component Decisions <span style="font-size:9.5px;font-weight:400;color:var(--ts)">— match ★ components in diagram above</span></div>
         ${compH}
