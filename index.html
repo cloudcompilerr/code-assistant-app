@@ -318,9 +318,11 @@ const SK='nt_v6';
 let mode='coding',depth='interview',last=null;
 let rec=null,listening=false,silT=null,timerI=null,elapsed=0,accTxt='';
 
-/* ═══ KEY ═══ */
-const getKey=()=>localStorage.getItem(SK)||'';
-function saveKey(){const v=document.getElementById('apikey').value.trim();if(!v){toast('Enter a key');return;}localStorage.setItem(SK,v);document.getElementById('setup').style.display='none';toast('Saved ✓');}
+/* ═══ KEY — localStorage wrapped in try/catch for sandboxed iframes ═══ */
+let _memKey='';
+const getKey=()=>{try{return localStorage.getItem(SK)||_memKey;}catch(e){return _memKey;}};
+const setKey=v=>{_memKey=v;try{localStorage.setItem(SK,v);}catch(e){}};
+function saveKey(){const v=document.getElementById('apikey').value.trim();if(!v){toast('Enter a key');return;}setKey(v);document.getElementById('setup').style.display='none';toast('Saved ✓');}
 function toggleSetup(){const s=document.getElementById('setup');const show=s.style.display==='none';s.style.display=show?'block':'none';if(show&&getKey())document.getElementById('apikey').value=getKey();}
 
 /* ═══ NAV ═══ */
