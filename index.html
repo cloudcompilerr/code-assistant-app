@@ -313,7 +313,7 @@ const SK='nt_v6';
 let mode='coding',depth='interview',last=null;
 let rec=null,listening=false,silT=null,timerI=null,elapsed=0,accTxt='';
 
-/* ═══ KEY — localStorage wrapped in try/catch for sandboxed iframes ═══ */
+/* ═══ KEY ═══ */
 let _memKey='';
 const getKey=()=>{try{return localStorage.getItem(SK)||_memKey;}catch(e){return _memKey;}};
 const setKey=v=>{_memKey=v;try{localStorage.setItem(SK,v);}catch(e){}};
@@ -549,7 +549,16 @@ function patch(txt,dk){
     }
   }
 
-  /* PRIORITY 4: capacity numbers — parse as soon as write_qps appears */
+  /* PRIORITY 4: capacity — plain_english text first, then number tiles */
+  if(!dk.has('cap_text')){
+    const pe=strComplete('plain_english')||strPartial('plain_english',60);
+    if(pe&&pe.length>30){
+      dk.add('cap_text');
+      const el=document.getElementById('sk_cap');
+      if(el){el.innerHTML='<div style="font-size:12.5px;line-height:1.75;color:var(--tp)">'+pe+'</div>';el.classList.add('fadein');}
+    }
+  }
+  /* PRIORITY 5: capacity number tiles */
   if(!dk.has('cap')){
     const wq=strComplete('write_qps'), rq=strComplete('read_qps'), st=strComplete('storage_per_year');
     const assM=txt.match(/"assumptions"\s*:\s*\[([\s\S]*?)(?:\])/);
@@ -635,222 +644,168 @@ Return ONLY valid JSON starting with { :
 
 function sdPrompt(){
   const lvl={
-    senior:'Senior/Staff Engineer level — deep trade-offs, real numbers, justify EVERY decision.',
-    mid:'Mid-level — clear architecture with solid reasoning on key trade-offs.',
-    deep:'Thorough walkthrough — explain every component as if teaching a principal engineer.'
-  }[depth]||'Senior/Staff Engineer level.';
+    senior:'Senior/Staff — deep trade-offs, real numbers, justify every choice.',
+    mid:'Mid-level — clear architecture, solid reasoning on key trade-offs.',
+    deep:'Deep walkthrough — explain every component as if teaching.'
+  }[depth]||'Senior/Staff.';
 
-  return `You are a principal engineer who has conducted 200+ FAANG system design interviews. You follow Evan King's Hello Interview framework EXACTLY. Your answers are the benchmark candidates are measured against.
+  return `You are Evan King from Hello Interview. You wrote the definitive FAANG system design guide. Match the quality of your hellointerview.com breakdowns for Uber and Ad Click Aggregator exactly.
 
 LEVEL: ${lvl}
 
-═══════════════════════════════════════════════════
-EVAN KING'S HELLO INTERVIEW FRAMEWORK — STRICT ORDER
-═══════════════════════════════════════════════════
-Step 1: Requirements (FRs + NFRs + capacity)
-Step 2: Core Entities — nouns ONLY, no fields yet
-Step 3: API Design — REST endpoints + real-time protocol
-Step 4: High-Level Design — draw boxes and arrows, schema emerges HERE as you trace each request
-Step 5: Deep Dives — harden specific NFRs
+HELLO INTERVIEW FRAMEWORK — EXACT STRUCTURE
 
-IMPORTANT on Entities vs Schema:
-- Step 2 entities = NOUNS ONLY. "User, Tweet, Follow, Timeline". NO fields. Fields belong in HLD.
-- Schema lives in step5_high_level_design, NOT in step2. You introduce fields only when you trace the write path through each service to the DB.
-- This separation is deliberate — Evan King explicitly teaches it. Candidates who dump fields in step 2 waste time and lose signal on prioritization.
+STEP 1 — REQUIREMENTS
+FRs: "Users should be able to…" max 3. Rest go "below the line (out of scope)".
+NFRs with specific numbers. From your Ad Click guide: "Scalable to 10k clicks/sec", "Sub-second analytics queries", "Fault tolerant — no data loss", "Idempotent click tracking".
+Capacity: plain English first. Example: "We design for 10M active ads, peak 10k clicks/sec, 100M clicks/day. At 500B per event thats 18TB/year. At 10k writes/sec PostgreSQL maxes at 5k TPS — this drives us to use a queue and stream processor."
 
-═══════════════════════════════════════════════════
-DIAGRAM RULES — CRITICAL
-═══════════════════════════════════════════════════
-Produce TWO diagrams. Diagram 2 MUST visibly EVOLVE from Diagram 1 — same core boxes, with new layers added on top.
+STEP 2 — CORE ENTITIES (nouns only, no fields)
+Like Uber guide: "Rider, Driver, Fare, Ride, Location" — one sentence role each. No fields, no schema here.
 
-DIAGRAM 1 — Baseline (satisfies core FRs only, simple monolith path):
-Use this style. Every box must be drawn with ┌─┐└─┘│ box-drawing chars. Arrows must be ↓ or → never plain dashes.
+STEP 3 — API / SYSTEM INTERFACE
+Data systems: define Input and Output explicitly. Example: "Input: {adId, userId, timestamp, sourceUrl}. Output: {adId, clickCount, timeWindow}."
+Product systems: REST endpoints. userId always from JWT not body — always say why (client is untrusted).
 
-  ┌────────────────────────────┐
-  │  Client  (Web / Mobile)    │
-  └──────────────┬─────────────┘
-                 ↓
-  ┌────────────────────────────┐
-  │  Load Balancer (Nginx)     │  — horizontal scale, health checks
-  └──────────────┬─────────────┘
-                 ↓
-  ┌────────────────────────────┐
-  │  API Server                │  — stateless, JWT auth
-  └──────┬───────────┬─────────┘
-         ↓ (write)   ↓ (read)
-  ┌──────────────────────────────────────────────┐
-  │  Primary DB  (PostgreSQL)                    │
-  └──────────────────────────────────────────────┘
+STEP 4 — HLD BUILT ONE FR AT A TIME (exactly like Uber guide)
+For each FR: add only components needed for THAT requirement. Walk through request step by step. State one key insight per FR.
+Example from Uber (FR: fare estimate):
+  what_to_draw: "Client, API Gateway, Ride Service, Maps API, Database"
+  narrative: "Ride Service calls Maps for distance/ETA, applies pricing, stores Fare entity, returns to client."
+  flow: ["1. Client POSTs /fare", "2. API GW auth to Ride Service", "3. Calls Maps API", "4. Creates Fare in DB", "5. Returns Fare"]
+  key_point: "We store Fare so client sends fareId only — prevents price tampering since price always comes from our DB."
 
-DIAGRAM 2 — Production (evolves diagram 1, every NEW component labelled with WHY it was added):
-- Keep the SAME core boxes from Diagram 1
-- Add new layers above/below with a comment showing what NFR it satisfies
-- Every component that has alternatives: show on same line in [brackets]
-- Mark new additions with ★ prefix so evolution is clear
+STEP 5 — TWO DIAGRAMS
+Diagram 1: baseline satisfying FRs, 6-8 boxes, simple flow.
+Diagram 2: evolves Diagram 1 — same boxes plus new ones marked with a star. Each new component annotated with arrow and text showing which NFR it satisfies.
+Box style: draw boxes with proper box-drawing characters. Label every arrow with what flows on it. Show alternatives in [brackets] on same line as component.
 
-Example evolution annotation style:
-  ★ CDN [CloudFront|Akamai|Fastly]   ← satisfies: p99 latency < 100ms for global users
-  ★ Kafka [RabbitMQ|SQS]             ← satisfies: async fan-out, decouples write latency
-  ★ Redis Cache [Memcached]          ← satisfies: read QPS 100k/s without DB overload
+STEP 6 — DEEP DIVES: BAD TO GOOD TO GREAT
+Always this progression. Example from Ad Click guide:
+  BAD Direct DB writes: "PostgreSQL 5k TPS vs 10k clicks/sec = 50 percent data loss."
+  GOOD Batch processing: "5s batches cut writes 50x but 5s lag and crash loses the batch."
+  GREAT Kafka + Flink + ClickHouse: "Kafka handles 10k/sec partitioned by adId. Flink 1-min tumbling windows with exactly-once semantics. ClickHouse ingests 100k rows/sec. Kafka 7-day retention means Flink replays on crash — no data loss."
 
-BOTH diagrams must be 100% accurate for the specific system — do NOT use Twitter/feed as a template for a URL shortener.
+QUALITY BAR — from your actual guides:
+Bad: "use a database" / "add a cache" / "use a queue"
+Good: "ClickHouse columnar OLAP — aggregation on (adId, window_start) runs under 100ms vs seconds on PostgreSQL row scan"
+Good: "Redis GEOADD handles 2M location updates/sec, GEOSEARCH finds nearby in O(log N), TTL auto-expires stale drivers after 30s"
+Good: "Redis distributed lock 10s TTL — if service crashes lock auto-expires, next driver notified, no manual cleanup"
 
-═══════════════════════════════════════════════════
-QUALITY BAR — what separates Staff from Mid answers
-═══════════════════════════════════════════════════
-- Never say "use a database". Say "PostgreSQL with a composite index on (user_id, created_at DESC) because our read pattern is always per-user ordered by time"
-- Never say "add a cache". Say "Redis with write-through strategy, TTL 5 min, ~95% hit rate at 100K read QPS eliminates the need for read replicas in early stages"
-- Never say "use a queue". Say "Kafka with 3 partitions keyed by user_id — gives us ordered fan-out per user and consumer group replay if the notification service crashes"
-- Capacity numbers must drive decisions: "at 10K write QPS a single Postgres instance hits ~8K TPS limit — this is why we add read replicas"
-- Always state the bottleneck and how you resolved it
-
-Return ONLY valid JSON, starting with {, no markdown fences, no preamble:
+JSON FORMAT — return valid JSON starting with {
 {
-  "problem_statement": "2-3 sentences: exactly what we are building, the core scale challenge, and the dominant technical constraint (read-heavy? write-heavy? consistency? latency?)",
-
-  "thought_process": "5-6 sentences, first-person Staff engineer thinking out loud: 1) what makes this uniquely hard 2) the core trade-off (e.g. consistency vs availability) 3) read/write ratio and how it drives architecture 4) the one insight most candidates miss 5) your high-level approach",
-
+  "problem_statement": "2-3 sentences: what we build, core challenge, dominant constraint",
+  "thought_process": "5-6 sentences first-person: what makes this hard, read/write asymmetry, core trade-off, what candidates miss, your planned approach",
   "clarifying_questions": [
-    "DAU / MAU — sets scale tier (10M vs 500M changes every decision)",
-    "one question scoping a key feature boundary",
-    "one question surfacing the dominant trade-off (e.g. is eventual consistency acceptable?)"
+    {"q": "What scale — DAU or peak QPS?", "why": "changes every architectural decision"},
+    {"q": "scope question", "why": "determines which components are needed"},
+    {"q": "trade-off question", "why": "surfaces key design decision"}
   ],
-
   "step1_requirements": {
     "functional": [
-      {"req": "Users should be able to [verb] [noun]", "priority": "core", "technical_implication": "specific architectural consequence — e.g. fan-out on write required, or requires low-latency read path"}
+      {"req": "Users should be able to [verb] [noun]", "priority": "core", "technical_implication": "specific architectural consequence"}
     ],
     "non_functional": [
-      {"req": "System must achieve [measurable quality]", "value": "concrete number e.g. p99 write latency < 500ms", "tradeoff": "what we sacrifice — e.g. strong consistency traded for availability"},
-      {"req": "System must handle [scale]", "value": "e.g. 100K read QPS at peak", "tradeoff": "cost of caching layer"},
-      {"req": "System must be [reliability]", "value": "99.99% availability (< 52 min downtime/year)", "tradeoff": "complexity of multi-region failover"},
-      {"req": "Data must be [durability]", "value": "no data loss on single node failure", "tradeoff": "replication overhead"}
+      {"req": "Scalable to peak load", "value": "e.g. 10k clicks/sec", "tradeoff": "queue plus stream processor complexity"},
+      {"req": "Low latency reads", "value": "sub-second query response", "tradeoff": "pre-aggregation storage cost"},
+      {"req": "Fault tolerant", "value": "no data loss on node failure", "tradeoff": "replication overhead"},
+      {"req": "Idempotent", "value": "no duplicate counting", "tradeoff": "Redis dedup storage cost"}
     ],
-    "out_of_scope": ["specific excluded feature — e.g. analytics/reporting dashboard", "another exclusion"],
+    "out_of_scope": ["excluded feature with reason", "another exclusion"],
     "capacity": {
-      "assumptions": ["e.g. 100M DAU", "e.g. avg 2 writes/user/day", "e.g. avg 20 reads/user/day", "e.g. avg object size 1KB"],
-      "write_qps": "~2,300/s (100M × 2 / 86,400) — show the actual calc",
-      "read_qps": "~23,000/s (100M × 20 / 86,400) — 10:1 read/write ratio",
-      "storage_per_year": "~72 TB/year (2,300 writes/s × 1KB × 31.5M seconds)",
-      "design_impact": "Read/write ratio of 10:1 → add read replicas and Redis cache. Storage of 72TB/yr → consider object store for large blobs."
+      "plain_english": "Story: We design for [X]. That means [Y] writes/sec and [Z] reads/sec. At [Y] writes/sec [tech] hits [limit] — this drives [decision].",
+      "assumptions": ["e.g. 10M active ads", "peak 10k clicks/sec", "100M clicks/day", "500B avg event"],
+      "write_qps": "~10,000 per second at peak",
+      "read_qps": "~100 per second from advertisers — asymmetric",
+      "storage_per_year": "~18 TB per year",
+      "design_impact": "Write-heavy asymmetry drives: queue plus stream processor plus OLAP instead of transactional DB"
     }
   },
-
   "step2_core_entities": [
-    {
-      "name": "EntityName",
-      "description": "what this noun represents — one sentence on its domain role",
-      "note": "the non-obvious modeling insight — e.g. why this is a separate entity vs embedded, or why it is denormalized"
-    }
+    {"name": "EntityName", "description": "domain role in one sentence", "note": "key modeling insight"}
   ],
-
   "step3_api_design": {
-    "protocol_choice": "REST — default. One sentence why REST over gRPC/GraphQL for this specific system.",
+    "system_interface": "Input: {fields}. Output: {fields}. OR REST endpoints for product systems.",
+    "protocol_choice": "REST or event-driven — one sentence why for THIS system",
     "realtime_protocol": {
-      "needed": true,
-      "chosen": "SSE | WebSocket | Long Polling | None",
-      "reason": "specific reason matched to this system — e.g. SSE because updates are server→client only (notifications/feed), auto-reconnects, simpler than WS when client never sends",
-      "where_in_arch": "exactly where it plugs in — e.g. Client keeps open SSE connection to Notification Service through API Gateway; fan-out worker pushes events to Redis Pub/Sub → Notification Service → client",
+      "needed": false,
+      "chosen": "None",
+      "reason": "specific reason",
+      "where_in_arch": "where it sits if needed",
       "alternatives": [
-        {"name": "WebSocket", "verdict": "tradeoff", "reason": "better for bi-directional (chat, collaborative editing); overhead not justified when client only receives"},
-        {"name": "Long Polling", "verdict": "avoid", "reason": "reconnects every 30s, 100K concurrent users = 3.3K reconnects/sec hammering API Gateway — wasteful vs persistent SSE"},
-        {"name": "Polling", "verdict": "avoid", "reason": "fixed interval polling at 100K users even at 30s interval = 3.3K req/s wasted on empty responses"}
+        {"name": "WebSocket", "verdict": "tradeoff", "reason": "specific for this system"},
+        {"name": "Long Polling", "verdict": "avoid", "reason": "specific failure at this scale"}
       ]
     },
     "endpoints": [
-      {
-        "method": "POST|GET|PUT|DELETE",
-        "path": "/v1/resource",
-        "auth": "JWT Bearer — user_id derived from token, NEVER from request body",
-        "request": "{ field: type, field2: type }",
-        "response": "{ id: uuid, ...relevant fields, created_at: ISO8601 }",
-        "note": "Rate limit: X req/min. Key design note — e.g. idempotency key required to prevent double-submit"
-      }
+      {"method": "POST", "path": "/v1/resource", "auth": "JWT — userId from token never body", "request": "{ field: type }", "response": "{ id, created_at }", "note": "idempotency and rate limit note"}
     ]
   },
-
-  "step4_data_flow": {
-    "needed": true,
-    "reason": "one sentence why the flow matters — e.g. fan-out complexity, async processing pipeline",
-    "steps": [
-      "1. Client → POST /v1/[resource] with JWT Bearer token",
-      "2. API Gateway validates JWT, applies rate limit (token bucket), routes to Write Service",
-      "3. Write Service validates payload, writes to Primary DB (synchronous, durability guarantee)",
-      "4. Write Service publishes event to Kafka topic (async, fire-and-forget after DB ack)",
-      "5. Fan-out Worker consumes event, updates derived caches / search index / notification queue",
-      "6. Read path: Client GET → API GW → Read Service → Redis cache (hit ~95%) → on miss: Read Replica → cache back-fill"
-    ]
-  },
-
+  "hld_fr_walkthroughs": [
+    {
+      "fr": "Users should be able to [verb] [noun]",
+      "what_to_draw": "Exact boxes to add: Draw [A] then [B] then [C]. Specific to THIS system.",
+      "narrative": "2-3 sentences how these components satisfy this FR. Conversational like your guides.",
+      "flow": ["1. Actor sends X to Y", "2. Y does Z", "3. Returns response"],
+      "key_point": "The non-obvious insight — what separates great from good on this FR."
+    }
+  ],
   "step5_high_level_design": {
-    "diagram_simple": "Draw Diagram 1 here — baseline satisfying core FRs only. Use ┌─┐└─┘│↓→ box-drawing. Show: Client → Load Balancer → API Server → Primary DB. Label EVERY arrow with what flows (e.g. HTTP/REST, SQL query). Keep it to 6-8 boxes maximum. Make it specific to this system, not generic.",
+    "diagram_simple": "DIAGRAM 1. Box chars: use box-drawing characters for each component box. Arrow down vertical, right horizontal. Label every arrow. 6-8 boxes. 100% specific to THIS system.",
     "diagram_simple_commentary": [
-      {"component": "name of first key box", "say": "word-for-word what to say while drawing this — explain its role and why it's here"},
-      {"component": "name of second key box", "say": "word-for-word what to say — include the specific trade-off this component introduces"},
-      {"component": "Primary DB", "say": "word-for-word — name the specific DB, why it was chosen, and what the bottleneck will be at scale"}
+      {"component": "box name", "say": "role and why here and what it does"},
+      {"component": "box name", "say": "the bottleneck this creates at scale"}
     ],
-    "diagram_scaled": "Draw Diagram 2 here — EVOLUTION of Diagram 1. Keep the same core boxes. Add new components with ★ prefix and a comment showing which NFR each satisfies. Show write path (left side) and read path (right side) diverging from API Gateway. Use ┌─┐└─┘│↓→ box-drawing. Label EVERY arrow. Show [Alt1|Alt2] on every component that has alternatives.",
+    "diagram_scaled": "DIAGRAM 2. Evolves Diagram 1. Same core boxes plus new ones marked with star prefix. Each new component has annotation showing which NFR it satisfies. Label every arrow. Show alternatives in brackets. Split write and read paths where they diverge.",
     "diagram_scaled_commentary": [
-      {"component": "★ first new component added", "say": "explain WHY this was added — connect it to the specific NFR it satisfies and the bottleneck it solves"},
-      {"component": "★ second new component", "say": "explain the trade-off — what complexity it adds and why it's worth it at this scale"},
-      {"component": "★ third new component", "say": "explain how it connects to the component before it in the flow"}
+      {"component": "star component name", "say": "WHY added — NFR satisfied plus bottleneck removed plus numbers"},
+      {"component": "star component name", "say": "connection to previous component plus trade-off introduced"}
     ],
     "schema": [
       {
         "table": "TableName",
-        "storage": "PostgreSQL | DynamoDB | Cassandra | Redis | S3",
-        "why": "specific reason — e.g. relational model needed for foreign key constraints on user/tweet / wide-column for time-series append-only / key-value for O(1) session lookup",
-        "key_fields": "id UUID PK, user_id UUID FK NOT NULL, content VARCHAR(280), status ENUM('active','deleted') DEFAULT 'active', created_at TIMESTAMPTZ DEFAULT NOW()",
-        "key_indexes": "INDEX (user_id, created_at DESC) — feeds query pattern: SELECT ... WHERE user_id = ? ORDER BY created_at DESC LIMIT 20",
-        "access_pattern": "99% of reads are: get timeline for user_id ordered by time — drives the index design"
+        "storage": "PostgreSQL or DynamoDB or Cassandra or Redis or ClickHouse or S3 or Elasticsearch",
+        "why": "specific reason — e.g. columnar OLAP for aggregation queries not row-store",
+        "key_fields": "id UUID PK, ad_id UUID NOT NULL, click_count INT, window_start TIMESTAMPTZ",
+        "key_indexes": "INDEX on ad_id and window_start DESC — feeds: SELECT sum(click_count) WHERE ad_id equals X",
+        "access_pattern": "primary query pattern that drives this index design"
       }
     ],
     "components": [
       {
-        "name": "Component name matching diagram box exactly",
-        "role": "Single responsibility — what this service owns and why it is isolated",
-        "chosen_tech": "Specific technology e.g. Apache Kafka 3.5",
-        "why_chosen": "Specific technical reason for THIS system — e.g. log-compaction gives us event replay when notification service crashes; partitioning by user_id gives ordering guarantees per user; consumer groups allow independent scaling of fan-out workers",
+        "name": "Component matching diagram exactly",
+        "role": "single responsibility in one sentence",
+        "chosen_tech": "Specific tech e.g. Apache Flink 1.18",
+        "why_chosen": "specific reason for THIS system — e.g. exactly-once tumbling windows for 1-min aggregation, Kafka offset replay on crash prevents data loss",
         "alternatives": [
-          {"name": "Alt 1", "verdict": "tradeoff", "reason": "concrete pro and con vs chosen for this specific workload"},
+          {"name": "Alt 1", "verdict": "tradeoff", "reason": "concrete pro and con for this workload"},
           {"name": "Alt 2", "verdict": "tradeoff", "reason": "concrete pro and con"},
-          {"name": "Alt 3", "verdict": "avoid", "reason": "why this would specifically fail for this system"}
+          {"name": "Alt 3", "verdict": "avoid", "reason": "specific failure mode for this system"}
         ]
       }
     ]
   },
-
   "step6_deep_dives": [
     {
-      "topic": "Specific problem title — e.g. Fan-out for users with 50M followers",
-      "nfr_addressed": "exact NFR from step1 this hardens",
-      "why_hard": "why specifically hard at THIS scale — concrete numbers e.g. 50M followers × 1 DB write = 50M synchronous writes = 21 seconds at 2.4M writes/sec Postgres limit",
-      "naive_approach": "what a junior engineer implements and EXACTLY how it breaks — include numbers showing failure mode",
-      "real_solution": "detailed solution with specific tech and algorithm — e.g. hybrid push/pull: push to Redis sorted set for users <10K followers async via Kafka; pull+merge at read time for celebrities from tweet store + follow graph",
-      "numbers": "concrete numbers proving solution works — e.g. 10K followers × 200 byte entry = 2MB Redis per active user; 1M active users × 2MB = 2TB Redis cluster — fits in 32 × 64GB nodes",
-      "trade_offs": "explicit cost — e.g. celebrity followers see up to 500ms delay vs instant for regular users; adds read-time fan-out complexity"
+      "topic": "How do we solve [specific hard problem]?",
+      "nfr_addressed": "exact NFR from step1",
+      "bad": {"label": "Bad Solution: name", "approach": "what it looks like", "why_fails": "specific failure with numbers"},
+      "good": {"label": "Good Solution: name", "approach": "the improvement", "limitation": "what is still wrong"},
+      "great": {"label": "Great Solution: name", "approach": "production solution with specific tech", "numbers": "concrete proof with numbers", "trade_offs": "explicit cost"}
     }
   ],
-
   "followup_qa": [
-    {
-      "question": "realistic follow-up an interviewer would ask for THIS specific system",
-      "answer": "confident 3-4 sentence answer with specific technologies and numbers — no vague statements"
-    }
+    {"question": "realistic follow-up for THIS system", "answer": "3-4 sentence answer with specific tech and numbers"}
   ],
-
   "speak_guide": {
-    "opening_script": "word-for-word first 60 seconds — state the problem, ask 2 clarifying questions, state your approach",
-    "key_insight": "the one non-obvious insight that separates a Staff answer — something most candidates get wrong",
-    "common_mistakes": [
-      "specific mistake on THIS problem and exactly what to say instead",
-      "another common mistake"
-    ],
-    "closing_script": "how to close in last 2 minutes — what to summarize, what to proactively offer to go deeper on"
+    "opening_script": "word-for-word first 60 seconds of the interview",
+    "key_insight": "the one thing most candidates miss on this specific problem",
+    "common_mistakes": ["mistake specific to this problem and what to say instead", "another mistake"],
+    "closing_script": "how to wrap up in 2 minutes"
   }
 }
 
-Produce: exactly 3 FRs (max), 4 NFRs with measurable values, 3-5 entities (nouns only, no fields), 4-5 API endpoints, BOTH diagrams (diagram 2 visibly evolves from diagram 1 with ★ markers), 3-4 schema tables, 4-6 components each with 3 alternatives, 3-4 deep dives with naive+real+numbers, 5 Q&As. Every answer must be specific to the exact system described — zero generic advice.`;
+Rules: 3 FRs max, 4 NFRs with numbers, 3-5 entities nouns only no fields, one hld_fr_walkthrough per FR, BOTH diagrams with Diagram 2 evolving from Diagram 1 using star markers and NFR annotations, schema for each storage system used, 4-6 components with 3 alternatives each, 3-4 deep dives with bad and good and great tiers, 5 Q&As. Zero generic advice — every sentence specific to the exact system described.`;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -881,7 +836,7 @@ function openSM(){
     h+=sc('🎬 Opening (say this verbatim)',sg.opening_script||'');
     h+=sc('💡 The Key Insight',sg.key_insight||'');
     h+=sc('📋 Requirements to State',[...(r.functional||[]).map(f=>'🔵 '+f.req),'─',...(r.non_functional||[]).map(n=>'◎ '+n.req+' ('+n.value+')')].join('\n'));
-    h+=sc('🏗️ Architecture Flow',(d.step4_data_flow?.steps||[]).join('\n'));
+    const allFlow=[];(d.hld_sections||[]).forEach(s=>(s.flow_steps||[]).forEach(f=>allFlow.push(f)));h+=sc('🏗️ FR-by-FR Flow',allFlow.join('\n'));
     h+=sc('🔬 Deep Dives to Hit',(d.step6_deep_dives||[]).map(dd=>'• '+dd.topic+': '+String(dd.real_solution).slice(0,130)).join('\n'));
     h+=sc('⚠️ Mistakes to Avoid',(sg.common_mistakes||[]).map(m=>'• '+m).join('\n'));
     h+=sc('🏁 Closing (say this)',sg.closing_script||'');
@@ -942,326 +897,190 @@ function renderCoding(d){
 ═══════════════════════════════════════════════════════ */
 function renderSD(d){
   const a=document.getElementById('rarea');
-  const r=d.step1_requirements||{},
-        api=d.step3_api_design||{},
-        hld=d.step5_high_level_design||{},
-        dives=d.step6_deep_dives||[],
-        sg=d.speak_guide||{},
-        walkthroughs=d.hld_fr_walkthroughs||[];
-
+  const r=d.step1_requirements||{},api=d.step3_api_design||{};
+  const hlds=d.hld_sections||[],dives=d.step6_deep_dives||[],sg=d.speak_guide||{};
   const cap=r.capacity||{};
+  const eh2=t=>String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-  /* ── helpers ── */
-  const badge=(cls,txt)=>`<span class="badge ${cls}">${txt}</span>`;
-  const iblock=(cls,lbl,body)=>`<div class="iblock ${cls} fadein"><div class="blbl">${lbl}</div>${body}</div>`;
-  const hrow=(body)=>`<div class="hrow fadein">${body}</div>`;
-  const sublbl=(t,sub='')=>`<div class="sublbl">${t}${sub?` <span style="font-size:9px;font-weight:400;color:var(--ts)">${sub}</span>`:''}</div>`;
-
-  /* ── FUNCTIONAL REQUIREMENTS ── */
-  const funcH=(r.functional||[]).map(f=>
-    hrow(`<strong>🔵 ${f.req}</strong>${f.technical_implication?`<br><span style="font-size:11.5px;color:var(--ts)">→ ${f.technical_implication}</span>`:''}`)
-  ).join('');
-
-  /* ── NON-FUNCTIONAL REQUIREMENTS ── */
-  const nfrH=(r.non_functional||[]).map(n=>
-    hrow(`◎ <strong>${n.req}</strong> ${badge('ba',n.value)}${n.tradeoff?`<br><span style="font-size:11.5px;color:var(--orange)">Trade-off: ${n.tradeoff}</span>`:''}`)
-  ).join('');
-
+  /* Requirements */
+  const funcH=(r.functional||[]).map(f=>`<div class="hrow fadein"><strong>${f.priority==='core'?'🔵':'⚪'} ${f.req}</strong>${f.technical_implication?`<div style="font-size:11.5px;color:var(--ts);margin-top:2px">→ ${f.technical_implication}</div>`:''}</div>`).join('');
+  const nfrH=(r.non_functional||[]).map(n=>`<div class="hrow fadein">◎ <strong>${n.req}</strong> <span class="badge ba">${n.value}</span>${n.tradeoff?`<div style="font-size:11.5px;color:var(--orange);margin-top:2px">Trade-off: ${n.tradeoff}</div>`:''}</div>`).join('');
   const oosH=(r.out_of_scope||[]).map(o=>`<span class="pill">✗ ${o}</span>`).join('');
 
-  /* ── CAPACITY — plain english first, then numbers ── */
-  const capH=cap.write_qps?`
-    ${iblock('orange','📌 Hello Interview — Capacity',cap.plain_english||'Calculate only if the number changes a design decision — state this explicitly.')}
-    ${sublbl('Assumptions')}
-    ${(cap.assumptions||[]).map(a=>hrow(a)).join('')}
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 10px">
-      <div style="flex:1;min-width:100px;background:var(--os);border-radius:8px;padding:9px 11px">
-        <div style="font-size:9px;font-weight:700;color:var(--orange);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px">✍️ Write QPS</div>
-        <div style="font-size:13px;font-weight:700">${cap.write_qps}</div>
-      </div>
-      <div style="flex:1;min-width:100px;background:var(--bs);border-radius:8px;padding:9px 11px">
-        <div style="font-size:9px;font-weight:700;color:var(--blue);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px">📖 Read QPS</div>
-        <div style="font-size:13px;font-weight:700">${cap.read_qps}</div>
-      </div>
-      <div style="flex:1;min-width:100px;background:var(--gs);border-radius:8px;padding:9px 11px">
-        <div style="font-size:9px;font-weight:700;color:var(--green);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px">💾 Storage/yr</div>
-        <div style="font-size:13px;font-weight:700">${cap.storage_per_year}</div>
-      </div>
+  /* Capacity — plain English first */
+  const capH=cap.write_qps?`<div style="background:var(--as);border:1px solid rgba(200,169,110,.3);border-radius:10px;padding:13px 14px;margin-bottom:12px">
+    ${cap.plain_english?`<div style="font-size:13px;line-height:1.75;color:var(--tp);margin-bottom:10px">${cap.plain_english}</div>`:''}
+    <div style="font-size:10px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Assumptions</div>
+    ${(cap.assumptions||[]).map(a=>`<div style="font-size:11.5px;color:var(--ts);margin-bottom:2px">• ${a}</div>`).join('')}
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:9px">
+      <div style="flex:1;min-width:100px;background:var(--os);border-radius:8px;padding:9px 11px"><div style="font-size:9px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">✍️ Write QPS</div><div style="font-size:13px;font-weight:700">${cap.write_qps}</div></div>
+      <div style="flex:1;min-width:100px;background:var(--bs);border-radius:8px;padding:9px 11px"><div style="font-size:9px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">📖 Read QPS</div><div style="font-size:13px;font-weight:700">${cap.read_qps}</div></div>
+      <div style="flex:1;min-width:100px;background:var(--gs);border-radius:8px;padding:9px 11px"><div style="font-size:9px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">💾 Storage/yr</div><div style="font-size:13px;font-weight:700">${cap.storage_per_year}</div></div>
     </div>
-    ${cap.design_impact?hrow(`🎯 <strong>Design impact:</strong> ${cap.design_impact}`):''}
-  `:`${iblock('orange','📌 Hello Interview','Skip capacity unless it changes a design decision. State this explicitly to your interviewer.')}`;
+    ${cap.design_impact?`<div style="font-size:12px;font-weight:600;color:var(--tp);background:var(--sf);border-radius:7px;padding:8px 11px;margin-top:8px">🎯 ${cap.design_impact}</div>`:''}
+  </div>`:'<div class="iblock orange fadein"><div class="blbl">📌 Hello Interview</div>Skip capacity unless it changes a design decision — say this explicitly.</div>';
 
-  /* ── ENTITIES (nouns only, step 2) ── */
-  const entH=(d.step2_core_entities||[]).map(e=>`
-    <div class="card fadein" style="margin-bottom:9px">
-      <div class="card-head" style="font-size:14px;font-weight:700">${e.name}</div>
-      <div class="card-body">${e.description}</div>
-      ${e.note?`<div class="card-sub" style="margin-top:4px">💡 ${e.note}</div>`:''}
-    </div>`).join('');
+  /* Entities */
+  const entH=(d.step2_core_entities||[]).map(e=>`<div class="card fadein" style="margin-bottom:9px"><div class="card-head" style="font-weight:700">${e.name}</div><div class="card-body">${e.description}</div>${e.note?`<div class="card-sub">💡 ${e.note}</div>`:''}</div>`).join('');
 
-  /* ── REALTIME PROTOCOL ── */
+  /* Real-time protocol */
   const rt=api.realtime_protocol||{};
-  const rtH=rt.chosen&&rt.chosen!=='None'?`
-    <div class="tech-card fadein" style="border-color:rgba(45,95,160,.4);margin-bottom:12px">
-      <div class="tech-top"><span class="tech-name">🔄 Real-time Protocol</span><span class="chosen-tag">✓ ${rt.chosen}</span></div>
-      <div class="tech-role">${rt.reason||''}</div>
-      ${rt.where_in_arch?`<div class="tech-why"><strong>Where it sits:</strong> ${rt.where_in_arch}</div>`:''}
-      ${(rt.alternatives||[]).length?`<div class="alt-lbl">Alternatives</div>
-        ${(rt.alternatives||[]).map(alt=>`<div class="alt-row">
-          <span class="alt-name">${alt.name}</span>
-          <span class="av ${alt.verdict==='avoid'?'av-avoid':alt.verdict==='tradeoff'?'av-trade':'av-ok'}">${alt.verdict==='avoid'?'✗ Avoid':alt.verdict==='tradeoff'?'⇄ Trade-off':'✓ OK'}</span>
-          <span class="alt-why">${alt.reason}</span>
-        </div>`).join('')}`:''}
-    </div>`:
-    `<div style="font-size:12.5px;color:var(--ts);margin-bottom:10px;padding:8px 0">No persistent real-time protocol needed for this system — standard HTTP polling sufficient.</div>`;
+  const rtH=(rt.chosen&&rt.chosen!=='None')?`<div class="tech-card fadein" style="border-color:rgba(45,95,160,.35);margin-bottom:14px">
+    <div class="tech-top"><span class="tech-name">🔄 Real-time: ${rt.chosen}</span><span class="chosen-tag">✓ chosen</span></div>
+    <div class="tech-role">${rt.reason||''}</div>
+    ${rt.where_in_arch?`<div class="tech-why"><strong>Where:</strong> ${rt.where_in_arch}</div>`:''}
+    ${(rt.alternatives||[]).length?`<div class="alt-lbl">Alternatives</div>${rt.alternatives.map(a=>`<div class="alt-row"><span class="alt-name">${a.name}</span><span class="av ${a.verdict==='avoid'?'av-avoid':a.verdict==='tradeoff'?'av-trade':'av-ok'}">${a.verdict==='avoid'?'✗ Avoid':a.verdict==='tradeoff'?'⇄ Trade-off':'✓ OK'}</span><span class="alt-why">${a.reason}</span></div>`).join('')}`:''}
+  </div>`:`<div class="iblock green fadein"><div class="blbl">Real-time</div>Standard REST — no persistent connection needed.</div>`;
 
-  /* ── API ENDPOINTS ── */
-  const apiH=(api.endpoints||[]).map(ep=>`
-    <div class="card fadein" style="margin-bottom:9px">
-      <div class="card-head">${badge('bb',ep.method)} <code style="font-size:12.5px">${ep.path}</code></div>
-      <div class="card-body">
-        ${ep.auth?`<div style="font-size:11.5px;color:var(--ts);margin-bottom:4px">🔐 ${ep.auth}</div>`:''}
-        <strong>Req:</strong> <code>${ep.request||''}</code><br>
-        <strong>Res:</strong> <code>${ep.response||''}</code>
-        ${ep.note?`<div style="margin-top:4px;font-size:11.5px;color:var(--ts)">${ep.note}</div>`:''}
-      </div>
-    </div>`).join('');
+  /* API endpoints */
+  const apiH=(api.endpoints||[]).map(ep=>`<div class="card fadein" style="margin-bottom:10px">
+    <div class="card-head"><span class="badge bb" style="font-family:monospace;font-size:10px">${ep.method}</span> <code style="font-size:12.5px">${ep.path}</code></div>
+    <div class="card-body">${ep.auth?`<div style="font-size:11.5px;color:var(--ts);margin-bottom:4px">🔐 ${ep.auth}</div>`:''}<strong>Request:</strong> <code>${ep.request||''}</code><br><strong>Response:</strong> <code>${ep.response||''}</code>${ep.note?`<div style="font-size:11.5px;color:var(--ts);margin-top:4px">${ep.note}</div>`:''}</div>
+  </div>`).join('');
 
-  /* ── HLD FR WALKTHROUGHS — flow description + diagram per FR ── */
-  const walkH=walkthroughs.length?walkthroughs.map((w,i)=>`
-    <div style="margin-bottom:18px;border-left:3px solid var(--ac);padding-left:12px">
-      <div style="font-size:11px;font-weight:700;color:var(--ac);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">FR ${i+1}</div>
-      <div style="font-size:14px;font-weight:700;color:var(--tp);margin-bottom:8px">🔵 ${w.fr}</div>
-      ${w.what_to_draw?iblock('orange','✏️ What to draw first',w.what_to_draw):''}
-      ${(w.flow_steps||[]).length?`
-        <div style="font-size:10px;font-weight:700;color:var(--ts);letter-spacing:.06em;text-transform:uppercase;margin:8px 0 5px">Request flow</div>
-        ${w.flow_steps.map(s=>hrow(s)).join('')}`:''}
-      ${w.key_point?iblock('blue','💡 Say this aloud — shows seniority',w.key_point):''}
-    </div>`).join(''):'';
+  /* Clarifying questions */
+  const cqH=(d.clarifying_questions||[]).map((q,i)=>{
+    const qq=typeof q==='string'?{q,why:''}:(q||{});
+    return `<div class="hrow fadein"><strong>Q${i+1}:</strong> ${qq.q||q}${qq.why?`<div style="font-size:11.5px;color:var(--ts);margin-top:2px">Why ask: ${qq.why}</div>`:''}</div>`;
+  }).join('');
 
-  /* ── DIAGRAM HELPERS ── */
+  /* HLD — FR by FR, Evan King style */
   const colorizeDiag=raw=>{
-    let s=eh(raw);
-    // Color ★ new components in green
-    s=s.replace(/★/g,'<span style="color:var(--green);font-weight:700">★</span>');
-    // Color [alternatives] in amber
+    let s=eh2(raw);
     s=s.replace(/\[([^\]<]+)\]/g,'<span style="color:#e8c060;font-weight:600">[$1]</span>');
-    // Color arrows in blue-grey
     s=s.replace(/([→↓←↑])/g,'<span style="color:#7aabcc;font-weight:700">$1</span>');
-    // Color ← annotations in green (the "satisfies: ..." notes)
-    s=s.replace(/(←[^<\n]+)/g,'<span style="color:var(--green);font-size:10px;font-style:italic">$1</span>');
+    s=s.replace(/(★[^\n│┌┐└┘├┤╭╮╰╯]+)/g,'<span style="color:#e87840;font-weight:700">$1</span>');
     return s;
   };
 
-  const commentaryH=arr=>{
-    if(!arr||!arr.length)return '';
-    return `<div style="margin-top:10px">
-      <div style="font-size:10px;font-weight:700;color:var(--ts);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">🗣️ What to say while drawing each component</div>
-      ${arr.map(c=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 11px;background:var(--bs);border-radius:8px;margin-bottom:5px;border-left:3px solid var(--blue)">
-        <div style="font-size:10px;font-weight:700;color:var(--blue);min-width:100px;padding-top:1px;flex-shrink:0;line-height:1.4">${c.component}</div>
-        <div style="font-size:12px;line-height:1.6;color:var(--tp);font-style:italic">"${c.say}"</div>
-      </div>`).join('')}
-    </div>`;
-  };
+  const hldH=hlds.map((sec,i)=>`<div style="margin-bottom:22px">
+    <div style="font-size:13px;font-weight:700;padding:9px 13px;background:var(--as);border-radius:9px;border-left:3px solid var(--ac);margin-bottom:10px">${sec.fr_title||'Section '+(i+1)}</div>
+    ${sec.narrative?`<div style="font-size:13px;line-height:1.78;color:var(--tp);margin-bottom:11px">${sec.narrative}</div>`:''}
+    ${(sec.new_components||[]).length?`<div style="font-size:10px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">New components</div>
+      ${sec.new_components.map(c=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 12px;background:var(--sf);border:1px solid var(--br);border-radius:8px;margin-bottom:5px">
+        <div style="font-size:11.5px;font-weight:700;color:var(--tp);min-width:120px;flex-shrink:0">${c.name}</div>
+        <div style="font-size:12px;color:var(--ts);line-height:1.6">${c.role}</div>
+      </div>`).join('')}`:''}
+    ${(sec.flow_steps||[]).length?`<div style="font-size:10px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin:11px 0 6px">Step-by-step flow</div>
+      ${sec.flow_steps.map(s=>`<div style="display:flex;gap:9px;padding:6px 0;border-bottom:1px solid var(--br);font-size:12.5px;line-height:1.65">
+        <span style="color:var(--ac);font-weight:700;flex-shrink:0;min-width:16px">${s.match(/^\d+/)?.[0]||''}</span>
+        <span style="color:var(--tp)">${s.replace(/^\d+\.\s*/,'')}</span>
+      </div>`).join('')}`:''}
+    ${sec.diagram?`<div style="margin-top:13px"><div style="font-size:10px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Diagram after this FR <span style="font-weight:400;color:var(--orange);font-style:normal">★ = new this FR</span></div><div class="diagram">${colorizeDiag(sec.diagram)}</div></div>`:''}
+  </div>`).join('<hr style="border:none;border-top:2px solid var(--br);margin:4px 0 22px">');
 
-  const diagSimple=hld.diagram_simple?`
-    <div class="diag-wrap">
-      <div class="diag-label">Diagram 1 — Baseline Design <span class="diag-pill">satisfies core FRs</span></div>
-      <div style="font-size:11.5px;color:var(--ts);line-height:1.6;margin-bottom:8px;font-style:italic">Start by drawing this simple path. Narrate as you go using the speaking notes below. This is the foundation — Diagram 2 will evolve from it.</div>
-      <div class="diagram">${colorizeDiag(hld.diagram_simple)}</div>
-      ${commentaryH(hld.diagram_simple_commentary)}
-    </div>`:'';
+  /* Diagram 2 scaled with commentary */
+  const d2c=d.diagram_scaled_commentary||[];
+  const diagScaledH=d.diagram_scaled?`<div class="diag-wrap">
+    <div class="diag-label">Diagram 2 — Production Design
+      <span class="diag-pill">satisfies NFRs</span>
+      <span class="diag-pill" style="background:var(--os);color:var(--orange)">★ = evolved from Diagram 1</span>
+      <span class="diag-pill" style="background:rgba(232,192,96,.15);color:#9a7820">[amber] = alternatives</span>
+    </div>
+    <div class="diagram">${colorizeDiag(d.diagram_scaled)}</div>
+  </div>
+  ${d2c.length?`<div style="margin-top:11px"><div style="font-size:10px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px">🗣️ Say while drawing each new component</div>
+  ${d2c.map(c=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 12px;background:var(--bs);border-radius:8px;margin-bottom:5px;border-left:3px solid var(--blue)">
+    <div style="font-size:10px;font-weight:700;color:var(--blue);min-width:88px;padding-top:1px;flex-shrink:0;text-transform:uppercase;letter-spacing:.04em">${c.component}</div>
+    <div style="font-size:12.5px;line-height:1.65;color:var(--tp);font-style:italic">"${c.say}"</div>
+  </div>`).join('')}</div>`:''}`:'' ;
 
-  const diagScaled=hld.diagram_scaled?`
-    <div class="diag-wrap" style="margin-top:16px">
-      <div class="diag-label">Diagram 2 — Production Design <span class="diag-pill">evolves Diagram 1</span> <span class="diag-pill" style="background:var(--gs);color:var(--green)">★ = new component</span> <span class="diag-pill" style="background:var(--os);color:var(--orange)">[amber] = alternatives</span></div>
-      <div style="font-size:11.5px;color:var(--ts);line-height:1.6;margin-bottom:8px;font-style:italic">Now evolve your diagram. For each ★ component you add, say WHY — which NFR it satisfies and what bottleneck it removes. The ★ components are the ones interviewers care most about.</div>
-      <div class="diagram">${colorizeDiag(hld.diagram_scaled)}</div>
-      ${commentaryH(hld.diagram_scaled_commentary)}
-    </div>`:''
+  /* Schema */
+  const schemaH=(d.schema||[]).map(t=>`<div class="card fadein" style="margin-bottom:11px">
+    <div class="card-head" style="justify-content:space-between"><span style="font-weight:700">${t.table}</span><span class="badge bp">${t.storage}</span></div>
+    <div class="card-body">
+      ${t.access_pattern?`<div style="font-size:11.5px;color:var(--blue);margin-bottom:7px;font-weight:600">📊 ${t.access_pattern}</div>`:''}
+      <div style="background:var(--cdbg);border-radius:7px;padding:9px 12px;font-family:'SF Mono',monospace;font-size:11px;line-height:1.85;color:var(--cdtx);word-break:break-word;margin-bottom:7px">${eh2(t.key_fields||'')}</div>
+      ${t.key_indexes?`<div style="font-size:11.5px;color:var(--ts);margin-bottom:4px">🔑 ${t.key_indexes}</div>`:''}
+      <div class="card-sub">Why ${t.storage}: ${t.why}</div>
+    </div>
+  </div>`).join('');
 
-  /* ── SCHEMA ── */
-  const schemaH=(hld.schema||[]).map(t=>`
-    <div class="card fadein" style="margin-bottom:10px">
-      <div class="card-head" style="justify-content:space-between">
-        <span>${t.table}</span>${badge('bp',t.storage)}
-      </div>
-      <div class="card-body">
-        <div style="background:var(--cdbg);border-radius:7px;padding:8px 11px;font-family:'SF Mono',monospace;font-size:11px;line-height:1.85;color:var(--cdtx);word-break:break-word;margin-bottom:6px">${eh(t.key_fields||'')}</div>
-        ${t.key_indexes?`<div style="font-size:11.5px;color:var(--ts);margin-bottom:3px">🔑 <strong>Index:</strong> ${t.key_indexes}</div>`:''}
-        ${t.access_pattern?`<div style="font-size:11.5px;color:var(--purple);margin-bottom:4px">📊 <strong>Access pattern:</strong> ${t.access_pattern}</div>`:''}
-        <div class="card-sub">Why ${t.storage}: ${t.why}</div>
-      </div>
-    </div>`).join('');
+  /* Components */
+  const compH=(d.components||[]).map(c=>`<div class="tech-card fadein">
+    <div class="tech-top"><span class="tech-name">${c.name}</span><span class="chosen-tag">✓ ${c.chosen_tech}</span></div>
+    <div class="tech-role">${c.role}</div>
+    <div class="tech-why"><strong>Why ${c.chosen_tech}:</strong> ${c.why_chosen}</div>
+    ${c.alternatives&&c.alternatives.length?`<div class="alt-lbl">Alternatives</div>${c.alternatives.map(alt=>`<div class="alt-row"><span class="alt-name">${alt.name}</span><span class="av ${alt.verdict==='avoid'?'av-avoid':alt.verdict==='tradeoff'?'av-trade':'av-ok'}">${alt.verdict==='avoid'?'✗ Avoid':alt.verdict==='tradeoff'?'⇄ Trade-off':'✓ OK'}</span><span class="alt-why">${alt.reason}</span></div>`).join('')}`:''}
+  </div>`).join('');
 
-  /* ── COMPONENTS ── */
-  const compH=(hld.components||[]).map(c=>`
-    <div class="tech-card fadein">
-      <div class="tech-top"><span class="tech-name">${c.name}</span><span class="chosen-tag">✓ ${c.chosen_tech}</span></div>
-      <div class="tech-role">${c.role}</div>
-      <div class="tech-why"><strong>Why ${c.chosen_tech}:</strong> ${c.why_chosen}</div>
-      ${(c.alternatives||[]).length?`<div class="alt-lbl">Alternatives — shown as [brackets] in diagram</div>
-        ${c.alternatives.map(alt=>`<div class="alt-row">
-          <span class="alt-name">${alt.name}</span>
-          <span class="av ${alt.verdict==='avoid'?'av-avoid':alt.verdict==='tradeoff'?'av-trade':'av-ok'}">${alt.verdict==='avoid'?'✗ Avoid':alt.verdict==='tradeoff'?'⇄ Trade-off':'✓ OK'}</span>
-          <span class="alt-why">${alt.reason}</span>
-        </div>`).join('')}`:''}
-    </div>`).join('');
+  /* Deep dives — Bad/Good/Great */
+  const deepH=dives.map(dd=>`<div class="card fadein" style="margin-bottom:18px">
+    <div class="card-head" style="flex-direction:column;align-items:flex-start;gap:5px">
+      <div style="font-size:14px;font-weight:700">🔬 ${dd.topic}</div>
+      ${dd.nfr_addressed?`<span class="badge bb" style="font-weight:500">Hardens: ${dd.nfr_addressed}</span>`:''}
+    </div>
+    <div class="card-body" style="margin-bottom:9px"><strong>Why hard:</strong> ${dd.why_hard}</div>
+    ${dd.bad_solution?`<div style="background:var(--rs);border-radius:9px;padding:10px 13px;margin-bottom:7px"><div style="font-size:9.5px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">❌ Bad solution — why it fails</div><div style="font-size:12.5px;line-height:1.68">${dd.bad_solution}</div></div>`:''}
+    ${dd.good_solution?`<div style="background:var(--os);border-radius:9px;padding:10px 13px;margin-bottom:7px"><div style="font-size:9.5px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">🟡 Good solution</div><div style="font-size:12.5px;line-height:1.68">${dd.good_solution}</div></div>`:''}
+    <div style="background:var(--gs);border-radius:9px;padding:10px 13px;margin-bottom:7px"><div style="font-size:9.5px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">✅ Great solution</div><div style="font-size:12.5px;line-height:1.68">${dd.great_solution||dd.real_solution||''}</div></div>
+    ${dd.numbers?`<div class="iblock orange fadein" style="padding:8px 12px;margin-bottom:7px"><div class="blbl">📊 The numbers</div>${dd.numbers}</div>`:''}
+    <div class="card-warn">⇄ Trade-off: ${dd.trade_offs||''}</div>
+  </div>`).join('');
 
-  /* ── DEEP DIVES (bad → good → great) ── */
-  const deepH=dives.map(dd=>`
-    <div class="card fadein" style="margin-bottom:14px">
-      <div class="card-head">🔬 ${dd.topic}</div>
-      ${dd.nfr_addressed?`<div style="margin-bottom:7px">${badge('bb',`Hardens: ${dd.nfr_addressed}`)}</div>`:''}
-      ${dd.bad?`
-        <div class="sublbl" style="margin-top:2px">❌ Bad Solution</div>
-        <div class="iblock red fadein" style="margin-bottom:8px">
-          <div class="blbl">Naive approach</div>
-          <div style="margin-bottom:5px">${dd.bad.approach}</div>
-          <div style="font-size:11.5px;color:var(--red);font-weight:600">Why it fails: ${dd.bad.why_fails}</div>
-        </div>`:''}
-      ${dd.good?`
-        <div class="sublbl">✅ Good Solution</div>
-        <div class="iblock orange fadein" style="margin-bottom:8px">
-          <div class="blbl">Better approach</div>
-          <div style="margin-bottom:5px">${dd.good.approach}</div>
-          ${dd.good.limitation?`<div style="font-size:11.5px;color:var(--orange);font-weight:600">Limitation: ${dd.good.limitation}</div>`:''}
-        </div>`:''}
-      ${dd.great?`
-        <div class="sublbl">🚀 Great Solution (Staff level)</div>
-        <div class="iblock green fadein">
-          <div class="blbl">Production approach</div>
-          <div style="margin-bottom:5px">${dd.great.approach}</div>
-          ${dd.great.numbers?`<div style="font-size:11.5px;background:rgba(0,0,0,.08);border-radius:5px;padding:5px 8px;margin:5px 0;font-family:monospace">📊 ${dd.great.numbers}</div>`:''}
-          ${dd.great.trade_offs?`<div style="font-size:11.5px;color:var(--green);font-weight:600">Trade-off: ${dd.great.trade_offs}</div>`:''}
-        </div>`:''}
-      ${dd.naive_approach&&!dd.bad?`
-        <div class="sublbl">❌ Naive Approach</div>
-        <div class="iblock red fadein"><div class="blbl">Junior approach</div>${dd.naive_approach}</div>
-        <div class="sublbl">✅ Real Solution</div>
-        <div class="card-body">${dd.real_solution||''}</div>
-        ${dd.numbers?`<div class="iblock orange fadein" style="padding:8px 12px"><div class="blbl">📊 Numbers</div>${dd.numbers}</div>`:''}
-        <div class="card-warn" style="margin-top:6px">⇄ Trade-off: ${dd.trade_offs||''}</div>`:''}
-    </div>`).join('');
+  /* Q&A */
+  const qaH=(d.followup_qa||[]).map(q=>`<div class="qa-item fadein"><div class="qa-q" onclick="toggleQA(this)"><span>${q.question}</span><span class="chev">›</span></div><div class="qa-a">${q.answer}</div></div>`).join('');
 
-  /* ── Q&A ── */
-  const qaH=(d.followup_qa||[]).map(q=>`
-    <div class="qa-item fadein">
-      <div class="qa-q" onclick="toggleQA(this)"><span>${q.question}</span><span class="chev">›</span></div>
-      <div class="qa-a">${q.answer}</div>
-    </div>`).join('');
-
-  /* ── CLARIFYING QUESTIONS — handle both {q,why} and plain string ── */
-  const clarifyH=(d.clarifying_questions||[]).map((q,i)=>{
-    const qtext=typeof q==='string'?q:(q.q||'');
-    const qwhy=typeof q==='string'?'':(q.why||'');
-    return hrow(`<strong>Q${i+1}:</strong> ${qtext}${qwhy?`<br><span style="font-size:11.5px;color:var(--ts)">Why ask: ${qwhy}</span>`:''}`);
-  }).join('');
-
-  /* ═══════════════════════════════════════════════════
-     FULL RENDER
-  ═══════════════════════════════════════════════════ */
+  /* ══ FULL RENDER ══ */
   a.innerHTML=
     ptabBar(['overview','Overview','walkthrough','Design Walkthrough','deepdives','Deep Dives','qa','Q&A'])+
 
-    /* ── OVERVIEW ── */
     `<div class="ppanel on" id="pp_overview">
       <div class="sumbox fadein">${d.problem_statement}</div>
-
-      ${sublbl('Clarifying Questions to Ask First')}
-      ${clarifyH}
-
-      ${sublbl('🔵 Functional Requirements')}
-      ${funcH}
-
-      ${sublbl('◎ Non-Functional Requirements')}
-      ${nfrH}
-
-      ${sublbl('✗ Out of Scope')}<div class="pill-row">${oosH}</div>
-
-      ${cap.write_qps?`
-        ${sublbl('📊 Back-of-Envelope')}
-        <div style="background:var(--sf);border:1px solid var(--br);border-radius:10px;padding:12px 14px;margin-bottom:10px">
-          <div style="font-size:13px;line-height:1.7;color:var(--tp);margin-bottom:10px">${cap.plain_english||''}</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <div style="flex:1;min-width:100px;background:var(--os);border-radius:7px;padding:8px 10px">
-              <div style="font-size:9px;font-weight:700;color:var(--orange);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px">✍️ Write QPS</div>
-              <div style="font-size:13px;font-weight:700">${cap.write_qps}</div>
-            </div>
-            <div style="flex:1;min-width:100px;background:var(--bs);border-radius:7px;padding:8px 10px">
-              <div style="font-size:9px;font-weight:700;color:var(--blue);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px">📖 Read QPS</div>
-              <div style="font-size:13px;font-weight:700">${cap.read_qps}</div>
-            </div>
-            <div style="flex:1;min-width:100px;background:var(--gs);border-radius:7px;padding:8px 10px">
-              <div style="font-size:9px;font-weight:700;color:var(--green);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px">💾 Storage/yr</div>
-              <div style="font-size:13px;font-weight:700">${cap.storage_per_year}</div>
-            </div>
-          </div>
-          ${cap.design_impact?`<div style="font-size:12.5px;color:var(--tp);margin-top:8px;font-weight:600">🎯 ${cap.design_impact}</div>`:''}
-        </div>`:''}
-
-      ${iblock('blue','🧠 How to frame this interview',d.thought_process)}
+      <div class="sublbl">Clarifying Questions</div>${cqH}
+      <div class="sublbl">🔵 Functional Requirements</div>${funcH}
+      <div class="sublbl">◎ Non-Functional Requirements</div>${nfrH}
+      <div class="sublbl">📊 Scale & Capacity</div>${capH}
+      <div class="sublbl">✗ Out of Scope</div><div class="pill-row">${oosH}</div>
+      <div class="iblock blue fadein" style="margin-top:10px"><div class="blbl">🧠 Interview framing</div>${d.thought_process||''}</div>
       <button class="spk-btn fadein" style="margin-top:10px" onclick="openSM()">📢 Open Speak Mode</button>
     </div>
 
     <div class="ppanel" id="pp_walkthrough">
       <div class="stab-row">
-        <div class="stab on"><span class="sn">1</span>Requirements<span class="step-t">~5m</span></div>
-        <div class="stab"><span class="sn">2</span>Core Entities<span class="step-t">~2m</span></div>
-        <div class="stab"><span class="sn">3</span>API Design<span class="step-t">~5m</span></div>
-        <div class="stab"><span class="sn">4</span>HLD Walkthrough<span class="step-t">~15m</span></div>
-        <div class="stab"><span class="sn">5</span>Diagrams<span class="step-t">draw</span></div>
+        <div class="stab on"><span class="sn">1</span>Entities<span class="step-t">~2m</span></div>
+        <div class="stab"><span class="sn">2</span>API & Protocol<span class="step-t">~5m</span></div>
+        <div class="stab"><span class="sn">3</span>HLD — FR by FR<span class="step-t">~15m</span></div>
+        <div class="stab"><span class="sn">4</span>Scaled Design<span class="step-t">~5m</span></div>
+        <div class="stab"><span class="sn">5</span>Schema<span class="step-t">in HLD</span></div>
       </div>
 
-      <!-- Step 1: Requirements -->
       <div class="spanel on">
-        ${iblock('blue','📌 Evan King','FRs: "Users should be able to…" max 3, prioritized. NFRs: always measurable numbers. Capacity: only if the number changes a design decision — say this explicitly.')}
-        ${sublbl('🔵 Functional Requirements')}${funcH}
-        ${sublbl('◎ Non-Functional Requirements')}${nfrH}
-        ${sublbl('✗ Out of Scope')}<div class="pill-row">${oosH}</div>
-        ${sublbl('📊 Capacity Estimation')}${capH}
-      </div>
-
-      <!-- Step 2: Core Entities -->
-      <div class="spanel">
-        ${iblock('blue','📌 Evan King','Step 2 = NOUNS ONLY. No fields yet. Just list the core domain objects. Fields emerge in HLD (step 4) as you trace each request to the DB. Spending time on fields here is a common mistake.')}
+        <div class="iblock blue fadein"><div class="blbl">📌 Evan King — Entities first</div>List core domain nouns only — no fields yet. Talk through each briefly. Fields emerge when you trace each API request in HLD step 3.</div>
         ${entH}
       </div>
 
-      <!-- Step 3: API Design -->
       <div class="spanel">
-        ${iblock('blue','📌 Evan King','Default REST. user_id always from JWT — never from request body (untrusted). Define the security implications of each endpoint. State real-time protocol choice upfront.')}
+        <div class="iblock blue fadein"><div class="blbl">📌 Evan King — API design</div>State real-time protocol choice upfront — shapes the whole architecture. REST endpoints: plural nouns, user_id from JWT never body, note security on each.</div>
         ${rtH}
-        ${sublbl('REST Endpoints',`— ${api.protocol_choice||'REST'}`)}
-        ${apiH}
+        <div class="sublbl">Endpoints — ${api.protocol_choice||'REST'}</div>${apiH}
       </div>
 
-      <!-- Step 4: HLD Walkthrough (FR by FR) -->
       <div class="spanel">
-        ${iblock('blue','📌 Evan King','Build the diagram FR by FR. For each FR, say what you are drawing, trace the request end-to-end in plain English, then say the key insight. Schema fields emerge here as you trace to the DB.')}
-        ${walkH||'<div style="color:var(--ts);font-style:italic;font-size:12.5px">Walkthroughs will appear here once generated.</div>'}
-        ${sublbl('Schema',`— emerges during HLD, not before`)}
-        ${schemaH}
-        ${sublbl('Component Decisions',`— match [brackets] in diagrams`)}
+        <div class="iblock blue fadein"><div class="blbl">📌 Evan King — HLD: FR by FR</div>Satisfy each FR one at a time. Narrative → new components → numbered flow → cumulative diagram. Each diagram includes ALL previous components plus ★ new ones.</div>
+        ${hldH}
+      </div>
+
+      <div class="spanel">
+        <div class="iblock blue fadein"><div class="blbl">📌 Evan King — Scaled design</div>Start from your final FR diagram. Layer in production components explaining which NFR each satisfies. Use the speaking script below each component.</div>
+        ${diagScaledH}
+        <div class="sublbl" style="margin-top:16px">Component Decisions <span style="font-size:9.5px;font-weight:400;color:var(--ts)">— match ★ components in diagram above</span></div>
         ${compH}
       </div>
 
-      <!-- Step 5: Diagrams -->
       <div class="spanel">
-        ${iblock('blue','📌 Evan King','Draw Diagram 1 baseline first — narrate as you go. Then evolve to Diagram 2 by adding ★ components one at a time, explaining which NFR each satisfies. The evolution story is what separates Staff from Mid.')}
-        ${diagSimple}
-        ${diagScaled}
+        <div class="iblock blue fadein"><div class="blbl">📌 Evan King — Schema</div>Introduce fields only as you trace the write path to the DB in each FR section. Only show fields that affect query patterns or storage decisions.</div>
+        ${schemaH}
       </div>
     </div>
 
     <div class="ppanel" id="pp_deepdives">
-      ${iblock('blue','📌 Evan King','~10 min. Lead proactively for senior+ roles. Always show Bad → Good → Great progression. This progression signals you understand the problem space, not just the solution.')}
+      <div class="iblock blue fadein"><div class="blbl">📌 Evan King — Deep dives</div>Each dive answers "How do we...?" for a specific NFR. Always Bad solution first — it shows you understand WHY it is hard. Then Good, then Great. Lead proactively at senior+ level.</div>
       ${deepH}
     </div>
 
     <div class="ppanel" id="pp_qa">
-      <p style="font-size:11.5px;color:var(--ts);margin-bottom:12px">Tap to reveal a confident answer.</p>
-      ${qaH}
+      <p style="font-size:11.5px;color:var(--ts);margin-bottom:12px">Tap to reveal a confident answer.</p>${qaH}
     </div>`;
 
   a.classList.add('on');
@@ -1271,13 +1090,12 @@ function renderSD(d){
 
 function copyCode(btn){const a=document.getElementById('rarea');navigator.clipboard.writeText(a._rawCode||'').then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',1500);});}
 
-
-/* ═══ HOME LIST — use addEventListener instead of inline onclick for iframe compat ═══ */
+/* ═══ HOME BUTTONS ═══ */
 (function(){
   var bc=document.getElementById('btn_coding');
   var bs=document.getElementById('btn_sd');
-  if(bc) bc.addEventListener('click', function(){ openTool('coding'); });
-  if(bs) bs.addEventListener('click', function(){ openTool('sd'); });
+  if(bc) bc.addEventListener('click',function(){openTool('coding');});
+  if(bs) bs.addEventListener('click',function(){openTool('sd');});
 })();
 document.getElementById('tbox').addEventListener('input',chkBtn);
 </script>
