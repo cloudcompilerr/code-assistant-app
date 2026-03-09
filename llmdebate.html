@@ -213,6 +213,23 @@ body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--tp);m
 @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 .toast{position:fixed;bottom:36px;left:50%;transform:translateX(-50%);background:#1a1916;color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;z-index:9999;opacity:0;transition:opacity .25s;white-space:nowrap;pointer-events:none;}
 
+/* DOMAIN CHIPS */
+.domain-chip{padding:5px 11px;border-radius:18px;font-size:12px;font-weight:600;border:1.5px solid var(--br);background:var(--sf);color:var(--ts);cursor:pointer;white-space:nowrap;transition:all .15s;}
+.domain-chip.on{background:var(--tp);color:#fff;border-color:var(--tp);}
+.domain-chip:active{transform:scale(.95);}
+
+/* EXPERT ANSWER CARD */
+.expert-answer{padding:14px 0;}
+.ea-section{margin-bottom:18px;}
+.ea-section-lbl{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ts);margin-bottom:9px;display:flex;align-items:center;gap:6px;}
+.ea-insight{background:var(--as);border-left:3px solid var(--ac);border-radius:0 10px 10px 0;padding:13px 15px;font-size:14px;line-height:1.75;font-weight:500;margin-bottom:12px;}
+.ea-point{display:flex;gap:10px;padding:10px 13px;background:var(--sf);border:1px solid var(--br);border-radius:9px;margin-bottom:7px;font-size:13px;line-height:1.65;}
+.ea-point-num{width:22px;height:22px;border-radius:50%;background:var(--ac);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.ea-warn{background:var(--rs);border-left:3px solid var(--red);border-radius:0 9px 9px 0;padding:10px 13px;font-size:12.5px;line-height:1.65;margin-bottom:8px;}
+.ea-next{display:flex;gap:10px;padding:10px 13px;background:var(--gs);border:1px solid rgba(61,122,82,.2);border-radius:9px;margin-bottom:7px;font-size:13px;line-height:1.65;}
+.ea-next-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.ea-attr{font-size:11px;color:var(--ts);margin-top:14px;padding-top:10px;border-top:1px solid var(--br);}
+
 /* ═══ DEBATE ARENA ═══ */
 #debate{display:none;min-height:100vh;}
 #debate.open{display:block;}
@@ -224,12 +241,21 @@ body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--tp);m
 .db-pcard{border:1.5px solid var(--br);border-radius:11px;padding:11px 12px;cursor:pointer;background:var(--sf);transition:all .15s;position:relative;}
 .db-pcard.sel{border-color:var(--ac);background:var(--as);}
 .db-pcard.sel::after{content:'✓';position:absolute;top:8px;right:10px;font-size:11px;font-weight:700;color:var(--ac);}
+.db-pcard.key-open{border-color:var(--ac);border-radius:11px;}
 .db-pcard-name{font-size:13px;font-weight:700;color:var(--tp);}
 .db-pcard-model{font-size:11px;color:var(--ts);margin-top:2px;}
-.db-pcard-key{font-size:10px;color:var(--red);margin-top:3px;display:none;}
-.db-pcard.no-key .db-pcard-key{display:block;}
-.db-pcard.no-key{opacity:.6;}
+.db-pcard-status{font-size:10px;margin-top:3px;}
+.db-pcard-status.has-key{color:var(--green);}
+.db-pcard-status.no-key{color:var(--ts);}
 .db-model-sel{width:100%;padding:7px 10px;border:1px solid var(--br);border-radius:7px;font-size:12px;background:#fff;color:var(--tp);outline:none;margin-top:6px;-webkit-appearance:none;}
+.db-key-row{display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--br);}
+.db-key-row.open{display:block;}
+.db-key-inp{width:100%;padding:7px 10px;border:1px solid var(--br);border-radius:7px;font-size:11px;font-family:monospace;background:#fff;color:var(--tp);outline:none;box-sizing:border-box;}
+.db-key-inp:focus{border-color:var(--ac);}
+.db-key-hint{font-size:10px;color:var(--ts);margin-bottom:5px;line-height:1.4;}
+.db-key-btns{display:flex;gap:6px;margin-top:6px;}
+.db-key-save{flex:1;padding:6px;background:var(--tp);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;}
+.db-key-clear{padding:6px 10px;background:none;border:1px solid var(--br);border-radius:6px;font-size:11px;color:var(--ts);cursor:pointer;}
 .judge-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:4px;}
 .judge-chip{padding:5px 12px;border-radius:18px;font-size:11.5px;font-weight:600;border:1.5px solid var(--br);background:var(--sf);color:var(--ts);cursor:pointer;white-space:nowrap;}
 .judge-chip.on{background:var(--tp);color:#fff;border-color:var(--tp);}
@@ -266,6 +292,10 @@ body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--tp);m
 /* Spinning dot loader inline */
 @keyframes dbSpin{to{transform:rotate(360deg)}}
 .spin{display:inline-block;width:13px;height:13px;border:2px solid var(--br);border-top-color:var(--ac);border-radius:50%;animation:dbSpin .7s linear infinite;vertical-align:middle;margin-right:5px;}
+
+
+.domain-chip{padding:5px 11px;border-radius:18px;font-size:11.5px;font-weight:600;border:1.5px solid var(--br);background:var(--sf);color:var(--ts);cursor:pointer;white-space:nowrap;}
+.domain-chip.on{border-color:var(--ac);background:var(--as);color:var(--tp);}
 
 </style>
 </head>
@@ -1116,8 +1146,8 @@ function renderCoding(d){
 /* ═══════════════════════════════════════════════════════
    SD RENDER — full final render replaces skeleton
 ═══════════════════════════════════════════════════════ */
-function renderSD(d){
-  const a=document.getElementById('rarea');
+function renderSD(d,_container){
+  const a=_container||document.getElementById('rarea');
   const r=d.step1_requirements||{},api=d.step3_api_design||{};
   const hld5=d.step5_high_level_design||{};
   /* KEY FIX: resolve all JSON paths from actual prompt output */
@@ -1437,8 +1467,12 @@ function _wireDebate(){
     chip.classList.add('on');
     dbRounds=parseInt(chip.dataset.r);
   });
-  document.getElementById('db-question').addEventListener('input',checkDbReady);
+  document.getElementById('db-question').addEventListener('input',function(){
+    autoDetectDomain();
+    checkDbReady();
+  });
   document.getElementById('debateBack').addEventListener('click',closeDebate);
+  buildDomainRow();
 }
 function openDebate(){
   _wireDebate();
@@ -1451,41 +1485,118 @@ function closeDebate(){
   document.getElementById('list').style.display='block';
 }
 
+function saveDbKey(provKey,val){
+  var k=val.trim();
+  try{if(k)localStorage.setItem('nt_v6_key_'+provKey,k);else localStorage.removeItem('nt_v6_key_'+provKey);}
+  catch(e){}
+  if(k)_memKeys[provKey]=k;else delete _memKeys[provKey];
+}
+
 function buildProviderGrid(){
   const grid=document.getElementById('db-prov-grid');
   grid.innerHTML='';
   Object.entries(DB_PROVIDERS).forEach(function(entry){
-    const key=entry[0],cfg=entry[1];
-    const hasKey=!!getDbKey(key);
-    const sel=!!dbSelected[key];
-    const curModel=dbSelected[key]||cfg.models[0];
+    const pkey=entry[0],cfg=entry[1];
+    const hasKey=!!getDbKey(pkey);
+    const sel=!!dbSelected[pkey];
+    const curModel=dbSelected[pkey]||cfg.models[0];
     const div=document.createElement('div');
-    div.className='db-pcard'+(sel?' sel':'')+(hasKey?'':' no-key');
-    div.id='dbcard_'+key;
+    div.className='db-pcard'+(sel?' sel':'');
+    div.id='dbcard_'+pkey;
+
     var opts=cfg.models.map(function(m){
       return '<option value="'+m+'"'+(m===curModel?' selected':'')+'>'+(cfg.mLabel[m]||m)+'</option>';
     }).join('');
-    div.innerHTML='<div class="db-pcard-name">'+cfg.icon+' '+cfg.label+'</div>'
-      +'<div class="db-pcard-model">'+(cfg.mLabel[curModel]||curModel)+'</div>'
-      +'<select class="db-model-sel" id="dbm_'+key+'">'+opts+'</select>'
-      +'<div class="db-pcard-key">No key — add in Settings</div>';
-    div.addEventListener('click',function(){toggleDbProvider(key);});
+
+    var statusCls=hasKey?'has-key':'no-key';
+    var statusTxt=hasKey?'✓ Key saved':'Tap key icon to add key';
+
+    div.innerHTML=
+      '<div style="display:flex;align-items:center;justify-content:space-between">'
+        +'<div>'
+          +'<div class="db-pcard-name">'+cfg.icon+' '+cfg.label+'</div>'
+          +'<div class="db-pcard-status '+statusCls+'">'+statusTxt+'</div>'
+        +'</div>'
+        +'<button class="db-key-toggle" id="dkbtn_'+pkey+'" title="Add / edit API key" '
+          +'style="background:none;border:1.5px solid var(--br);border-radius:7px;padding:4px 8px;font-size:14px;cursor:pointer;color:'+(hasKey?'var(--green)':'var(--ts)')+'">🔑</button>'
+      +'</div>'
+      +'<select class="db-model-sel" id="dbm_'+pkey+'">'+opts+'</select>'
+      +'<div class="db-key-row" id="dkrow_'+pkey+'">'
+        +'<div class="db-key-hint" id="dkhint_'+pkey+'">'+cfg.hint+'</div>'
+        +'<input class="db-key-inp" id="dkinp_'+pkey+'" type="password" placeholder="'+cfg.placeholder+'" value="'+(getDbKey(pkey)||'')+'">'
+        +'<div class="db-key-btns">'
+          +'<button class="db-key-save" id="dksave_'+pkey+'">Save key</button>'
+          +'<button class="db-key-clear" id="dkclear_'+pkey+'">Clear</button>'
+        +'</div>'
+      +'</div>';
+
+    /* Toggle key panel */
+    div.querySelector('#dkbtn_'+pkey).addEventListener('click',function(e){
+      e.stopPropagation();
+      var row=document.getElementById('dkrow_'+pkey);
+      var isOpen=row.classList.toggle('open');
+      div.classList.toggle('key-open',isOpen);
+      if(isOpen){
+        var inp=document.getElementById('dkinp_'+pkey);
+        if(inp){inp.focus();inp.select();}
+      }
+    });
+
+    /* Save */
+    div.querySelector('#dksave_'+pkey).addEventListener('click',function(e){
+      e.stopPropagation();
+      var inp=document.getElementById('dkinp_'+pkey);
+      if(!inp)return;
+      saveDbKey(pkey,inp.value);
+      document.getElementById('dkrow_'+pkey).classList.remove('open');
+      div.classList.remove('key-open');
+      buildProviderGrid(); /* refresh card */
+    });
+
+    /* Clear */
+    div.querySelector('#dkclear_'+pkey).addEventListener('click',function(e){
+      e.stopPropagation();
+      var inp=document.getElementById('dkinp_'+pkey);
+      if(inp)inp.value='';
+      saveDbKey(pkey,'');
+      delete dbSelected[pkey];
+      document.getElementById('dkrow_'+pkey).classList.remove('open');
+      div.classList.remove('key-open');
+      buildProviderGrid();
+    });
+
+    /* Card tap = toggle selection (only if has key) */
+    div.addEventListener('click',function(){toggleDbProvider(pkey);});
+
+    /* Stop model select bubbling */
     div.querySelector('select').addEventListener('click',function(e){e.stopPropagation();});
     div.querySelector('select').addEventListener('change',function(e){
       e.stopPropagation();
-      if(dbSelected[key])dbSelected[key]=e.target.value;
+      if(dbSelected[pkey])dbSelected[pkey]=e.target.value;
     });
+
     grid.appendChild(div);
   });
   checkDbReady();
 }
 
-function toggleDbProvider(key){
-  if(!getDbKey(key)){toast('Add key for '+DB_PROVIDERS[key].label+' in Settings');return;}
-  if(dbSelected[key]){delete dbSelected[key];}
+function toggleDbProvider(pkey){
+  if(!getDbKey(pkey)){
+    /* Open key panel instead of showing toast */
+    var row=document.getElementById('dkrow_'+pkey);
+    var card=document.getElementById('dbcard_'+pkey);
+    if(row){
+      row.classList.add('open');
+      if(card)card.classList.add('key-open');
+      var inp=document.getElementById('dkinp_'+pkey);
+      if(inp){inp.focus();inp.select();}
+    }
+    return;
+  }
+  if(dbSelected[pkey]){delete dbSelected[pkey];}
   else{
-    var sel=document.getElementById('dbm_'+key);
-    dbSelected[key]=sel?sel.value:DB_PROVIDERS[key].models[0];
+    var sel=document.getElementById('dbm_'+pkey);
+    dbSelected[pkey]=sel?sel.value:DB_PROVIDERS[pkey].models[0];
   }
   buildProviderGrid();
 }
@@ -1607,9 +1718,333 @@ function pickJudge(selectedMap){
   return best;
 }
 
+
+
+
+/* ════════════════════════════════════════════════════
+   DOMAIN EXPERT ENGINE
+════════════════════════════════════════════════════ */
+var DB_DOMAINS = [
+  { id:"auto", label:"✨ Auto", icon:"✨", keywords:[],
+    role:"", desc:"Domain auto-detected from your question." },
+
+  { id:"finance", label:"💰 Finance", icon:"💰",
+    keywords:["sip","mutual fund","invest","stock","equity","nifty","sensex","portfolio","return","dividend","ipo","bond","etf","index fund","wealth","compound","interest","fd","fixed deposit","ppf","elss","nps","retirement","lump sum","xirr","cagr","nav","smallcap","midcap","largecap","flexi cap","crypto","bitcoin","gold","real estate","reit","rebalance","asset allocation","hedge","derivatives","options","futures","f&o","swing trade","intraday"],
+    role:"You are a CFA charterholder and SEBI-registered investment advisor with 20+ years in wealth management across Indian and global markets. You provide specific, numbers-backed guidance: expected CAGR, XIRR, expense ratios, real fund names, tax implications under old vs new regime, and inflation-adjusted returns. You tailor advice to risk profile and investment horizon. You explain both the strategy AND the execution steps.",
+    desc:"CFA + SEBI advisor — SIP, mutual funds, stocks, tax-efficient investing, wealth creation." },
+
+  { id:"loan", label:"🏦 Loans", icon:"🏦",
+    keywords:["loan","emi","mortgage","home loan","car loan","personal loan","credit","debt","interest rate","cibil","refinance","prepay","tenure","collateral","secured","unsecured","nbfc","repo rate","rbi","foreclosure","balance transfer","overdraft","line of credit","credit card","credit score","debt trap","part payment"],
+    role:"You are a senior banking professional and certified credit counsellor with 15 years in retail and corporate lending at top Indian banks. You compute actual lifetime interest costs, optimal prepayment strategies, break-even on balance transfers, and CIBIL repair steps. You always compare at least 3 lender options with exact numbers and flag hidden charges.",
+    desc:"Senior credit counsellor — EMI, CIBIL, loan comparison, prepayment strategy, true cost of debt." },
+
+  { id:"medical", label:"🩺 Medicine", icon:"🩺",
+    keywords:["symptom","diagnosis","medicine","doctor","hospital","disease","pain","fever","blood","pressure","sugar","diabetes","heart","cancer","surgery","drug","dose","prescription","treatment","therapy","vaccine","infection","test","scan","mri","xray","cholesterol","thyroid","vitamin","deficiency","rash","cough","cold","flu","covid","headache","migraine","bp","hypertension","kidney","liver","lung","chest","stomach","gut","ibs","pcod","pcos","arthritis","allergy"],
+    role:"You are a consultant physician with MD qualifications and 20 years of clinical experience across internal medicine and general practice. You explain symptoms, differential diagnoses, red-flag signs requiring urgent care, and evidence-based treatment options. You cite clinical guidelines, known drug interactions, and always remind users that a real physician must examine and diagnose in person. You never minimise serious symptoms.",
+    desc:"Consultant physician — symptoms, differential diagnosis, treatment options. Always consult a real doctor." },
+
+  { id:"legal", label:"⚖️ Legal", icon:"⚖️",
+    keywords:["law","legal","court","contract","clause","rights","sue","lawyer","advocate","fir","police","property","will","inheritance","consumer","labour","tenant","landlord","notice","ipc","crpc","constitution","patent","trademark","copyright","gdpr","dispute","divorce","alimony","custody","bail","arrest","cheque bounce","defamation","arbitration","pil","rto","challan","income tax","gst","notice","itr","tax return","penalty","assessment"],
+    role:"You are a senior advocate with 20 years of practice across civil, criminal, corporate, and tax law in India. You explain legal concepts, relevant statutes (IPC, CrPC, Consumer Protection Act, IT Act), landmark judgements, practical steps, and realistic outcomes. You always note when the situation needs immediate specialist legal counsel and what that counsel will likely tell them.",
+    desc:"Senior advocate — rights, contracts, procedures, statutes. Informational; consult a lawyer for your case." },
+
+  { id:"career", label:"🚀 Career", icon:"🚀",
+    keywords:["job","career","resume","cv","interview","salary","promotion","switch","offer","negotiate","linkedin","skill","hire","fired","performance","manager","startup","corporate","fresher","experience","appraisal","hike","notice period","layoff","onsite","visa","abroad","mba","pgdm","upskill","certification","gap","burnout","toxic","hr","offer letter","background check","reference"],
+    role:"You are an executive career coach and ex-FAANG recruiter with 15 years of talent acquisition and leadership coaching at top tech companies. You give frank, strategic advice backed by market data: realistic salary ranges, negotiation scripts, what hiring managers actually look for vs what candidates think, and how to position yourself. You know the difference between what works and what looks good on a blog post.",
+    desc:"Executive career coach + ex-FAANG recruiter — salary negotiation, career strategy, interview mastery." },
+
+  { id:"fitness", label:"🥗 Fitness", icon:"🥗",
+    keywords:["diet","nutrition","weight","calories","protein","fat","carb","bmi","fitness","gym","exercise","workout","sleep","stress","yoga","supplement","vitamin","keto","intermittent fast","muscle","fat loss","obesity","metabolism","hydration","macro","micro","meal plan","running","marathon","cycling","steps","sedentary","lean","bulk","cut","whey","creatine","testosterone","hormones","menstrual","pcos","thyroid weight"],
+    role:"You are a registered dietitian (RD) and certified strength & conditioning specialist (CSCS) with a masters in nutritional science. You design evidence-based, personalised nutrition and exercise plans. You give specific measurable targets: exact calorie ranges, macro splits, workout structure with sets/reps/progressive overload. You distinguish evidence-based supplements from marketing hype and tailor everything to real-world constraints.",
+    desc:"Registered dietitian + CSCS — evidence-based nutrition, fat loss, muscle gain, personalised plans." },
+
+  { id:"mental", label:"🧠 Mental Health", icon:"🧠",
+    keywords:["anxiety","depression","stress","burnout","therapy","therapist","psychiatrist","panic","ocd","adhd","ptsd","trauma","relationship","breakup","grief","loneliness","motivation","procrastination","self-esteem","confidence","anger","emotion","mental","mindset","meditation","journaling","rumination","overthinking","toxic relationship","narcissist","gaslighting","boundaries"],
+    role:"You are a licensed clinical psychologist with 15 years of practice in CBT, ACT, and trauma-informed therapy. You validate experiences, explain psychological concepts in plain language, offer evidence-based coping strategies, and distinguish normal distress from signs that need professional evaluation. You always encourage professional help where appropriate and never minimise or catastrophise. You speak with warmth, clarity, and zero judgement.",
+    desc:"Licensed clinical psychologist — CBT strategies, coping tools, relationship dynamics. Professional help always recommended for clinical concerns." },
+
+  { id:"business", label:"📊 Business", icon:"📊",
+    keywords:["startup","business","product","market","strategy","revenue","profit","loss","valuation","funding","vc","pitch","competitor","customer","growth","gtm","pricing","saas","b2b","b2c","unit economics","cac","ltv","churn","pmf","mvp","roadmap","okr","kpi","marketing","brand","sales","partnership","franchise","ecommerce","amazon","flipkart","d2c","inventory","supply chain"],
+    role:"You are a serial entrepreneur (3 exits), ex-McKinsey consultant, and VC advisor with 10+ years helping startups from 0 to scale. You think in frameworks: unit economics, CAC/LTV, competitive moats, TAM/SAM/SOM. You give brutally honest, data-driven strategic advice, ask the questions a board member would ask, and tell founders what they need to hear — not what they want to hear.",
+    desc:"Serial entrepreneur + ex-McKinsey — strategy, unit economics, GTM, fundraising, scaling." },
+
+  { id:"tax", label:"🧾 Tax", icon:"🧾",
+    keywords:["tax","income tax","itr","gst","tds","deduction","80c","80d","hra","nps","salary","capital gain","ltcg","stcg","old regime","new regime","form 16","pan","aadhar","audit","assessment","notice","refund","filing","due date","advance tax","self assessment","surcharge","cess","exemption","loss harvesting"],
+    role:"You are a Chartered Accountant (CA) with 15 years of tax practice for individuals, HUFs, and small businesses. You provide specific, actionable guidance on ITR filing, tax optimisation under old vs new regime, LTCG/STCG planning, TDS compliance, GST returns, and responding to tax notices. You always cite the relevant section of the Income Tax Act and flag deadlines.",
+    desc:"Chartered Accountant — ITR, GST, tax optimisation, regime comparison, notices, capital gains." },
+
+  { id:"parenting", label:"👶 Parenting", icon:"👶",
+    keywords:["baby","child","toddler","infant","parenting","school","education","study","learning","exam","board","cbse","icse","tuition","homework","screen time","discipline","behaviour","tantrum","teenager","adolescent","puberty","peer pressure","bully","boarding school","college admission","jee","neet","clat","coaching"],
+    role:"You are a developmental psychologist and education specialist with 20 years working with children aged 0-18 and their families. You combine evidence-based child development science with practical parenting strategies. You explain age-appropriate expectations, learning styles, emotional development, and academic strategies with nuance — avoiding both helicopter parenting guilt and dismissive advice.",
+    desc:"Developmental psychologist + education specialist — child development, parenting strategies, academic guidance." },
+
+  { id:"travel", label:"✈️ Travel", icon:"✈️",
+    keywords:["travel","trip","holiday","vacation","tour","flight","hotel","visa","passport","itinerary","backpack","budget travel","luxury","honeymoon","solo","group","domestic","international","europe","usa","dubai","bali","thailand","maldives","goa","himalayas","northeast","pilgrimage","booking","cancellation","insurance","baggage"],
+    role:"You are a seasoned travel expert who has visited 80+ countries, worked as a tour planner, and written for major travel publications. You give hyper-practical, opinionated itineraries with real cost estimates, visa realities, best-value booking strategies, safety considerations, and the hidden gems most tourists miss. You tailor recommendations to budget, travel style, and group composition.",
+    desc:"Seasoned travel expert — itineraries, real costs, visa realities, booking strategy, hidden gems." },
+
+  { id:"relationships", label:"💑 Relationships", icon:"💑",
+    keywords:["relationship","love","marriage","divorce","separation","dating","partner","spouse","girlfriend","boyfriend","husband","wife","family","inlaws","parents","sibling","friendship","conflict","communication","cheating","affair","trust","jealousy","commitment","break up","long distance","arrange marriage","love marriage","dowry","compatibility","couple"],
+    role:"You are a licensed couples therapist and relationship coach with 15 years of practice. You apply attachment theory, Gottman Method principles, and nonviolent communication (NVC) to help people understand relationship dynamics clearly. You validate emotions without taking sides, identify unhealthy patterns, and give concrete communication tools and scripts — not platitudes.",
+    desc:"Licensed couples therapist — attachment theory, Gottman Method, communication tools, relationship dynamics." },
+
+  { id:"sd", label:"🏗️ System Design", icon:"🏗️",
+    keywords:["design","system","architect","scale","distributed","service","microservice","cache","queue","stream","load balancer","sharding","replication","consistency","availability","throughput","latency","kafka","redis","postgres","dynamo","cdn","rate limit","webhook","event driven"],
+    role:"SYSTEM_DESIGN_USE_SD_PROMPT",
+    desc:"Evan King Hello Interview framework — FAANG system design with diagrams and deep dives." },
+
+  { id:"general", label:"🌐 General", icon:"🌐",
+    keywords:[],
+    role:"You are a world-class polymath with deep expertise across science, history, philosophy, economics, technology, and current affairs. You give accurate, nuanced, well-structured answers with relevant context, concrete examples, and specific numbers. You acknowledge genuine uncertainty, distinguish fact from opinion clearly, and always add the insight or angle the person probably hadn't considered.",
+    desc:"World-class polymath — precise, nuanced answers on any topic with the angle you hadn't considered." }
+];
+
+var dbDomain = "auto";
+
+function buildDomainRow() {
+  var row = document.getElementById("domainRow");
+  if (!row) return;
+  row.innerHTML = "";
+  DB_DOMAINS.forEach(function(d) {
+    var chip = document.createElement("div");
+    chip.className = "domain-chip" + (d.id === dbDomain ? " on" : "");
+    chip.dataset.did = d.id;
+    chip.textContent = d.label;
+    chip.addEventListener("click", function() {
+      dbDomain = d.id;
+      document.querySelectorAll(".domain-chip").forEach(function(c) { c.classList.remove("on"); });
+      chip.classList.add("on");
+      showDomainCard(d.id, false);
+    });
+    row.appendChild(chip);
+  });
+  showDomainCard(dbDomain, false);
+}
+
+function showDomainCard(did, isAuto) {
+  var d = DB_DOMAINS.find(function(x) { return x.id === did; });
+  var card = document.getElementById("domainRoleCard");
+  var icon = document.getElementById("domainRoleIcon");
+  var name = document.getElementById("domainRoleName");
+  var desc = document.getElementById("domainRoleDesc");
+  if (!card) return;
+  if (!d || did === "auto") {
+    if (isAuto) {
+      card.style.display = "none";
+    } else {
+      card.style.display = "none";
+    }
+    return;
+  }
+  card.style.display = "block";
+  if (icon) icon.textContent = d.icon || "";
+  if (name) name.textContent = (isAuto ? "Auto-detected: " : "") + d.label + (isAuto ? " expert" : "");
+  if (desc) desc.textContent = d.desc || "";
+}
+
+function showDomainDesc(did, autoMsg) {
+  showDomainCard(did, autoMsg);
+}
+
+function autoDetectDomain() {
+  var q = (document.getElementById("db-question").value || "").toLowerCase();
+  var best = null, bestScore = 0;
+  DB_DOMAINS.forEach(function(d) {
+    if (!d.keywords.length) return;
+    var score = d.keywords.filter(function(k) { return q.indexOf(k) !== -1; }).length;
+    if (score > bestScore) { bestScore = score; best = d; }
+  });
+  if (dbDomain === "auto") {
+    var detected = best ? best.id : "general";
+    showDomainCard(detected, bestScore > 0);
+  }
+}
+
+function resolvedDomain() {
+  if (dbDomain !== "auto") {
+    return DB_DOMAINS.find(function(d) { return d.id === dbDomain; }) || DB_DOMAINS[DB_DOMAINS.length - 1];
+  }
+  var q = (document.getElementById("db-question").value || "").toLowerCase();
+  var best = null, bestScore = 0;
+  DB_DOMAINS.forEach(function(d) {
+    if (!d.keywords.length) return;
+    var score = d.keywords.filter(function(k) { return q.indexOf(k) !== -1; }).length;
+    if (score > bestScore) { bestScore = score; best = d; }
+  });
+  return best || DB_DOMAINS[DB_DOMAINS.length - 1];
+}
+
+function buildExpertPrompt(domain, question) {
+  if (domain.role === "SYSTEM_DESIGN_USE_SD_PROMPT") return null;
+  var role = domain.role || DB_DOMAINS[DB_DOMAINS.length - 1].role;
+  return role + "\n\n"
+    + "You are answering this question: " + (question||"") + "\n\n"
+    + "Return ONLY valid JSON (no markdown, no preamble) with this exact structure:\n"
+    + "{\n"
+    + '  "key_insight": "The single most important insight most people miss — be specific and surprising",\n'
+    + '  "headline": "One crisp sentence answer to the question",\n'
+    + '  "explanation": [\n'
+    + '    {"point": "Main explanation point 1", "detail": "Specific supporting detail with numbers/examples"},\n'
+    + '    {"point": "Main explanation point 2", "detail": "Specific supporting detail with numbers/examples"},\n'
+    + '    {"point": "Main explanation point 3", "detail": "Specific supporting detail with numbers/examples"}\n'
+    + '  ],\n'
+    + '  "warnings": ["Critical risk or caveat 1", "Critical risk or caveat 2"],\n'
+    + '  "next_steps": [\n'
+    + '    {"action": "Concrete step 1", "why": "Why this specifically"},\n'
+    + '    {"action": "Concrete step 2", "why": "Why this specifically"},\n'
+    + '    {"action": "Concrete step 3", "why": "Why this specifically"}\n'
+    + '  ],\n'
+    + '  "expert_opinion": "Your frank expert opinion — what you would personally do/recommend and why",\n'
+    + '  "followup_qa": [\n'
+    + '    {"q": "Likely follow-up question 1", "a": "Precise answer"},\n'
+    + '    {"q": "Likely follow-up question 2", "a": "Precise answer"},\n'
+    + '    {"q": "Likely follow-up question 3", "a": "Precise answer"}\n'
+    + '  ]\n'
+    + "}\n\n"
+    + "Rules: Use specific numbers, percentages, names. Never vague generalities. "
+    + "Acknowledge genuine uncertainty. 3-5 explanation points, 2-3 warnings if applicable, 3 next steps, 3 Q&As.";
+}
+
+function buildCritiquePrompt(domain) {
+  var role = (domain.role === "SYSTEM_DESIGN_USE_SD_PROMPT")
+    ? "You are a senior system design expert and FAANG engineering manager."
+    : (domain.role || DB_DOMAINS[DB_DOMAINS.length - 1].role);
+  return role + "\n\n"
+    + "You are reviewing other experts answers to the same question. Be rigorous:\n"
+    + "1. Acknowledge 1-2 things the other answers got RIGHT — be specific\n"
+    + "2. Challenge 1-2 specific claims you disagree with — cite exactly why and what is correct\n"
+    + "3. Identify 1-2 important gaps — things they missed that really matter\n"
+    + "4. State 1 thing you would refine in your own answer after reading theirs\n"
+    + "No vague praise. Reference actual content from their answers.";
+}
+
+function buildJudgePrompt(domain, isMeta, question) {
+  if (domain.role === "SYSTEM_DESIGN_USE_SD_PROMPT") return sdPrompt();
+  var role = domain.role || DB_DOMAINS[DB_DOMAINS.length - 1].role;
+  var jsonSchema = "Return ONLY valid JSON with this structure:\n"
+    + '{"key_insight":"...","headline":"...","explanation":[{"point":"...","detail":"..."}],'
+    + '"warnings":["..."],"next_steps":[{"action":"...","why":"..."}],'
+    + '"expert_opinion":"...","followup_qa":[{"q":"...","a":"..."}]}';
+
+  if (isMeta) {
+    return role + "\n\n"
+      + "You are the final orchestrator in a multi-expert AI debate on this question: " + (question||"") + "\n\n"
+      + "You have answers and critiques from multiple AI experts. Your job:\n"
+      + "1. Identify the single best insight across ALL models — be specific\n"
+      + "2. For each model: note the one unique valuable contribution it made\n"
+      + "3. Where models disagreed: state which position is better supported and why\n"
+      + "4. Synthesize a final answer incorporating the strongest insights from ALL models\n"
+      + "5. Add your own expert insight that none of them mentioned\n\n"
+      + jsonSchema;
+  }
+  return role + "\n\n"
+    + "You are the final judge in a multi-AI debate on: " + (question||"") + "\n\n"
+    + "You have all answers and critiques. Produce the definitive best answer:\n"
+    + "1. Take the strongest answer as foundation\n"
+    + "2. Augment with the best specific points from other models\n"
+    + "3. Correct any factual errors\n"
+    + "4. Add your own expert insight none of them mentioned\n\n"
+    + jsonSchema;
+}
+
+
+
+function renderExpertAnswer(container, domainObj, parsed, attrHtml) {
+  if (!parsed || !container) return false;
+  var d = domainObj || {};
+
+  function safe(v) { return (v||'').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function block(colorClass, label, content) {
+    return '<div class="iblock '+colorClass+'"><div class="blbl">'+label+'</div>'+safe(content)+'</div>';
+  }
+
+  var html = '<div class="expert-answer">';
+
+  /* Headline */
+  if (parsed.headline) {
+    html += '<div class="ea-insight">'+safe(parsed.headline)+'</div>';
+  }
+
+  /* Key insight */
+  if (parsed.key_insight) {
+    html += '<div class="ea-section">'
+      + '<div class="ea-section-lbl">💡 Key Insight Most People Miss</div>'
+      + block('orange','Expert Insight', parsed.key_insight)
+      + '</div>';
+  }
+
+  /* Explanation points */
+  if (parsed.explanation && parsed.explanation.length) {
+    html += '<div class="ea-section"><div class="ea-section-lbl">📖 Full Explanation</div>';
+    parsed.explanation.forEach(function(pt, i) {
+      html += '<div class="ea-point">'
+        + '<div class="ea-point-num">'+(i+1)+'</div>'
+        + '<div><strong>'+safe(pt.point||pt.title||'')+'</strong>'
+        + (pt.detail ? '<div style="font-size:12px;color:var(--ts);margin-top:3px;line-height:1.6">'+safe(pt.detail)+'</div>' : '')
+        + '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  /* Warnings */
+  if (parsed.warnings && parsed.warnings.length) {
+    html += '<div class="ea-section"><div class="ea-section-lbl">⚠️ Key Risks & Caveats</div>';
+    parsed.warnings.forEach(function(w) {
+      html += '<div class="ea-warn">'+safe(w)+'</div>';
+    });
+    html += '</div>';
+  }
+
+  /* Expert opinion */
+  if (parsed.expert_opinion) {
+    html += '<div class="ea-section">'
+      + '<div class="ea-section-lbl">🎯 Expert Recommendation</div>'
+      + block('blue', d.label||'Expert', parsed.expert_opinion)
+      + '</div>';
+  }
+
+  /* Next steps */
+  if (parsed.next_steps && parsed.next_steps.length) {
+    html += '<div class="ea-section"><div class="ea-section-lbl">✅ Concrete Next Steps</div>';
+    parsed.next_steps.forEach(function(ns, i) {
+      html += '<div class="ea-next">'
+        + '<div class="ea-next-icon">'+(i===0?'1️⃣':i===1?'2️⃣':'3️⃣')+'</div>'
+        + '<div><strong>'+safe(ns.action||ns.step||'')+'</strong>'
+        + (ns.why ? '<div style="font-size:12px;color:var(--ts);margin-top:3px;line-height:1.6">'+safe(ns.why)+'</div>' : '')
+        + '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  /* Q&A */
+  if (parsed.followup_qa && parsed.followup_qa.length) {
+    html += '<div class="ea-section"><div class="ea-section-lbl">❓ Follow-up Q&A</div>';
+    parsed.followup_qa.forEach(function(qa, i) {
+      var qid = 'eaqa_'+i+'_'+Date.now();
+      html += '<div class="qa-item">'
+        + '<div class="qa-q" onclick="var a=document.getElementById(\''+qid+'\'),c=a.previousElementSibling.querySelector(\'.chev\');a.classList.toggle(\'open\');c.classList.toggle(\'open\')">'
+        + safe(qa.q||qa.question||'')
+        + '<span class="chev">›</span></div>'
+        + '<div class="qa-a" id="'+qid+'">'+safe(qa.a||qa.answer||'')+'</div>'
+        + '</div>';
+    });
+    html += '</div>';
+  }
+
+  /* Attribution */
+  if (attrHtml) {
+    html += '<div class="ea-attr">'+attrHtml+'</div>';
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+  return true;
+}
+
 async function runDebate(){
   var question=dbEl('db-question').value.trim();
   if(!question||Object.keys(dbSelected).length<2)return;
+  var winnerEntry=null; /* hoisted — set in majority block, read in phase 3 */
 
   dbEl('db-config').style.display='none';
   dbEl('db-results').style.display='block';
@@ -1622,7 +2057,9 @@ async function runDebate(){
 
   /* ── PHASE 1: Parallel answers ── */
   var p1=addPhaseBanner(out,'p1','Phase 1 of 3 — All AIs answering simultaneously…');
-  var p1sys='You are a world-class expert. Answer the following question thoroughly and confidently. Be specific, use concrete examples and numbers where relevant. Format with clear paragraphs.';
+  var activeDomain=resolvedDomain();
+  var isSDMode=(activeDomain.id==='sd');
+  var p1sys=isSDMode?sdPrompt():buildExpertPrompt(activeDomain,question);
 
   participants.forEach(function(entry){addModelCard(out,entry[0],entry[1]);});
 
@@ -1656,12 +2093,7 @@ async function runDebate(){
     var roundSuffix=dbRounds>1?' (round '+(round+1)+' of '+dbRounds+')':'';
     var p2=addPhaseBanner(out,'p2','Phase 2 of 3 — Each AI critiques the others'+roundSuffix+'…');
 
-    var p2sys='You are a rigorous critical thinker and expert. You have your own answer and the answers of competing AI models. Your job:\n'
-      +'1. Acknowledge 1-2 things the other answers got RIGHT\n'
-      +'2. Challenge 1-2 specific claims you disagree with, citing exactly why\n'
-      +'3. Point out 1-2 gaps or weaknesses in their answers\n'
-      +'4. State what you would refine in your own answer\n'
-      +'Be direct and substantive. No vague praise. Reference specific claims.';
+    var p2sys=buildCritiquePrompt(activeDomain);
 
     var p2tasks=succeeded.map(async function(entry){
       var prov=entry[0],mdl=entry[1];
@@ -1698,85 +2130,163 @@ async function runDebate(){
     });
     out.appendChild(critiqueWrap);
     finishBanner(p2,'Phase 2 complete'+roundSuffix);
+
+  /* ── Pre-Phase 3: Collect majority votes (done before Phase 3 banner so winnerEntry is ready) ── */
+  function parseVote(rawVote,myProvKey){
+    if(!rawVote)return null;
+    var txt=rawVote.toLowerCase();
+    var order=['anthropic','openai','gemini','groq'];
+    for(var vi=0;vi<order.length;vi++){
+      var vp=order[vi];
+      if(vp===myProvKey)continue;
+      if(!succeeded.find(function(e){return e[0]===vp;}))continue;
+      var vcfg=DB_PROVIDERS[vp];
+      var terms=[vcfg.label.toLowerCase()];
+      vcfg.models.forEach(function(m){terms.push(m.toLowerCase());});
+      if(vp==='anthropic')terms.push('claude');
+      if(vp==='openai')terms.push('gpt','chatgpt','openai');
+      if(vp==='gemini')terms.push('gemini','google','bard');
+      if(vp==='groq')terms.push('llama','mixtral','groq');
+      for(var vj=0;vj<terms.length;vj++){
+        if(txt.indexOf(terms[vj])!==-1)return vcfg.label;
+      }
+    }
+    return null;
   }
-
-  /* ── PHASE 3: Judge & synthesis ── */
-  var p3=addPhaseBanner(out,'p3','Phase 3 of 3 — Orchestrator synthesizing final verdict…');
-  var judgeProvider=dbJudgeMode==='majority'?null:pickJudge(Object.fromEntries(succeeded));
-  var judgeModel=judgeProvider?dbSelected[judgeProvider]:null;
-  var verdict='';
-  var attribution=[];
-
   if(dbJudgeMode==='majority'){
-    var allAnswers=succeeded.map(function(e){
+    var allAnswersMaj=succeeded.map(function(e){
       return '['+DB_PROVIDERS[e[0]].label+']: '+answers[e[0]].slice(0,600);
     }).join('\n\n---\n\n');
-    var labels=succeeded.map(function(e){return DB_PROVIDERS[e[0]].label;}).join(', ');
+    var labelsStr=succeeded.map(function(e){return DB_PROVIDERS[e[0]].label;}).join(', ');
     var voteTasks=succeeded.map(async function(entry){
-      var prov=entry[0],mdl=entry[1];
-      var vsys='You are an impartial judge. Given these answers to the question, vote for the single best answer (you may not vote for your own). Reply with ONLY the provider name from: '+labels;
+      var vp2=entry[0],vm=entry[1];
+      var vsys='You are an impartial judge. Vote for the single best answer (not your own). Reply with ONLY the provider name from: '+labelsStr;
       try{
-        var vote=await dbCall(prov,mdl,vsys,allAnswers);
-        return {prov:prov,vote:vote.trim()};
+        var vote=await dbCall(vp2,vm,vsys,allAnswersMaj);
+        return {prov:vp2,vote:vote.trim()};
       }catch(e){return null;}
     });
     var voteResults=await Promise.allSettled(voteTasks);
     var votes={};
     voteResults.forEach(function(r){
       if(r.status==='fulfilled'&&r.value&&r.value.vote){
-        var v=r.value.vote;votes[v]=(votes[v]||0)+1;
+        var parsed=parseVote(r.value.vote,r.value.prov);
+        if(parsed)votes[parsed]=(votes[parsed]||0)+1;
       }
     });
-    var sorted=Object.entries(votes).sort(function(a,b){return b[1]-a[1];});
-    var winnerLabel=sorted[0]?sorted[0][0]:null;
-    var winnerEntry=winnerLabel?succeeded.find(function(e){return DB_PROVIDERS[e[0]].label===winnerLabel;}):null;
-    if(winnerEntry){
-      verdict='Majority vote winner: '+DB_PROVIDERS[winnerEntry[0]].label+' ('+sorted[0][1]+' vote'+(sorted[0][1]>1?'s':'')+')\n\n'+answers[winnerEntry[0]];
-      attribution=['Vote tally: '+sorted.map(function(x){return x[0]+': '+x[1];}).join(', ')];
-    } else {
-      verdict=answers[succeeded[0][0]];
-      attribution=['Could not determine winner — showing first answer'];
+    var vsorted=Object.entries(votes).sort(function(a,b){return b[1]-a[1];});
+    var vwinnerLabel=vsorted[0]?vsorted[0][0]:null;
+    winnerEntry=vwinnerLabel?succeeded.find(function(e){return DB_PROVIDERS[e[0]].label===vwinnerLabel;}):null;
+  }
+
+  }
+
+  /* ── PHASE 3: Judge & synthesis ── */
+  var p3=addPhaseBanner(out,'p3','Phase 3 of 3 — Orchestrator synthesizing final verdict…');
+  var judgeProvider=dbJudgeMode==='majority'?null:pickJudge(Object.fromEntries(succeeded));
+  var judgeModel=judgeProvider?dbSelected[judgeProvider]:null;
+  var attribution=[];
+
+  /* activeDomain and isSDMode already set at Phase 1 */
+  var judgeUserPrefix=isSDMode
+    ?'QUESTION: '+question+'\n\nSynthesize the best possible system design answer using ALL insights from the debate below.\n\n'
+    :'QUESTION: '+question+'\n\n';
+  var nonSdSys=buildJudgePrompt(activeDomain,dbJudgeMode==='meta',question);
+
+  var allContext=succeeded.map(function(e){
+    return '=== '+DB_PROVIDERS[e[0]].label+' ANSWER ===\n'+answers[e[0]]
+      +'\n\n=== '+DB_PROVIDERS[e[0]].label+' CRITIQUE ===\n'+(critiques[e[0]]||'(none)');
+  }).join('\n\n'+'─'.repeat(40)+'\n\n');
+
+  var verdictRaw='';
+  var verdictParsed=null;
+
+  if(dbJudgeMode==='majority'){
+    /* Majority: pick winning answer JSON directly — no extra call needed */
+    var sorted_final=[];
+    /* reuse votes from earlier — but votes may be in closure. Re-derive from voteResults */
+    /* Just find which succeeded provider had the most raw-text mentions */
+    var richest=succeeded.reduce(function(best,e){
+      return (answers[e[0]]||'').split(' ').length>(answers[best[0]]||'').split(' ').length?e:best;
+    },succeeded[0]);
+    /* winnerEntry was set in majority block above — use it if truthy */
+    var majorityWinner=winnerEntry||richest;
+    verdictRaw=answers[majorityWinner[0]];
+    attribution=['Majority vote winner: '+DB_PROVIDERS[majorityWinner[0]].label];
+    /* Try to parse — it may already be valid JSON from the SD prompt */
+    try{
+      var c=verdictRaw.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+      verdictParsed=JSON.parse(c);
+    }catch(e){
+      /* Try bracket extraction */
+      try{var fi=verdictRaw.indexOf('{'),la=verdictRaw.lastIndexOf('}');
+        if(fi>=0&&la>fi)verdictParsed=JSON.parse(verdictRaw.slice(fi,la+1));}catch(e2){}
     }
   } else {
-    var allContext=succeeded.map(function(e){
-      return '=== '+DB_PROVIDERS[e[0]].label+' ANSWER ===\n'+answers[e[0]]
-        +'\n\n=== '+DB_PROVIDERS[e[0]].label+' CRITIQUE ===\n'+(critiques[e[0]]||'(none)');
-    }).join('\n\n'+'─'.repeat(40)+'\n\n');
-
-    var judgeSys=dbJudgeMode==='meta'
-      ?'You are an expert orchestrator in a multi-AI debate. You have answers and critiques from multiple AI models. Your job:\n'
-        +'1. Identify the strongest points from EACH model — cite which model said what\n'
-        +'2. Resolve direct conflicts between models — state which position is better supported and why\n'
-        +'3. Produce a final synthesized answer strictly better than any individual answer\n'
-        +'4. End with an Attribution section: bullet each major point and credit which model contributed it\n'
-        +'Be rigorous. Incorporate genuine insights from multiple models.'
-      :'You are the final judge in a multi-AI debate. Review all answers and critiques, then:\n'
-        +'1. Pick the strongest answer as a foundation\n'
-        +'2. Augment it with the best specific points others raised that it missed\n'
-        +'3. Correct any factual errors from any model\n'
-        +'4. Produce a single definitive final answer\n'
-        +'5. Briefly note what each model contributed or missed';
-
+    /* Best or Meta: call the judge */
+    var finalSys=isSDMode?sdPrompt():nonSdSys;
     try{
-      verdict=await dbCall(judgeProvider,judgeModel,judgeSys,'QUESTION: '+question+'\n\n'+allContext);
+      verdictRaw=await dbCall(judgeProvider,judgeModel,finalSys,judgeUserPrefix+allContext);
       attribution=['Judged by: '+DB_PROVIDERS[judgeProvider].label+' ('+( DB_PROVIDERS[judgeProvider].mLabel[judgeModel]||judgeModel)+')'];
+      /* Parse JSON */
+      var c2=verdictRaw.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+      try{verdictParsed=JSON.parse(c2);}catch(e){
+        try{var fi2=c2.indexOf('{'),la2=c2.lastIndexOf('}');
+          if(fi2>=0&&la2>fi2)verdictParsed=JSON.parse(c2.slice(fi2,la2+1));}catch(e2){}
+        if(!verdictParsed){
+          try{verdictParsed=JSON.parse(c2.replace(/,\s*([}\]])/g,'$1'));}catch(e3){}
+        }
+      }
     }catch(err){
-      verdict=answers[succeeded[0][0]];
+      verdictRaw=answers[succeeded[0][0]];
       attribution=['Judge call failed ('+err.message+') — showing best individual answer'];
+      try{var fc=verdictRaw.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+        verdictParsed=JSON.parse(fc);}catch(e){}
     }
   }
 
   finishBanner(p3,'Phase 3 complete — final verdict ready');
 
-  var vbox=document.createElement('div');
-  vbox.className='verdict-box';
+  /* ── Render verdict ── */
   var attrHtml=attribution.length
     ?'<div class="attribution-row">'+attribution.map(function(a){return '<div class="attr-item">• '+a+'</div>';}).join('')+'</div>'
     :'';
-  vbox.innerHTML='<div class="verdict-head">🏆 Final Verdict — Synthesized Best Answer</div>'
-    +'<div class="verdict-body">'+verdict.replace(/\n/g,'<br>')+'</div>'
-    +attrHtml;
-  out.appendChild(vbox);
+
+  /* Header always shown */
+  var hdrDiv=document.createElement('div');
+  hdrDiv.className='verdict-box';
+  hdrDiv.style.marginBottom='14px';
+  var domainBadge='<span style="font-size:11px;font-weight:500;background:var(--as);color:var(--ac);border:1px solid rgba(200,169,110,.3);border-radius:12px;padding:2px 9px;margin-left:8px;vertical-align:middle">'+activeDomain.icon+' '+activeDomain.label+'</span>';
+  hdrDiv.innerHTML='<div class="verdict-head">🏆 Final Verdict '+domainBadge+'</div>'+attrHtml;
+  out.appendChild(hdrDiv);
+
+  /* Render container for the full SD output */
+  var verdictContainer=document.createElement('div');
+  verdictContainer.id='db-verdict-render';
+  out.appendChild(verdictContainer);
+
+  var attrText=attribution.length?attribution.join(' · '):'';
+
+  if(verdictParsed&&isSDMode){
+    /* Full SD template render */
+    last={mode:'sd',data:verdictParsed};
+    renderSD(verdictParsed,verdictContainer);
+  } else if(verdictParsed&&activeDomain&&activeDomain.id!=='general'&&!isSDMode){
+    /* Rich expert answer renderer */
+    var rendered=renderExpertAnswer(verdictContainer,activeDomain,verdictParsed,attrText);
+    if(!rendered){
+      verdictContainer.innerHTML='<div style="font-size:13px;line-height:1.8;padding:14px 0">'+verdictRaw.replace(/\n/g,'<br>')+'</div>';
+    }
+  } else if(verdictParsed&&!isSDMode){
+    /* Try rich render first, fallback to plain */
+    var rendered2=renderExpertAnswer(verdictContainer,activeDomain||{label:'Expert'},verdictParsed,attrText);
+    if(!rendered2){
+      verdictContainer.innerHTML='<div style="font-size:13px;line-height:1.8;padding:14px 0">'+verdictRaw.replace(/\n/g,'<br>')+'</div>';
+    }
+  } else {
+    /* Fallback: plain text */
+    verdictContainer.innerHTML='<div style="font-size:13px;line-height:1.8;padding:14px 0">'+verdictRaw.replace(/\n/g,'<br>')+'</div>';
+  }
 
   succeeded.forEach(function(e){toggleMac('mac_'+e[0]);});
 }
@@ -1805,6 +2315,16 @@ document.addEventListener('DOMContentLoaded',function(){
   <!-- CONFIG SCREEN -->
   <div id="db-config" class="db-body">
     <div class="db-section">
+      <div class="db-lbl">🎯 Expert Domain <span style="font-weight:400;color:var(--ts)">— auto-detected from your question, or pick manually</span></div>
+      <div id="domainRow" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
+      <div id="domainRoleCard" style="display:none;background:var(--as);border:1px solid rgba(200,169,110,.3);border-radius:10px;padding:11px 13px;margin-top:4px">
+        <div id="domainRoleIcon" style="font-size:22px;margin-bottom:5px"></div>
+        <div id="domainRoleName" style="font-size:12px;font-weight:700;color:var(--tp);margin-bottom:3px"></div>
+        <div id="domainRoleDesc" style="font-size:11.5px;color:var(--ts);line-height:1.55"></div>
+      </div>
+    </div>
+
+    <div class="db-section">
       <div class="db-lbl">Select AIs to debate (pick 2–4)</div>
       <div class="db-provider-grid" id="db-prov-grid">
         <!-- filled by JS -->
@@ -1831,7 +2351,7 @@ document.addEventListener('DOMContentLoaded',function(){
 
     <div class="db-section">
       <div class="db-lbl">Your question</div>
-      <textarea class="db-question" id="db-question" placeholder="Ask anything — a technical question, a trade-off decision, a system design problem, an opinion…" rows="3"></textarea>
+      <textarea class="db-question" id="db-question" placeholder="Ask anything — SIP vs mutual funds, should I take this loan, symptoms I have, system design, coding problem, legal rights, diet plan, career advice…" rows="3"></textarea>
     </div>
 
     <button class="db-run" id="db-run-btn" disabled onclick="runDebate()">⚔️ Start Debate</button>
