@@ -1062,8 +1062,8 @@ Rules: 3 FRs max, 4 NFRs with numbers, 3-5 entities nouns only no fields, one hl
 /* ═══════════════════════════════════════════════════════
    TAB HELPERS
 ═══════════════════════════════════════════════════════ */
-function ptabBar(pairs){let h='<div class="ptabs">';for(let i=0;i<pairs.length;i+=2)h+=`<div class="ptab${i===0?' on':''}" data-t="${pairs[i]}" onclick="switchP('${pairs[i]}')">${pairs[i+1]}</div>`;return h+'</div>';}
-function switchP(id){document.querySelectorAll('.ptab').forEach(t=>t.classList.toggle('on',t.dataset.t===id));document.querySelectorAll('.ppanel').forEach(p=>p.classList.toggle('on',p.id==='pp_'+id));}
+function ptabBar(pairs){let h='<div class="ptabs">';for(let i=0;i<pairs.length;i+=2)h+=`<div class="ptab${i===0?' on':''}" data-t="${pairs[i]}" data-idx="${i/2}" onclick="switchP(this)">${pairs[i+1]}</div>`;return h+'</div>';}
+function switchP(el){var root=el.closest('.sd-card-root')||el.closest('#rarea')||document;var idx=parseInt(el.dataset.idx||'0');root.querySelectorAll('.ptab').forEach((t,i)=>t.classList.toggle('on',i===idx));root.querySelectorAll('.ppanel').forEach((p,i)=>p.classList.toggle('on',i===idx));}
 function toggleQA(el){el.classList.toggle('open');el.querySelector('.chev').classList.toggle('open');el.nextElementSibling.classList.toggle('open');}
 function wireSubTabs(container){
   const tabs=[...container.querySelectorAll(':scope > .stab-row > .stab')];
@@ -1123,7 +1123,7 @@ function renderCoding(d){
   const alH=(d.alternatives||[]).map(al=>`<div class="card fadein"><div class="card-head" style="justify-content:space-between"><span>${al.name} <small style="color:var(--ts);font-weight:400">${al.complexity}</small></span><span class="badge ${vc(al.verdict)}">${vl(al.verdict)}</span></div><div class="card-body">${al.when_to_use}</div></div>`).join('');
   a.innerHTML=
     ptabBar(['overview','Overview','code','Code','steps','Walkthrough','tricky','Gotchas','qa','Q&A','alts','Alternatives'])+
-    `<div class="ppanel on" id="pp_overview">
+    `<div class="ppanel on" id="pp_${_pfx}overview">
       <div class="iblock blue fadein"><div class="blbl">🧠 How I thought about this</div>${d.thought_process}</div>
       <div class="iblock green fadein"><div class="blbl">💡 Real-world analogy</div>${d.analogy}</div>
       <div class="sumbox fadein">${d.summary}</div>
@@ -1137,7 +1137,7 @@ function renderCoding(d){
     </div>
     <div class="ppanel" id="pp_steps"><div>${stH}</div></div>
     <div class="ppanel" id="pp_tricky"><p style="font-size:11.5px;color:var(--ts);margin-bottom:12px;line-height:1.5">Knowing these signals thoroughness.</p>${trH}</div>
-    <div class="ppanel" id="pp_qa"><p style="font-size:11.5px;color:var(--ts);margin-bottom:12px;line-height:1.5">Tap to reveal.</p>${qaH}</div>
+    <div class="ppanel" id="pp_${_pfx}qa"><p style="font-size:11.5px;color:var(--ts);margin-bottom:12px;line-height:1.5">Tap to reveal.</p>${qaH}</div>
     <div class="ppanel" id="pp_alts"><p style="font-size:11.5px;color:var(--ts);margin-bottom:12px;line-height:1.5">Mentioning trade-offs signals depth.</p>${alH}</div>`;
   a._rawCode=d.code;a.classList.add('on');
   setTimeout(()=>a.scrollIntoView({behavior:'smooth',block:'start'}),120);
@@ -1148,6 +1148,7 @@ function renderCoding(d){
 ═══════════════════════════════════════════════════════ */
 function renderSD(d,_container){
   const a=_container||document.getElementById('rarea');
+  var _pfx=_container?'sd'+(++_sdCardIdx)+'_':'';
   const r=d.step1_requirements||{},api=d.step3_api_design||{};
   const hld5=d.step5_high_level_design||{};
   /* KEY FIX: resolve all JSON paths from actual prompt output */
@@ -1337,10 +1338,10 @@ function renderSD(d,_container){
   const qaH=(d.followup_qa||[]).map(q=>`<div class="qa-item fadein"><div class="qa-q" onclick="toggleQA(this)"><span>${q.question}</span><span class="chev">›</span></div><div class="qa-a">${q.answer}</div></div>`).join('');
 
   /* ══ FULL RENDER ══ */
-  a.innerHTML=
+  a.innerHTML='<div class="sd-card-root">'+
     ptabBar(['overview','Overview','walkthrough','Design Walkthrough','deepdives','Deep Dives','qa','Q&A'])+
 
-    `<div class="ppanel on" id="pp_overview">
+    `<div class="ppanel on" id="${_pfx}pp_overview">
       <div class="sumbox fadein">${d.problem_statement}</div>
       <div class="sublbl">Clarifying Questions</div>${cqH}
       <div class="sublbl">🔵 Functional Requirements</div>${funcH}
@@ -1351,7 +1352,7 @@ function renderSD(d,_container){
       <button class="spk-btn fadein" style="margin-top:10px" onclick="openSM()">📢 Open Speak Mode</button>
     </div>
 
-    <div class="ppanel" id="pp_walkthrough">
+    <div class="ppanel" id="pp_${_pfx}walkthrough">
       <div class="stab-row">
         <div class="stab on"><span class="sn">1</span>Entities<span class="step-t">~2m</span></div>
         <div class="stab"><span class="sn">2</span>API & Protocol<span class="step-t">~5m</span></div>
@@ -1390,17 +1391,18 @@ function renderSD(d,_container){
       </div>
     </div>
 
-    <div class="ppanel" id="pp_deepdives">
+    <div class="ppanel" id="pp_${_pfx}deepdives">
       <div class="iblock blue fadein"><div class="blbl">📌 Evan King — Deep dives</div>Each dive answers "How do we...?" for a specific NFR. Always Bad solution first — it shows you understand WHY it is hard. Then Good, then Great. Lead proactively at senior+ level.</div>
       ${deepH}
     </div>
 
-    <div class="ppanel" id="pp_qa">
+    <div class="ppanel" id="${_pfx}pp_qa">
       <p style="font-size:11.5px;color:var(--ts);margin-bottom:12px">Tap to reveal a confident answer.</p>${qaH}
-    </div>`;
+    </div></div>`;
 
   a.classList.add('on');
-  wireSubTabs(document.querySelector('#pp_walkthrough'));
+  var wt=a.querySelector('#pp_'+_pfx+'walkthrough')||a.querySelector('.ppanel');
+  if(wt)wireSubTabs(wt);
   setTimeout(()=>a.scrollIntoView({behavior:'smooth',block:'start'}),120);
 }
 
@@ -1778,6 +1780,16 @@ var DB_DOMAINS = [
     role:"You are a developmental psychologist and education specialist with 20 years working with children aged 0-18 and their families. You combine evidence-based child development science with practical parenting strategies. You explain age-appropriate expectations, learning styles, emotional development, and academic strategies with nuance — avoiding both helicopter parenting guilt and dismissive advice.",
     desc:"Developmental psychologist + education specialist — child development, parenting strategies, academic guidance." },
 
+  { id:"sd", label:"🏗️ System Design", icon:"🏗️",
+    keywords:["system design","design a","design an","scalable","distributed","architecture","microservice","database","cache","queue","kafka","redis","load balancer","cdn","api gateway","rate limit","sharding","replication","consistency","availability","latency","throughput","qps","rps","tps","hld","lld","low level design","high level design","url shortener","twitter","youtube","uber","whatsapp","instagram","tiktok","netflix","dropbox","google drive","pastebin","web crawler","notification","payment","ride sharing","chat","messaging","news feed","search engine","typeahead","recommendation","ad click","metrics","monitoring","alerting","event driven","stream processing","kafka","flink","spark","hadoop"],
+    role:"SYSTEM_DESIGN_USE_SD_PROMPT",
+    desc:"Evan King Hello Interview framework — full tabbed SD output with diagrams, schema, deep dives." },
+
+  { id:"tech", label:"💻 Software & Tech", icon:"💻",
+    keywords:["code","programming","algorithm","bug","debug","function","class","object","api","rest","graphql","grpc","sql","nosql","mongodb","postgres","python","java","javascript","typescript","react","node","docker","kubernetes","git","linux","bash","regex","recursion","sorting","binary search","dynamic programming","graph","tree","linked list","array","hash map","concurrency","thread","async","promise","callback","closure","design pattern","solid","dry","refactor","test","unit test","ci cd","devops","cloud","aws","gcp","azure","serverless","lambda","s3","ec2"],
+    role:"You are a principal software engineer and architect with 15+ years building production systems at FAANG-level companies. You write working, idiomatic code with proper error handling. You explain trade-offs honestly: time vs space, consistency vs availability, simplicity vs scalability. You use concrete examples and production war stories. You flag common mistakes and anti-patterns.",
+    desc:"Principal engineer — working code, algorithms, architecture trade-offs, production concerns." },
+
   { id:"travel", label:"✈️ Travel", icon:"✈️",
     keywords:["travel","trip","holiday","vacation","tour","flight","hotel","visa","passport","itinerary","backpack","budget travel","luxury","honeymoon","solo","group","domestic","international","europe","usa","dubai","bali","thailand","maldives","goa","himalayas","northeast","pilgrimage","booking","cancellation","insurance","baggage"],
     role:"You are a seasoned travel expert who has visited 80+ countries, worked as a tour planner, and written for major travel publications. You give hyper-practical, opinionated itineraries with real cost estimates, visa realities, best-value booking strategies, safety considerations, and the hidden gems most tourists miss. You tailor recommendations to budget, travel style, and group composition.",
@@ -1875,7 +1887,7 @@ function resolvedDomain() {
 }
 
 function buildExpertPrompt(domain, question) {
-  if (domain.role === "SYSTEM_DESIGN_USE_SD_PROMPT") return null;
+  if (domain.role === "SYSTEM_DESIGN_USE_SD_PROMPT") return sdPrompt();
   var role = domain.role || DB_DOMAINS[DB_DOMAINS.length - 1].role;
   return role + "\n\n"
     + "You are answering this question: " + (question||"") + "\n\n"
