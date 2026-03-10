@@ -2278,18 +2278,33 @@ async function runDebate(){
     attribution=['Majority vote winner: '+DB_PROVIDERS[majorityWinner[0]].label];
     verdictParsed=parseVerdict(verdictRaw);
   } else if(isSDMode){
-    /* SD mode: pick richest individual JSON answer (judge synthesizing SD JSON is too token-heavy) */
-    var bestSDEntry=succeeded.reduce(function(best,e){
-      return (answers[e[0]]||'').length>(answers[best[0]]||'').length?e:best;
-    },succeeded[0]);
-    verdictRaw=answers[bestSDEntry[0]];
-    attribution=['Best SD answer from: '+DB_PROVIDERS[bestSDEntry[0]].label+' · Debate critiques shown above'];
-    verdictParsed=parseVerdict(verdictRaw);
-    /* If best failed to parse, try others */
+    /* SD mode: judge picks the best complete JSON, with full fallback chain */
+    var sdMergeSys='You are a system design expert judge. You will receive multiple system design answers already in JSON format. '
+      +'Select the single BEST and MOST COMPLETE JSON — the one with the richest detail, best diagrams, most thorough deep dives. '
+      +'Output ONLY that JSON verbatim. No markdown fences. No commentary. Start with { end with }.';
+    var sdMergeUser='Select and output the best complete system design JSON from these answers. Output ONLY the JSON.\n\n'
+      +succeeded.map(function(e,i){
+        return '=== ANSWER '+(i+1)+' from '+DB_PROVIDERS[e[0]].label+' ===\n'+answers[e[0]];
+      }).join('\n\n');
+    try{
+      verdictRaw=await dbCall(judgeProvider,judgeModel,sdMergeSys,sdMergeUser);
+      var jLbl=DB_PROVIDERS[judgeProvider].modelLabels&&DB_PROVIDERS[judgeProvider].modelLabels[judgeModel]||judgeModel;
+      attribution=['SD answer selected by: '+DB_PROVIDERS[judgeProvider].label+' ('+jLbl+')'];
+      verdictParsed=parseVerdict(verdictRaw);
+    }catch(err){
+      attribution=['SD judge failed ('+err.message+') — using best direct answer'];
+    }
+    /* Fallback: pick richest parseable individual answer */
     if(!verdictParsed){
-      for(var si=0;si<succeeded.length;si++){
-        verdictParsed=parseVerdict(answers[succeeded[si][0]]);
-        if(verdictParsed){attribution=['SD answer from: '+DB_PROVIDERS[succeeded[si][0]].label];break;}
+      var sorted=succeeded.slice().sort(function(a,b){return (answers[b[0]]||'').length-(answers[a[0]]||'').length;});
+      for(var si2=0;si2<sorted.length;si2++){
+        var attempt=parseVerdict(answers[sorted[si2][0]]);
+        if(attempt){
+          verdictParsed=attempt;
+          verdictRaw=answers[sorted[si2][0]];
+          attribution=['Best SD answer from: '+DB_PROVIDERS[sorted[si2][0]].label+' (judge fallback)'];
+          break;
+        }
       }
     }
   } else {
