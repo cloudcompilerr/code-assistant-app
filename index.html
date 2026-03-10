@@ -1106,7 +1106,7 @@ JSON FORMAT — return valid JSON starting with {
         "bottleneck_at_scale": "one sentence: what breaks on this component at 10x traffic — this is exactly what Diagram 2 fixes"
       }
     ]
-    "diagram_scaled": "DIAGRAM 2. Same boxes as Diagram 1 PLUS ★-prefixed new ones. Each ★: inline annotation [satisfies: NFR]. Alternatives INLINE: [Alt: X OR Y] on same line. Separate WRITE PATH and READ PATH with labeled dividers. Lines max 60 chars.",
+    "diagram_scaled": "DIAGRAM 2. Evolves Diagram 1 — keep all boxes, replace/upgrade with ✕→★ where NFRs demand it, add new ★ components. Each ★: inline [satisfies: NFR]. Alternatives INLINE: [Alt: X]. Only split into WRITE PATH / READ PATH dividers if NFRs genuinely require asymmetric handling (e.g. Ad Click, CQRS, event sourcing) — for most product systems keep unified flow. Lines max 80 chars.",
     "diagram_scaled_commentary": [
       {
         "component": "★ component name",
