@@ -181,7 +181,7 @@ body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--tp);m
 .diag-wrap{margin-bottom:14px;}
 .diag-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ts);margin-bottom:5px;display:flex;align-items:center;gap:6px;}
 .diag-pill{font-size:9px;padding:2px 7px;border-radius:10px;background:var(--bs);color:var(--blue);font-weight:600;}
-.diagram{background:var(--cdbg);border-radius:12px;padding:14px 16px;font-family:'SF Mono',monospace;font-size:11.5px;line-height:1.9;color:#c8c4bc;white-space:pre-wrap;word-break:break-word;overflow-x:auto;}
+.diagram{background:var(--cdbg);border-radius:12px;padding:12px 14px;font-family:'SF Mono','Menlo','Consolas',monospace;font-size:clamp(9px,2.2vw,12.5px);line-height:1.72;color:#c8c4bc;white-space:pre;overflow-x:auto;-webkit-overflow-scrolling:touch;display:block;width:100%;box-sizing:border-box;}
 /* colour accents inside diagram */
 .diagram .chosen{color:#7ec87e;}
 .diagram .alt{color:#e8c878;}
@@ -994,9 +994,29 @@ Example from Uber (FR: fare estimate):
   key_point: "We store Fare so client sends fareId only — prevents price tampering since price always comes from our DB."
 
 STEP 5 — TWO DIAGRAMS
-Diagram 1: baseline satisfying FRs, 6-8 boxes, simple flow.
-Diagram 2: evolves Diagram 1 — same boxes plus new ones marked with a star. Each new component annotated with arrow and text showing which NFR it satisfies.
-Box style: draw boxes with proper box-drawing characters. Label every arrow with what flows on it. Show alternatives in comments.
+REQUIRED topology — EVERY diagram must include these unless system explicitly excludes them:
+  Client → Load Balancer → API Gateway → Service(s) → Cache → DB/Storage
+  Also add: CDN, Auth Service, Queue, Stream Processor, Object Store as the system needs.
+  Never omit Load Balancer and API Gateway — interviewers always expect them.
+
+Diagram 1: baseline satisfying core FRs. 8-12 boxes, top-to-bottom or left-to-right flow.
+  MUST have: Client, Load Balancer, API Gateway, Service(s), DB.
+  Label every arrow with payload/protocol e.g. "HTTP POST /ride", "SQL query", "Kafka msg".
+  Keep lines compact — aim for under 80 chars, break long rows vertically if needed.
+
+Diagram 2: evolves Diagram 1. Same core boxes PLUS new ★-prefixed components.
+  Each ★ component: annotate inline with [satisfies: NFR-name].
+  Alternatives: show TWICE — (a) inline on the same line as the component e.g. "│ Redis Cache  [Alt: Memcached]  │"
+  AND (b) a comment block at the bottom of the diagram listing all alternatives with one-line reason each:
+    # Alternatives:
+    # Redis → chosen over Memcached: TTL + geo ops needed
+    # Kafka → chosen over SQS: replay + exactly-once semantics
+  Separate write path and read path with a labeled divider:
+    ── WRITE PATH ──────────────────
+    ── READ PATH ───────────────────
+  Keep lines compact — aim for under 80 chars, break long rows vertically if needed.
+
+Box style: use box-drawing characters (┌─┐ │ └─┘). Arrow right ─►, arrow down ▼.
 
 STEP 6 — DEEP DIVES: BAD TO GOOD TO GREAT
 Always this progression. Example from Ad Click guide:
@@ -1075,12 +1095,12 @@ JSON FORMAT — return valid JSON starting with {
     }
   ],
   "step5_high_level_design": {
-    "diagram_simple": "DIAGRAM 1. Box chars: use box-drawing characters for each component box. Arrow down vertical, right horizontal. Label every arrow. 6-8 boxes. 100% specific to THIS system.",
+    "diagram_simple": "DIAGRAM 1. MUST include Client → Load Balancer → API Gateway → Service(s) → DB. Use box-drawing chars (┌─┐ │ └─┘). Label every arrow with payload/protocol. 8-12 boxes. 100% specific to THIS system. Lines max 60 chars.",
     "diagram_simple_commentary": [
       {"component": "box name", "say": "role and why here and what it does"},
       {"component": "box name", "say": "the bottleneck this creates at scale"}
     ],
-    "diagram_scaled": "DIAGRAM 2. Evolves Diagram 1. Same core boxes plus new ones marked with star prefix. Each new component has annotation showing which NFR it satisfies. Label every arrow. Show alternatives in brackets. Split write and read paths where they diverge.",
+    "diagram_scaled": "DIAGRAM 2. Same boxes as Diagram 1 PLUS ★-prefixed new ones. Each ★: inline annotation [satisfies: NFR]. Alternatives INLINE: [Alt: X OR Y] on same line. Separate WRITE PATH and READ PATH with labeled dividers. Lines max 60 chars.",
     "diagram_scaled_commentary": [
       {"component": "star component name", "say": "WHY added — NFR satisfied plus bottleneck removed plus numbers"},
       {"component": "star component name", "say": "connection to previous component plus trade-off introduced"}
@@ -1341,7 +1361,7 @@ function renderSD(d,_container){
     <div class="diag-label">Diagram 2 — Production Design
       <span class="diag-pill">satisfies NFRs</span>
       <span class="diag-pill" style="background:var(--os);color:var(--orange)">★ = new vs Diagram 1</span>
-      <span class="diag-pill" style="background:rgba(232,192,96,.15);color:#9a7820">[amber] = alternatives</span>
+      <span class="diag-pill" style="background:rgba(232,192,96,.15);color:#9a7820">[Alt:x] = alternatives</span>
     </div>
     <div style="font-size:11.5px;color:var(--ts);margin-bottom:8px;font-style:italic">For each ★ component you add, say WHY — which NFR it satisfies and what bottleneck it removes.</div>
     <div class="diagram">${colorizeDiag(diagScaled)}</div>
