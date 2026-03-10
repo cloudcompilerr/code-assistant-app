@@ -626,7 +626,7 @@ async function generate(){
   const sys=mode==='coding'?codingPrompt():sdPrompt();
   try{
     /* ── Build provider-specific request ── */
-    const maxTok=mode==='coding'?6000:8192;
+    const maxTok=mode==='coding'?6000:16000;
     let url,headers,body,extractDelta;
 
     if(provider==='anthropic'){
@@ -999,12 +999,14 @@ REQUIRED topology — EVERY diagram must include these unless system explicitly 
   Also add: CDN, Auth Service, Queue, Stream Processor, Object Store as the system needs.
   Never omit Load Balancer and API Gateway — interviewers always expect them.
 
-Diagram 1: baseline satisfying core FRs. 8-12 boxes, top-to-bottom or left-to-right flow.
-  MUST have: Client, Load Balancer, API Gateway, Service(s), DB.
+Diagram 1: the UNION of all boxes from every FR walkthrough above — every component you named in any what_to_draw field appears here.
+  Start with the required baseline: Client → Load Balancer → API Gateway → Service(s) → DB.
+  Add every additional component from the FR walkthroughs (queues, caches, external APIs, etc).
+  This diagram should look exactly like the final state of your FR-by-FR whiteboard walk.
   Label every arrow with payload/protocol e.g. "HTTP POST /ride", "SQL query", "Kafka msg".
   Keep lines compact — aim for under 80 chars, break long rows vertically if needed.
 
-Diagram 2: evolves Diagram 1. Same core boxes PLUS new ★-prefixed components.
+Diagram 2: evolves Diagram 1 to satisfy NFRs. Start from Diagram 1 — keep every component, but you may replace or upgrade components where an NFR demands it (mark replaced components with ✕ and the replacement with ★). Add new ★ components. Annotate every change: what Diagram 1 had, what changed, and which NFR drove it. The reader must see the evolution story — Diagram 1 is the baseline, Diagram 2 is the production-ready version.
   Each ★ component: annotate inline with [satisfies: NFR-name].
   Alternatives: show TWICE — (a) inline on the same line as the component e.g. "│ Redis Cache  [Alt: Memcached]  │"
   AND (b) a comment block at the bottom of the diagram listing all alternatives with one-line reason each:
@@ -1065,9 +1067,7 @@ JSON FORMAT — return valid JSON starting with {
     "protocol_choice": "REST / gRPC / GraphQL / event-driven — chosen base protocol name",
     "protocol_why": "one sentence: WHY this protocol over alternatives for this specific system — e.g. REST because reads dominate and HTTP caching helps, or gRPC because high-throughput internal service calls need binary encoding",
     "protocol_alternatives": [
-      {"name": "gRPC", "verdict": "tradeoff", "reason": "faster binary for internal services but browser support needs proxy; overkill for external-facing API"},
-      {"name": "GraphQL", "verdict": "tradeoff", "reason": "flexible queries but N+1 problems and overhead not justified unless clients have radically different data needs"},
-      {"name": "WebSocket", "verdict": "tradeoff", "reason": "only if bidirectional streaming needed — see real-time section"}
+      {"name": "alt name", "verdict": "tradeoff or avoid", "reason": "one sentence specific to this system"}
     ],
     "realtime_protocol": {
       "needed": false,
@@ -1075,8 +1075,7 @@ JSON FORMAT — return valid JSON starting with {
       "reason": "specific reason",
       "where_in_arch": "where it sits if needed",
       "alternatives": [
-        {"name": "WebSocket", "verdict": "tradeoff", "reason": "specific for this system"},
-        {"name": "Long Polling", "verdict": "avoid", "reason": "specific failure at this scale"}
+        {"name": "alt", "verdict": "tradeoff or avoid", "reason": "specific for this system"}
       ]
     },
     "endpoints": [
@@ -1097,32 +1096,20 @@ JSON FORMAT — return valid JSON starting with {
     "diagram_simple_commentary": [
       {
         "component": "box name",
-        "say": "2-3 sentence spoken script: introduce the component, state its single responsibility, say what flows into it and what flows out. Example: 'I'm adding an API Gateway here — it's the single entry point for all client traffic. It handles auth token validation, rate limiting at 1000 req/sec per client, and routes to the right downstream service. Without it every service would need its own auth logic.'",
-        "what_it_does": "1 sentence: internal mechanism — e.g. 'terminates TLS, validates JWT, applies per-client rate limit, routes by path prefix'",
-        "interviewer_tip": "what the interviewer wants to hear — e.g. 'mention rate limiting and auth offloading, not just routing'"
-      },
-      {
-        "component": "box name",
-        "say": "2-3 sentence spoken script for this component. Include: what problem it solves, what tech it uses, and the bottleneck it creates that Diagram 2 will fix.",
-        "what_it_does": "internal mechanism 1 sentence",
-        "interviewer_tip": "key insight interviewer is listening for"
+        "say": "2-3 sentences aloud: responsibility, what flows in/out, why it belongs here",
+        "what_it_does": "internal mechanism in one sentence",
+        "interviewer_tip": "what interviewer listens for on this component"
       }
-    ],
+    ]
     "diagram_scaled": "DIAGRAM 2. Same boxes as Diagram 1 PLUS ★-prefixed new ones. Each ★: inline annotation [satisfies: NFR]. Alternatives INLINE: [Alt: X OR Y] on same line. Separate WRITE PATH and READ PATH with labeled dividers. Lines max 60 chars.",
     "diagram_scaled_commentary": [
       {
         "component": "★ component name",
-        "say": "2-3 sentence spoken script: (1) which bottleneck from Diagram 1 forced this addition, (2) what this component does internally with specific tech, (3) which NFR it now satisfies with a concrete number. Example: 'I'm adding Kafka here because our single write path to PostgreSQL can only handle 5k TPS but we need 10k clicks/sec — that's a 2x shortfall. Kafka partitioned by adId absorbs the full 10k/sec and gives us 7-day replay so Flink can reprocess on crash. This satisfies our fault-tolerance NFR — no data loss even if the stream processor goes down.'",
-        "why_over_alternatives": "why this specific tech beats the alternatives you listed inline — e.g. 'Kafka over SQS: replay semantics needed for exactly-once; SQS deletes on consume'",
-        "numbers": "concrete metric this component handles — e.g. 'absorbs 10k writes/sec, partitioned across 12 brokers, 7-day retention = 18TB'"
-      },
-      {
-        "component": "★ component name",
-        "say": "2-3 sentence script: bottleneck it removes, how it connects to upstream/downstream components, trade-off it introduces that the team must manage.",
-        "why_over_alternatives": "one sentence: why chosen over the inline alternatives",
-        "numbers": "key metric or sizing number"
+        "say": "2-3 sentences: (1) bottleneck in Diagram 1 that forced this, (2) what it does with specific tech, (3) NFR it satisfies with a number",
+        "why_over_alternatives": "one sentence: why this over the inline alternatives",
+        "numbers": "key metric e.g. absorbs 10k writes/sec, 7-day retention"
       }
-    ],
+    ]
     "schema": [
       {
         "table": "TableName",
@@ -1141,8 +1128,7 @@ JSON FORMAT — return valid JSON starting with {
         "why_chosen": "specific reason for THIS system — e.g. exactly-once tumbling windows for 1-min aggregation, Kafka offset replay on crash prevents data loss",
         "alternatives": [
           {"name": "Alt 1", "verdict": "tradeoff", "reason": "concrete pro and con for this workload"},
-          {"name": "Alt 2", "verdict": "tradeoff", "reason": "concrete pro and con"},
-          {"name": "Alt 3", "verdict": "avoid", "reason": "specific failure mode for this system"}
+          {"name": "Alt 2", "verdict": "avoid", "reason": "specific failure mode for this system"}
         ]
       }
     ]
