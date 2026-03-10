@@ -1011,9 +1011,7 @@ Diagram 2: evolves Diagram 1. Same core boxes PLUS new ★-prefixed components.
     # Alternatives:
     # Redis → chosen over Memcached: TTL + geo ops needed
     # Kafka → chosen over SQS: replay + exactly-once semantics
-  Separate write path and read path with a labeled divider:
-    ── WRITE PATH ──────────────────
-    ── READ PATH ───────────────────
+  Only separate write path and read path with labeled dividers (── WRITE PATH ── / ── READ PATH ──) if the system's NFRs or scale genuinely require asymmetric handling — e.g. write-heavy pipelines like Ad Click Aggregator, event sourcing, or explicit CQRS. For most product systems (ride-sharing, URL shortener, Twitter feed, chat) keep a single unified flow as Evan King does in his guides — splitting unnecessarily adds clutter and confuses the interviewer.
   Keep lines compact — aim for under 80 chars, break long rows vertically if needed.
 
 Box style: use box-drawing characters (┌─┐ │ └─┘). Arrow right ─►, arrow down ▼.
@@ -1097,13 +1095,33 @@ JSON FORMAT — return valid JSON starting with {
   "step5_high_level_design": {
     "diagram_simple": "DIAGRAM 1. MUST include Client → Load Balancer → API Gateway → Service(s) → DB. Use box-drawing chars (┌─┐ │ └─┘). Label every arrow with payload/protocol. 8-12 boxes. 100% specific to THIS system. Lines max 60 chars.",
     "diagram_simple_commentary": [
-      {"component": "box name", "say": "role and why here and what it does"},
-      {"component": "box name", "say": "the bottleneck this creates at scale"}
+      {
+        "component": "box name",
+        "say": "2-3 sentence spoken script: introduce the component, state its single responsibility, say what flows into it and what flows out. Example: 'I'm adding an API Gateway here — it's the single entry point for all client traffic. It handles auth token validation, rate limiting at 1000 req/sec per client, and routes to the right downstream service. Without it every service would need its own auth logic.'",
+        "what_it_does": "1 sentence: internal mechanism — e.g. 'terminates TLS, validates JWT, applies per-client rate limit, routes by path prefix'",
+        "interviewer_tip": "what the interviewer wants to hear — e.g. 'mention rate limiting and auth offloading, not just routing'"
+      },
+      {
+        "component": "box name",
+        "say": "2-3 sentence spoken script for this component. Include: what problem it solves, what tech it uses, and the bottleneck it creates that Diagram 2 will fix.",
+        "what_it_does": "internal mechanism 1 sentence",
+        "interviewer_tip": "key insight interviewer is listening for"
+      }
     ],
     "diagram_scaled": "DIAGRAM 2. Same boxes as Diagram 1 PLUS ★-prefixed new ones. Each ★: inline annotation [satisfies: NFR]. Alternatives INLINE: [Alt: X OR Y] on same line. Separate WRITE PATH and READ PATH with labeled dividers. Lines max 60 chars.",
     "diagram_scaled_commentary": [
-      {"component": "star component name", "say": "WHY added — NFR satisfied plus bottleneck removed plus numbers"},
-      {"component": "star component name", "say": "connection to previous component plus trade-off introduced"}
+      {
+        "component": "★ component name",
+        "say": "2-3 sentence spoken script: (1) which bottleneck from Diagram 1 forced this addition, (2) what this component does internally with specific tech, (3) which NFR it now satisfies with a concrete number. Example: 'I'm adding Kafka here because our single write path to PostgreSQL can only handle 5k TPS but we need 10k clicks/sec — that's a 2x shortfall. Kafka partitioned by adId absorbs the full 10k/sec and gives us 7-day replay so Flink can reprocess on crash. This satisfies our fault-tolerance NFR — no data loss even if the stream processor goes down.'",
+        "why_over_alternatives": "why this specific tech beats the alternatives you listed inline — e.g. 'Kafka over SQS: replay semantics needed for exactly-once; SQS deletes on consume'",
+        "numbers": "concrete metric this component handles — e.g. 'absorbs 10k writes/sec, partitioned across 12 brokers, 7-day retention = 18TB'"
+      },
+      {
+        "component": "★ component name",
+        "say": "2-3 sentence script: bottleneck it removes, how it connects to upstream/downstream components, trade-off it introduces that the team must manage.",
+        "why_over_alternatives": "one sentence: why chosen over the inline alternatives",
+        "numbers": "key metric or sizing number"
+      }
     ],
     "schema": [
       {
@@ -1350,9 +1368,11 @@ function renderSD(d,_container){
     <div class="diag-label">Diagram 1 — Baseline <span class="diag-pill">satisfies core FRs</span></div>
     <div style="font-size:11.5px;color:var(--ts);margin-bottom:8px;font-style:italic">Draw this first. Narrate each box as you add it using the speaking notes below.</div>
     <div class="diagram">${colorizeDiag(diagSimple)}</div>
-    ${diagSimpleComm.length?`<div style="margin-top:10px">${diagSimpleComm.map(c=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 12px;background:var(--gs);border-radius:8px;margin-bottom:5px;border-left:3px solid var(--green)">
-      <div style="font-size:10px;font-weight:700;color:var(--green);min-width:88px;flex-shrink:0">${c.component||''}</div>
-      <div style="font-size:12.5px;line-height:1.65;color:var(--tp);font-style:italic">"${c.say||''}"</div>
+    ${diagSimpleComm.length?`<div style="margin-top:12px">${diagSimpleComm.map(c=>`<div style="padding:11px 13px;background:var(--sf);border:1px solid var(--br);border-radius:9px;margin-bottom:8px">
+      <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:7px">🟩 ${c.component||''}</div>
+      <div style="font-size:13px;line-height:1.72;color:var(--tp);font-style:italic;margin-bottom:${c.what_it_does||c.interviewer_tip?'9px':'0'}">"${c.say||''}"</div>
+      ${c.what_it_does?`<div style="font-size:11.5px;color:var(--ts);line-height:1.6;margin-bottom:5px"><span style="font-weight:600;color:var(--tp)">⚙️ Mechanism:</span> ${c.what_it_does}</div>`:''}
+      ${c.interviewer_tip?`<div style="font-size:11.5px;color:var(--blue);line-height:1.6;padding:6px 10px;background:var(--bs);border-radius:6px;border-left:2px solid var(--blue)"><span style="font-weight:600">💡 Interviewer listens for:</span> ${c.interviewer_tip}</div>`:''}
     </div>`).join('')}</div>`:''}
   </div>`:'';
 
@@ -1365,10 +1385,12 @@ function renderSD(d,_container){
     </div>
     <div style="font-size:11.5px;color:var(--ts);margin-bottom:8px;font-style:italic">For each ★ component you add, say WHY — which NFR it satisfies and what bottleneck it removes.</div>
     <div class="diagram">${colorizeDiag(diagScaled)}</div>
-    ${diagScaledComm.length?`<div style="margin-top:11px"><div style="font-size:10px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px">🗣️ Say while drawing each ★ component</div>
-    ${diagScaledComm.map(c=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 12px;background:var(--bs);border-radius:8px;margin-bottom:5px;border-left:3px solid var(--blue)">
-      <div style="font-size:10px;font-weight:700;color:var(--blue);min-width:88px;padding-top:1px;flex-shrink:0;text-transform:uppercase;letter-spacing:.04em">${c.component||''}</div>
-      <div style="font-size:12.5px;line-height:1.65;color:var(--tp);font-style:italic">"${c.say||''}"</div>
+    ${diagScaledComm.length?`<div style="margin-top:12px"><div style="font-size:10px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin-bottom:9px">🎙 Say this as you draw each ★ component</div>
+    ${diagScaledComm.map(c=>`<div style="padding:11px 13px;background:var(--bs);border-radius:9px;margin-bottom:9px;border-left:3px solid var(--blue)">
+      <div style="font-size:11px;font-weight:700;color:var(--orange);margin-bottom:7px">★ ${(c.component||'').replace(/^[★\s]+/,'')}</div>
+      <div style="font-size:13px;line-height:1.72;color:var(--tp);font-style:italic;margin-bottom:${c.numbers||c.why_over_alternatives?'9px':'0'}">"${c.say||''}"</div>
+      ${c.numbers?`<div style="font-size:11.5px;color:var(--green);font-weight:600;margin-bottom:6px">📊 ${c.numbers}</div>`:''}
+      ${c.why_over_alternatives?`<div style="font-size:11.5px;color:var(--ts);line-height:1.6;padding:6px 10px;background:rgba(0,0,0,.08);border-radius:6px"><span style="font-weight:600;color:var(--tp)">🔀 Why not alternatives:</span> ${c.why_over_alternatives}</div>`:''}
     </div>`).join('')}</div>`:''}
   </div>`:'';
 
