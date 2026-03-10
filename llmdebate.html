@@ -637,7 +637,7 @@ async function generate(){
     /* Multi-strategy JSON parse */
     let parsed=null;
     const tryP=s=>{try{return JSON.parse(s);}catch(e){return null;}};
-    let c=full.trim().replace(/^[`]{3}json\s*/i,'').replace(/^[`]{3}\s*/,'').replace(/\s*[`]{3}$/,'').trim();
+    let c=full.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
     parsed=tryP(c);
     if(!parsed){const fi=c.indexOf('{'),la=c.lastIndexOf('}');if(fi>=0&&la>fi)parsed=tryP(c.slice(fi,la+1));}
     if(!parsed){try{parsed=tryP(c.replace(/,\s*([}\]])/g,'$1'));}catch(e){}}
@@ -1062,8 +1062,8 @@ Rules: 3 FRs max, 4 NFRs with numbers, 3-5 entities nouns only no fields, one hl
 /* ═══════════════════════════════════════════════════════
    TAB HELPERS
 ═══════════════════════════════════════════════════════ */
-function ptabBar(pairs){let h='<div class="ptabs">';for(let i=0;i<pairs.length;i+=2)h+=`<div class="ptab${i===0?' on':''}" data-t="${pairs[i]}" data-idx="${i/2}" onclick="switchP(this)">${pairs[i+1]}</div>`;return h+'</div>';}
-function switchP(el){var root=el.closest('.sd-card-root')||el.closest('#rarea')||document;var idx=parseInt(el.dataset.idx||'0');root.querySelectorAll('.ptab').forEach((t,i)=>t.classList.toggle('on',i===idx));root.querySelectorAll('.ppanel').forEach((p,i)=>p.classList.toggle('on',i===idx));}
+function ptabBar(pairs){let h='<div class="ptabs">';for(let i=0;i<pairs.length;i+=2)h+=`<div class="ptab${i===0?' on':''}" data-t="${pairs[i]}" onclick="switchP('${pairs[i]}')">${pairs[i+1]}</div>`;return h+'</div>';}
+function switchP(id){document.querySelectorAll('.ptab').forEach(t=>t.classList.toggle('on',t.dataset.t===id));document.querySelectorAll('.ppanel').forEach(p=>p.classList.toggle('on',p.id==='pp_'+id));}
 function toggleQA(el){el.classList.toggle('open');el.querySelector('.chev').classList.toggle('open');el.nextElementSibling.classList.toggle('open');}
 function wireSubTabs(container){
   const tabs=[...container.querySelectorAll(':scope > .stab-row > .stab')];
@@ -1123,7 +1123,7 @@ function renderCoding(d){
   const alH=(d.alternatives||[]).map(al=>`<div class="card fadein"><div class="card-head" style="justify-content:space-between"><span>${al.name} <small style="color:var(--ts);font-weight:400">${al.complexity}</small></span><span class="badge ${vc(al.verdict)}">${vl(al.verdict)}</span></div><div class="card-body">${al.when_to_use}</div></div>`).join('');
   a.innerHTML=
     ptabBar(['overview','Overview','code','Code','steps','Walkthrough','tricky','Gotchas','qa','Q&A','alts','Alternatives'])+
-    `<div class="ppanel on" >
+    `<div class="ppanel on" id="pp_overview">
       <div class="iblock blue fadein"><div class="blbl">🧠 How I thought about this</div>${d.thought_process}</div>
       <div class="iblock green fadein"><div class="blbl">💡 Real-world analogy</div>${d.analogy}</div>
       <div class="sumbox fadein">${d.summary}</div>
@@ -1137,7 +1137,7 @@ function renderCoding(d){
     </div>
     <div class="ppanel" id="pp_steps"><div>${stH}</div></div>
     <div class="ppanel" id="pp_tricky"><p style="font-size:11.5px;color:var(--ts);margin-bottom:12px;line-height:1.5">Knowing these signals thoroughness.</p>${trH}</div>
-    <div class="ppanel" ><p style="font-size:11.5px;color:var(--ts);margin-bottom:12px;line-height:1.5">Tap to reveal.</p>${qaH}</div>
+    <div class="ppanel" id="pp_qa"><p style="font-size:11.5px;color:var(--ts);margin-bottom:12px;line-height:1.5">Tap to reveal.</p>${qaH}</div>
     <div class="ppanel" id="pp_alts"><p style="font-size:11.5px;color:var(--ts);margin-bottom:12px;line-height:1.5">Mentioning trade-offs signals depth.</p>${alH}</div>`;
   a._rawCode=d.code;a.classList.add('on');
   setTimeout(()=>a.scrollIntoView({behavior:'smooth',block:'start'}),120);
@@ -1148,7 +1148,6 @@ function renderCoding(d){
 ═══════════════════════════════════════════════════════ */
 function renderSD(d,_container){
   const a=_container||document.getElementById('rarea');
-  var _pfx=_container?'sd'+(++_sdCardIdx)+'_':'';
   const r=d.step1_requirements||{},api=d.step3_api_design||{};
   const hld5=d.step5_high_level_design||{};
   /* KEY FIX: resolve all JSON paths from actual prompt output */
@@ -1338,10 +1337,10 @@ function renderSD(d,_container){
   const qaH=(d.followup_qa||[]).map(q=>`<div class="qa-item fadein"><div class="qa-q" onclick="toggleQA(this)"><span>${q.question}</span><span class="chev">›</span></div><div class="qa-a">${q.answer}</div></div>`).join('');
 
   /* ══ FULL RENDER ══ */
-  a.innerHTML='<div class="sd-card-root">'+
+  a.innerHTML=
     ptabBar(['overview','Overview','walkthrough','Design Walkthrough','deepdives','Deep Dives','qa','Q&A'])+
 
-    `<div class="ppanel on">
+    `<div class="ppanel on" id="pp_overview">
       <div class="sumbox fadein">${d.problem_statement}</div>
       <div class="sublbl">Clarifying Questions</div>${cqH}
       <div class="sublbl">🔵 Functional Requirements</div>${funcH}
@@ -1352,7 +1351,7 @@ function renderSD(d,_container){
       <button class="spk-btn fadein" style="margin-top:10px" onclick="openSM()">📢 Open Speak Mode</button>
     </div>
 
-    <div class="ppanel">
+    <div class="ppanel" id="pp_walkthrough">
       <div class="stab-row">
         <div class="stab on"><span class="sn">1</span>Entities<span class="step-t">~2m</span></div>
         <div class="stab"><span class="sn">2</span>API & Protocol<span class="step-t">~5m</span></div>
@@ -1391,18 +1390,17 @@ function renderSD(d,_container){
       </div>
     </div>
 
-    <div class="ppanel">
+    <div class="ppanel" id="pp_deepdives">
       <div class="iblock blue fadein"><div class="blbl">📌 Evan King — Deep dives</div>Each dive answers "How do we...?" for a specific NFR. Always Bad solution first — it shows you understand WHY it is hard. Then Good, then Great. Lead proactively at senior+ level.</div>
       ${deepH}
     </div>
 
-    <div class="ppanel">
+    <div class="ppanel" id="pp_qa">
       <p style="font-size:11.5px;color:var(--ts);margin-bottom:12px">Tap to reveal a confident answer.</p>${qaH}
-    </div></div>`;
+    </div>`;
 
   a.classList.add('on');
-  var wt=a.querySelectorAll('.ppanel')[1]||a.querySelector('.ppanel');
-  if(wt)wireSubTabs(wt);
+  wireSubTabs(document.querySelector('#pp_walkthrough'));
   setTimeout(()=>a.scrollIntoView({behavior:'smooth',block:'start'}),120);
 }
 
@@ -1453,31 +1451,6 @@ let dbJudgeMode='best';
 let dbRounds=1;
 
 var _debateWired=false;
-var _dbMicRec=null;
-function toggleDbMic(){
-  if(_dbMicRec){
-    _dbMicRec.stop();_dbMicRec=null;
-    document.getElementById('db-mic-btn').style.background='var(--as)';
-    document.getElementById('db-mic-status').style.display='none';
-    return;
-  }
-  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){alert('Voice input not supported in this browser (try Chrome)');return;}
-  _dbMicRec=new SR();
-  _dbMicRec.continuous=true;
-  _dbMicRec.interimResults=false;
-  _dbMicRec.lang='en-US';
-  var ta=document.getElementById('db-question');
-  _dbMicRec.onresult=function(e){
-    var t=Array.from(e.results).map(function(r){return r[0].transcript;}).join(' ');
-    ta.value=t;autoDetectDomain();checkDbReady();
-  };
-  _dbMicRec.onerror=function(){_dbMicRec=null;document.getElementById('db-mic-btn').style.background='var(--as)';document.getElementById('db-mic-status').style.display='none';};
-  _dbMicRec.onend=function(){if(_dbMicRec)_dbMicRec=null;document.getElementById('db-mic-btn').style.background='var(--as)';document.getElementById('db-mic-status').style.display='none';};
-  _dbMicRec.start();
-  document.getElementById('db-mic-btn').style.background='var(--red,#e53)';
-  document.getElementById('db-mic-status').style.display='block';
-}
 function _wireDebate(){
   if(_debateWired)return;
   _debateWired=true;
@@ -1643,17 +1616,15 @@ var judgeDescs={
 
 
 function checkDbReady(){
-  var n=Object.keys(dbSelected).length;
-  var ok=n>=1&&document.getElementById('db-question').value.trim().length>5;
+  var ok=Object.keys(dbSelected).length>=2
+    &&document.getElementById('db-question').value.trim().length>5;
   document.getElementById('db-run-btn').disabled=!ok;
-  var btn=document.getElementById('db-run-btn');
-  btn.textContent=n===1?'🤖 Ask Expert':'⚔️ Start Debate';
 }
 
 async function dbCall(providerKey,modelName,systemPrompt,userMsg){
   var key=getDbKey(providerKey);
   if(!key)throw new Error('No key for '+providerKey);
-  var maxTok=8000;
+  var maxTok=2000;
   var url,headers,body,extractText;
 
   if(providerKey==='anthropic'){
@@ -1807,16 +1778,6 @@ var DB_DOMAINS = [
     role:"You are a developmental psychologist and education specialist with 20 years working with children aged 0-18 and their families. You combine evidence-based child development science with practical parenting strategies. You explain age-appropriate expectations, learning styles, emotional development, and academic strategies with nuance — avoiding both helicopter parenting guilt and dismissive advice.",
     desc:"Developmental psychologist + education specialist — child development, parenting strategies, academic guidance." },
 
-  { id:"sd", label:"🏗️ System Design", icon:"🏗️",
-    keywords:["system design","design a","design an","scalable","distributed","architecture","microservice","database","cache","queue","kafka","redis","load balancer","cdn","api gateway","rate limit","sharding","replication","consistency","availability","latency","throughput","qps","rps","tps","hld","lld","low level design","high level design","url shortener","twitter","youtube","uber","whatsapp","instagram","tiktok","netflix","dropbox","google drive","pastebin","web crawler","notification","payment","ride sharing","chat","messaging","news feed","search engine","typeahead","recommendation","ad click","metrics","monitoring","alerting","event driven","stream processing","kafka","flink","spark","hadoop"],
-    role:"SYSTEM_DESIGN_USE_SD_PROMPT",
-    desc:"Evan King Hello Interview framework — full tabbed SD output with diagrams, schema, deep dives." },
-
-  { id:"tech", label:"💻 Software & Tech", icon:"💻",
-    keywords:["code","programming","algorithm","bug","debug","function","class","object","api","rest","graphql","grpc","sql","nosql","mongodb","postgres","python","java","javascript","typescript","react","node","docker","kubernetes","git","linux","bash","regex","recursion","sorting","binary search","dynamic programming","graph","tree","linked list","array","hash map","concurrency","thread","async","promise","callback","closure","design pattern","solid","dry","refactor","test","unit test","ci cd","devops","cloud","aws","gcp","azure","serverless","lambda","s3","ec2"],
-    role:"You are a principal software engineer and architect with 15+ years building production systems at FAANG-level companies. You write working, idiomatic code with proper error handling. You explain trade-offs honestly: time vs space, consistency vs availability, simplicity vs scalability. You use concrete examples and production war stories. You flag common mistakes and anti-patterns.",
-    desc:"Principal engineer — working code, algorithms, architecture trade-offs, production concerns." },
-
   { id:"travel", label:"✈️ Travel", icon:"✈️",
     keywords:["travel","trip","holiday","vacation","tour","flight","hotel","visa","passport","itinerary","backpack","budget travel","luxury","honeymoon","solo","group","domestic","international","europe","usa","dubai","bali","thailand","maldives","goa","himalayas","northeast","pilgrimage","booking","cancellation","insurance","baggage"],
     role:"You are a seasoned travel expert who has visited 80+ countries, worked as a tour planner, and written for major travel publications. You give hyper-practical, opinionated itineraries with real cost estimates, visa realities, best-value booking strategies, safety considerations, and the hidden gems most tourists miss. You tailor recommendations to budget, travel style, and group composition.",
@@ -1914,7 +1875,7 @@ function resolvedDomain() {
 }
 
 function buildExpertPrompt(domain, question) {
-  if (domain.role === "SYSTEM_DESIGN_USE_SD_PROMPT") return sdPrompt();
+  if (domain.role === "SYSTEM_DESIGN_USE_SD_PROMPT") return null;
   var role = domain.role || DB_DOMAINS[DB_DOMAINS.length - 1].role;
   return role + "\n\n"
     + "You are answering this question: " + (question||"") + "\n\n"
@@ -2082,7 +2043,7 @@ function renderExpertAnswer(container, domainObj, parsed, attrHtml) {
 
 async function runDebate(){
   var question=dbEl('db-question').value.trim();
-  if(!question||Object.keys(dbSelected).length<1)return;
+  if(!question||Object.keys(dbSelected).length<2)return;
   var winnerEntry=null; /* hoisted — set in majority block, read in phase 3 */
 
   dbEl('db-config').style.display='none';
@@ -2118,18 +2079,59 @@ async function runDebate(){
   var failedCount=participants.length-succeeded.length;
   finishBanner(p1,'Phase 1 complete — '+succeeded.length+' answers received'+(failedCount?' ('+failedCount+' failed)':''));
 
-  if(succeeded.length<1){
+  if(succeeded.length<2){
     var errDiv=document.createElement('div');
     errDiv.className='phase-banner p1';
     errDiv.style.cssText='border:1px solid var(--red);background:var(--rs);color:var(--red)';
-    errDiv.textContent='No successful responses. Check your API key and try again.';
+    errDiv.textContent='Need at least 2 successful responses to continue. Check your API keys.';
     out.appendChild(errDiv);
     return;
   }
 
-  var isSolo=(succeeded.length===1);
+  /* ── PHASE 2: Cross-critique rounds ── */
+  for(var round=0;round<dbRounds;round++){
+    var roundSuffix=dbRounds>1?' (round '+(round+1)+' of '+dbRounds+')':'';
+    var p2=addPhaseBanner(out,'p2','Phase 2 of 3 — Each AI critiques the others'+roundSuffix+'…');
 
-  /* ── PHASE 2: Cross-critique (skipped in solo mode) ── */
+    var p2sys=buildCritiquePrompt(activeDomain);
+
+    var p2tasks=succeeded.map(async function(entry){
+      var prov=entry[0],mdl=entry[1];
+      var othersText=succeeded
+        .filter(function(e){return e[0]!==prov;})
+        .map(function(e){return '=== '+DB_PROVIDERS[e[0]].label+" answer ===\n"+answers[e[0]];})
+        .join('\n\n');
+      var userMsg='YOUR ANSWER:\n'+answers[prov]+'\n\nOTHER MODELS:\n'+othersText+'\n\nProvide your critical review.';
+      try{
+        var crit=await dbCall(prov,mdl,p2sys,userMsg);
+        critiques[prov]=(critiques[prov]||'')+crit;
+      }catch(err){
+        critiques[prov]='(critique failed: '+err.message+')';
+      }
+    });
+    await Promise.allSettled(p2tasks);
+
+    var critiqueWrap=document.createElement('div');
+    critiqueWrap.style.marginBottom='14px';
+    var critiqueHdr=document.createElement('div');
+    critiqueHdr.className='db-lbl';
+    critiqueHdr.style.margin='0 0 8px';
+    critiqueHdr.textContent='Critiques'+roundSuffix;
+    critiqueWrap.appendChild(critiqueHdr);
+    succeeded.forEach(function(entry){
+      var prov=entry[0];
+      if(!critiques[prov])return;
+      var cfg=DB_PROVIDERS[prov];
+      var card=document.createElement('div');
+      card.className='critique-card';
+      card.innerHTML='<div class="critique-head">'+cfg.icon+' '+cfg.label+' critiques the others</div>'
+        +'<div class="critique-body">'+critiques[prov].replace(/\n/g,'<br>')+'</div>';
+      critiqueWrap.appendChild(card);
+    });
+    out.appendChild(critiqueWrap);
+    finishBanner(p2,'Phase 2 complete'+roundSuffix);
+
+  /* ── Pre-Phase 3: Collect majority votes (done before Phase 3 banner so winnerEntry is ready) ── */
   function parseVote(rawVote,myProvKey){
     if(!rawVote)return null;
     var txt=rawVote.toLowerCase();
@@ -2151,76 +2153,33 @@ async function runDebate(){
     }
     return null;
   }
+  if(dbJudgeMode==='majority'){
+    var allAnswersMaj=succeeded.map(function(e){
+      return '['+DB_PROVIDERS[e[0]].label+']: '+answers[e[0]].slice(0,600);
+    }).join('\n\n---\n\n');
+    var labelsStr=succeeded.map(function(e){return DB_PROVIDERS[e[0]].label;}).join(', ');
+    var voteTasks=succeeded.map(async function(entry){
+      var vp2=entry[0],vm=entry[1];
+      var vsys='You are an impartial judge. Vote for the single best answer (not your own). Reply with ONLY the provider name from: '+labelsStr;
+      try{
+        var vote=await dbCall(vp2,vm,vsys,allAnswersMaj);
+        return {prov:vp2,vote:vote.trim()};
+      }catch(e){return null;}
+    });
+    var voteResults=await Promise.allSettled(voteTasks);
+    var votes={};
+    voteResults.forEach(function(r){
+      if(r.status==='fulfilled'&&r.value&&r.value.vote){
+        var parsed=parseVote(r.value.vote,r.value.prov);
+        if(parsed)votes[parsed]=(votes[parsed]||0)+1;
+      }
+    });
+    var vsorted=Object.entries(votes).sort(function(a,b){return b[1]-a[1];});
+    var vwinnerLabel=vsorted[0]?vsorted[0][0]:null;
+    winnerEntry=vwinnerLabel?succeeded.find(function(e){return DB_PROVIDERS[e[0]].label===vwinnerLabel;}):null;
+  }
 
-  if(!isSolo){
-    for(var round=0;round<dbRounds;round++){
-      var roundSuffix=dbRounds>1?' (round '+(round+1)+' of '+dbRounds+')':'';
-      var p2=addPhaseBanner(out,'p2','Phase 2 of 3 — Each AI critiques the others'+roundSuffix+'…');
-      var p2sys=buildCritiquePrompt(activeDomain);
-      var p2tasks=succeeded.map(async function(entry){
-        var prov=entry[0],mdl=entry[1];
-        var othersText=succeeded
-          .filter(function(e){return e[0]!==prov;})
-          .map(function(e){return '=== '+DB_PROVIDERS[e[0]].label+' answer ===\n'+answers[e[0]];})
-          .join('\n\n');
-        var userMsg='YOUR ANSWER:\n'+answers[prov]+'\n\nOTHER MODELS:\n'+othersText+'\n\nProvide your critical review. Be specific.';
-        try{
-          var crit=await dbCall(prov,mdl,p2sys,userMsg);
-          critiques[prov]=(critiques[prov]||'')+crit;
-        }catch(err){
-          critiques[prov]='(critique failed: '+err.message+')';
-        }
-      });
-      await Promise.allSettled(p2tasks);
-
-      var critiqueWrap=document.createElement('div');
-      critiqueWrap.style.marginBottom='14px';
-      var critiqueHdr=document.createElement('div');
-      critiqueHdr.className='db-lbl';
-      critiqueHdr.style.margin='0 0 8px';
-      critiqueHdr.textContent='Critiques'+roundSuffix;
-      critiqueWrap.appendChild(critiqueHdr);
-      succeeded.forEach(function(entry){
-        var prov=entry[0];
-        if(!critiques[prov])return;
-        var cfg=DB_PROVIDERS[prov];
-        var card=document.createElement('div');
-        card.className='critique-card';
-        card.innerHTML='<div class="critique-head">'+cfg.icon+' '+cfg.label+' critiques the others</div>'
-          +'<div class="critique-body">'+critiques[prov].replace(/\n/g,'<br>')+'</div>';
-        critiqueWrap.appendChild(card);
-      });
-      out.appendChild(critiqueWrap);
-      finishBanner(p2,'Phase 2 complete'+roundSuffix);
-    } /* end for rounds */
-
-    /* Majority vote tallying (only in multi-model mode) */
-    if(dbJudgeMode==='majority'){
-      var allAnswersMaj=succeeded.map(function(e){
-        return '['+DB_PROVIDERS[e[0]].label+']: '+answers[e[0]].slice(0,600);
-      }).join('\n\n---\n\n');
-      var labelsStr=succeeded.map(function(e){return DB_PROVIDERS[e[0]].label;}).join(', ');
-      var voteTasks=succeeded.map(async function(entry){
-        var vp2=entry[0],vm=entry[1];
-        var vsys='You are an impartial judge. Vote for the single best answer (not your own). Reply with ONLY the provider label from: '+labelsStr;
-        try{
-          var vote=await dbCall(vp2,vm,vsys,allAnswersMaj);
-          return {prov:vp2,vote:vote.trim()};
-        }catch(e){return null;}
-      });
-      var voteResults=await Promise.allSettled(voteTasks);
-      var votes={};
-      voteResults.forEach(function(r){
-        if(r.status==='fulfilled'&&r.value&&r.value.vote){
-          var parsed=parseVote(r.value.vote,r.value.prov);
-          if(parsed)votes[parsed]=(votes[parsed]||0)+1;
-        }
-      });
-      var vsorted=Object.entries(votes).sort(function(a,b){return b[1]-a[1];});
-      var vwinnerLabel=vsorted[0]?vsorted[0][0]:null;
-      winnerEntry=vwinnerLabel?succeeded.find(function(e){return DB_PROVIDERS[e[0]].label===vwinnerLabel;}):null;
-    }
-  } /* end if(!isSolo) */
+  }
 
   /* ── PHASE 3: Judge & synthesis ── */
   var p3=addPhaseBanner(out,'p3','Phase 3 of 3 — Orchestrator synthesizing final verdict…');
@@ -2230,7 +2189,7 @@ async function runDebate(){
 
   /* activeDomain and isSDMode already set at Phase 1 */
   var judgeUserPrefix=isSDMode
-    ?'QUESTION: '+question+'\n\nStudy ALL answers below. Output ONLY valid JSON (no markdown, no text before/after) synthesizing the best system design. Use the JSON schema from your system prompt exactly. Start your response with { and end with }.\n\n'
+    ?'QUESTION: '+question+'\n\nSynthesize the best possible system design answer using ALL insights from the debate below.\n\n'
     :'QUESTION: '+question+'\n\n';
   var nonSdSys=buildJudgePrompt(activeDomain,dbJudgeMode==='meta',question);
 
@@ -2242,82 +2201,47 @@ async function runDebate(){
   var verdictRaw='';
   var verdictParsed=null;
 
-  function parseVerdict(raw){
-    if(!raw)return null;
-    /* Strategy 1: strip markdown code fences then parse */
-    var stripped=raw.trim()
-      .replace(/^[`]{3}json[\s\S]*?\n/,'')
-      .replace(/^[`]{3}[\s\S]*?\n/,'')
-      .replace(/\n[`]{3}\s*$/,'')
-      .trim();
-    try{return JSON.parse(stripped);}catch(e0){}
-    /* Strategy 2: find the outermost { } */
-    var fi=raw.indexOf('{'), la=raw.lastIndexOf('}');
-    if(fi>=0&&la>fi){
-      var chunk=raw.slice(fi,la+1);
-      try{return JSON.parse(chunk);}catch(e1){}
-      /* Strategy 3: fix trailing commas */
-      try{return JSON.parse(chunk.replace(/,\s*([}\]])/g,'$1'));}catch(e2){}
-      /* Strategy 4: remove JS comments */
-      try{return JSON.parse(chunk.replace(/\/\/[^\n]*/g,'').replace(/,\s*([}\]])/g,'$1'));}catch(e3){}
-    }
-    return null;
-  }
-
-  if(isSolo){
-    finishBanner(p3,'Expert answer ready');
-    verdictRaw=answers[succeeded[0][0]];
-    attribution=[DB_PROVIDERS[succeeded[0][0]].label+' (solo expert answer)'];
-    verdictParsed=parseVerdict(verdictRaw);
-  } else if(dbJudgeMode==='majority'){
+  if(dbJudgeMode==='majority'){
+    /* Majority: pick winning answer JSON directly — no extra call needed */
+    var sorted_final=[];
+    /* reuse votes from earlier — but votes may be in closure. Re-derive from voteResults */
+    /* Just find which succeeded provider had the most raw-text mentions */
     var richest=succeeded.reduce(function(best,e){
       return (answers[e[0]]||'').split(' ').length>(answers[best[0]]||'').split(' ').length?e:best;
     },succeeded[0]);
+    /* winnerEntry was set in majority block above — use it if truthy */
     var majorityWinner=winnerEntry||richest;
     verdictRaw=answers[majorityWinner[0]];
     attribution=['Majority vote winner: '+DB_PROVIDERS[majorityWinner[0]].label];
-    verdictParsed=parseVerdict(verdictRaw);
-  } else if(isSDMode){
-    /* SD mode: judge picks the best complete JSON, with full fallback chain */
-    var sdMergeSys='You are a system design expert judge. You will receive multiple system design answers already in JSON format. '
-      +'Select the single BEST and MOST COMPLETE JSON — the one with the richest detail, best diagrams, most thorough deep dives. '
-      +'Output ONLY that JSON verbatim. No markdown fences. No commentary. Start with { end with }.';
-    var sdMergeUser='Select and output the best complete system design JSON from these answers. Output ONLY the JSON.\n\n'
-      +succeeded.map(function(e,i){
-        return '=== ANSWER '+(i+1)+' from '+DB_PROVIDERS[e[0]].label+' ===\n'+answers[e[0]];
-      }).join('\n\n');
+    /* Try to parse — it may already be valid JSON from the SD prompt */
     try{
-      verdictRaw=await dbCall(judgeProvider,judgeModel,sdMergeSys,sdMergeUser);
-      var jLbl=DB_PROVIDERS[judgeProvider].modelLabels&&DB_PROVIDERS[judgeProvider].modelLabels[judgeModel]||judgeModel;
-      attribution=['SD answer selected by: '+DB_PROVIDERS[judgeProvider].label+' ('+jLbl+')'];
-      verdictParsed=parseVerdict(verdictRaw);
-    }catch(err){
-      attribution=['SD judge failed ('+err.message+') — using best direct answer'];
-    }
-    /* Fallback: pick richest parseable individual answer */
-    if(!verdictParsed){
-      var sorted=succeeded.slice().sort(function(a,b){return (answers[b[0]]||'').length-(answers[a[0]]||'').length;});
-      for(var si2=0;si2<sorted.length;si2++){
-        var attempt=parseVerdict(answers[sorted[si2][0]]);
-        if(attempt){
-          verdictParsed=attempt;
-          verdictRaw=answers[sorted[si2][0]];
-          attribution=['Best SD answer from: '+DB_PROVIDERS[sorted[si2][0]].label+' (judge fallback)'];
-          break;
-        }
-      }
+      var c=verdictRaw.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+      verdictParsed=JSON.parse(c);
+    }catch(e){
+      /* Try bracket extraction */
+      try{var fi=verdictRaw.indexOf('{'),la=verdictRaw.lastIndexOf('}');
+        if(fi>=0&&la>fi)verdictParsed=JSON.parse(verdictRaw.slice(fi,la+1));}catch(e2){}
     }
   } else {
-    var finalSys=nonSdSys;
+    /* Best or Meta: call the judge */
+    var finalSys=isSDMode?sdPrompt():nonSdSys;
     try{
       verdictRaw=await dbCall(judgeProvider,judgeModel,finalSys,judgeUserPrefix+allContext);
-      var jLabel=DB_PROVIDERS[judgeProvider].modelLabels&&DB_PROVIDERS[judgeProvider].modelLabels[judgeModel]||judgeModel;
-      attribution=['Judged by: '+DB_PROVIDERS[judgeProvider].label+' ('+jLabel+')'];
-      verdictParsed=parseVerdict(verdictRaw);
+      attribution=['Judged by: '+DB_PROVIDERS[judgeProvider].label+' ('+( DB_PROVIDERS[judgeProvider].mLabel[judgeModel]||judgeModel)+')'];
+      /* Parse JSON */
+      var c2=verdictRaw.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+      try{verdictParsed=JSON.parse(c2);}catch(e){
+        try{var fi2=c2.indexOf('{'),la2=c2.lastIndexOf('}');
+          if(fi2>=0&&la2>fi2)verdictParsed=JSON.parse(c2.slice(fi2,la2+1));}catch(e2){}
+        if(!verdictParsed){
+          try{verdictParsed=JSON.parse(c2.replace(/,\s*([}\]])/g,'$1'));}catch(e3){}
+        }
+      }
     }catch(err){
       verdictRaw=answers[succeeded[0][0]];
       attribution=['Judge call failed ('+err.message+') — showing best individual answer'];
-      verdictParsed=parseVerdict(verdictRaw);
+      try{var fc=verdictRaw.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+        verdictParsed=JSON.parse(fc);}catch(e){}
     }
   }
 
@@ -2343,16 +2267,7 @@ async function runDebate(){
 
   var attrText=attribution.length?attribution.join(' · '):'';
 
-  /* Debug: if SD parse failed, show raw + retry button */
-  if(isSDMode&&!verdictParsed){
-    verdictContainer.innerHTML='<div style="background:var(--os);border:1px solid var(--oc,#e6a817);border-radius:10px;padding:14px 16px;font-size:12.5px;line-height:1.7">'
-      +'<strong>⚠️ Could not parse SD JSON from this model.</strong><br>'
-      +'This usually means the model returned partial JSON or wrapped it in extra text.<br><br>'
-      +'<details><summary style="cursor:pointer;font-weight:600;color:var(--ac)">Show raw response (click to expand)</summary>'
-      +'<pre style="white-space:pre-wrap;word-break:break-all;font-size:10px;margin-top:8px;max-height:300px;overflow:auto">'+
-        (verdictRaw||'(empty)').replace(/&/g,'&amp;').replace(/</g,'&lt;').slice(0,3000)
-      +'</pre></details></div>';
-  } else if(verdictParsed&&isSDMode){
+  if(verdictParsed&&isSDMode){
     /* Full SD template render */
     last={mode:'sd',data:verdictParsed};
     renderSD(verdictParsed,verdictContainer);
@@ -2410,7 +2325,7 @@ document.addEventListener('DOMContentLoaded',function(){
     </div>
 
     <div class="db-section">
-      <div class="db-lbl">Select AIs <span style="font-weight:400;color:var(--ts)">— pick 1 to ask an expert, 2–4 to debate</span></div>
+      <div class="db-lbl">Select AIs to debate (pick 2–4)</div>
       <div class="db-provider-grid" id="db-prov-grid">
         <!-- filled by JS -->
       </div>
@@ -2436,11 +2351,7 @@ document.addEventListener('DOMContentLoaded',function(){
 
     <div class="db-section">
       <div class="db-lbl">Your question</div>
-      <div style="position:relative">
-        <textarea class="db-question" id="db-question" placeholder="Ask anything — SIP vs mutual funds, should I take this loan, symptoms I have, system design, coding problem, legal rights, diet plan, career advice…" rows="3" style="padding-right:44px"></textarea>
-        <button id="db-mic-btn" onclick="toggleDbMic()" style="position:absolute;right:8px;top:8px;width:32px;height:32px;border-radius:50%;border:none;background:var(--as);color:var(--ac);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s" title="Voice input">🎤</button>
-      </div>
-      <div id="db-mic-status" style="font-size:11px;color:var(--ac);margin-top:4px;display:none">🎤 Listening… tap mic to stop</div>
+      <textarea class="db-question" id="db-question" placeholder="Ask anything — SIP vs mutual funds, should I take this loan, symptoms I have, system design, coding problem, legal rights, diet plan, career advice…" rows="3"></textarea>
     </div>
 
     <button class="db-run" id="db-run-btn" disabled onclick="runDebate()">⚔️ Start Debate</button>
