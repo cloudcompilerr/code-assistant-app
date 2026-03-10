@@ -480,6 +480,7 @@ function onProviderChange(){
   document.getElementById('apikey').value=saved||'';
 }
 
+var PROV_ICONS={anthropic:'🟠',openai:'🟢',gemini:'🔵',groq:'🟣'};
 function buildProvStrip(){
   var strip=document.getElementById('provStrip');
   if(!strip)return;
@@ -493,7 +494,7 @@ function buildProvStrip(){
     var mLabel=cfg.modelLabels[activeModel]||activeModel;
     var shortLabel=mLabel.split(' ')[0];
     html+='<button class="prov-chip'+(isOn?' on':'')+'" data-pk="'+pk+'" id="pchip_'+pk+'">'
-      +cfg.icon+' '+cfg.name
+      +(PROV_ICONS[pk]||'🤖')+' '+cfg.name
       +'<span class="prov-model">'+shortLabel+'</span>'
       +'</button>';
   });
@@ -506,7 +507,7 @@ function selectProvChip(pk){
   var cfg=PROVIDERS[pk];
   if(!cfg)return;
   /* save current model choice for old provider */
-  try{localStorage.setItem('${SK}_provmodel_'+provider,model);}catch(e){}
+  try{localStorage.setItem(SK+'_provmodel_'+provider,model);}catch(e){}
   provider=pk;
   /* restore model for new provider */
   var saved=null;try{saved=localStorage.getItem('${SK}_provmodel_'+pk);}catch(e){}
