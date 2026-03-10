@@ -2230,7 +2230,7 @@ async function runDebate(){
 
   /* activeDomain and isSDMode already set at Phase 1 */
   var judgeUserPrefix=isSDMode
-    ?'QUESTION: '+question+'\n\nSynthesize the best possible system design answer using ALL insights from the debate below.\n\n'
+    ?'QUESTION: '+question+'\n\nStudy ALL answers below. Output ONLY valid JSON (no markdown, no text before/after) synthesizing the best system design. Use the JSON schema from your system prompt exactly. Start your response with { and end with }.\n\n'
     :'QUESTION: '+question+'\n\n';
   var nonSdSys=buildJudgePrompt(activeDomain,dbJudgeMode==='meta',question);
 
@@ -2244,10 +2244,23 @@ async function runDebate(){
 
   function parseVerdict(raw){
     if(!raw)return null;
-    var s=raw.trim().replace(/^[^{]*/,'').replace(/[^}]*$/,'');
-    try{return JSON.parse(raw.trim());}catch(e1){}
-    try{return JSON.parse(s);}catch(e2){}
-    try{return JSON.parse(s.replace(/,\s*([}\]])/g,'$1'));}catch(e3){}
+    /* Strategy 1: strip markdown code fences then parse */
+    var stripped=raw.trim()
+      .replace(/^[`]{3}json[\s\S]*?\n/,'')
+      .replace(/^[`]{3}[\s\S]*?\n/,'')
+      .replace(/\n[`]{3}\s*$/,'')
+      .trim();
+    try{return JSON.parse(stripped);}catch(e0){}
+    /* Strategy 2: find the outermost { } */
+    var fi=raw.indexOf('{'), la=raw.lastIndexOf('}');
+    if(fi>=0&&la>fi){
+      var chunk=raw.slice(fi,la+1);
+      try{return JSON.parse(chunk);}catch(e1){}
+      /* Strategy 3: fix trailing commas */
+      try{return JSON.parse(chunk.replace(/,\s*([}\]])/g,'$1'));}catch(e2){}
+      /* Strategy 4: remove JS comments */
+      try{return JSON.parse(chunk.replace(/\/\/[^\n]*/g,'').replace(/,\s*([}\]])/g,'$1'));}catch(e3){}
+    }
     return null;
   }
 
@@ -2264,8 +2277,23 @@ async function runDebate(){
     verdictRaw=answers[majorityWinner[0]];
     attribution=['Majority vote winner: '+DB_PROVIDERS[majorityWinner[0]].label];
     verdictParsed=parseVerdict(verdictRaw);
+  } else if(isSDMode){
+    /* SD mode: pick richest individual JSON answer (judge synthesizing SD JSON is too token-heavy) */
+    var bestSDEntry=succeeded.reduce(function(best,e){
+      return (answers[e[0]]||'').length>(answers[best[0]]||'').length?e:best;
+    },succeeded[0]);
+    verdictRaw=answers[bestSDEntry[0]];
+    attribution=['Best SD answer from: '+DB_PROVIDERS[bestSDEntry[0]].label+' · Debate critiques shown above'];
+    verdictParsed=parseVerdict(verdictRaw);
+    /* If best failed to parse, try others */
+    if(!verdictParsed){
+      for(var si=0;si<succeeded.length;si++){
+        verdictParsed=parseVerdict(answers[succeeded[si][0]]);
+        if(verdictParsed){attribution=['SD answer from: '+DB_PROVIDERS[succeeded[si][0]].label];break;}
+      }
+    }
   } else {
-    var finalSys=isSDMode?sdPrompt():nonSdSys;
+    var finalSys=nonSdSys;
     try{
       verdictRaw=await dbCall(judgeProvider,judgeModel,finalSys,judgeUserPrefix+allContext);
       var jLabel=DB_PROVIDERS[judgeProvider].modelLabels&&DB_PROVIDERS[judgeProvider].modelLabels[judgeModel]||judgeModel;
@@ -2300,7 +2328,16 @@ async function runDebate(){
 
   var attrText=attribution.length?attribution.join(' · '):'';
 
-  if(verdictParsed&&isSDMode){
+  /* Debug: if SD parse failed, show raw + retry button */
+  if(isSDMode&&!verdictParsed){
+    verdictContainer.innerHTML='<div style="background:var(--os);border:1px solid var(--oc,#e6a817);border-radius:10px;padding:14px 16px;font-size:12.5px;line-height:1.7">'
+      +'<strong>⚠️ Could not parse SD JSON from this model.</strong><br>'
+      +'This usually means the model returned partial JSON or wrapped it in extra text.<br><br>'
+      +'<details><summary style="cursor:pointer;font-weight:600;color:var(--ac)">Show raw response (click to expand)</summary>'
+      +'<pre style="white-space:pre-wrap;word-break:break-all;font-size:10px;margin-top:8px;max-height:300px;overflow:auto">'+
+        (verdictRaw||'(empty)').replace(/&/g,'&amp;').replace(/</g,'&lt;').slice(0,3000)
+      +'</pre></details></div>';
+  } else if(verdictParsed&&isSDMode){
     /* Full SD template render */
     last={mode:'sd',data:verdictParsed};
     renderSD(verdictParsed,verdictContainer);
