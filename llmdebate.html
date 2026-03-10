@@ -626,7 +626,7 @@ async function generate(){
   const sys=mode==='coding'?codingPrompt():sdPrompt();
   try{
     /* ── Build provider-specific request ── */
-    const maxTok=mode==='coding'?3000:6000;
+    const maxTok=mode==='coding'?6000:8192;
     let url,headers,body,extractDelta;
 
     if(provider==='anthropic'){
