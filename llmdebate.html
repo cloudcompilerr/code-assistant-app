@@ -510,16 +510,23 @@ function selectProvChip(pk){
   try{localStorage.setItem(SK+'_provmodel_'+provider,model);}catch(e){}
   provider=pk;
   /* restore model for new provider */
-  var saved=null;try{saved=localStorage.getItem('${SK}_provmodel_'+pk);}catch(e){}
+  var saved=null;try{saved=localStorage.getItem(SK+'_provmodel_'+pk);}catch(e){}
   model=(saved&&cfg.models.includes(saved))?saved:cfg.models[0];
   saveProvider();
-  /* sync gear panel selectors */
-  try{document.getElementById('providerSel').value=pk;onProviderChange();
-    if(model)document.getElementById('modelSel').value=model;}catch(e){}
+  /* sync gear panel selectors — set modelSel AFTER onProviderChange (which resets model) */
+  try{
+    var _wantModel=model;
+    document.getElementById('providerSel').value=pk;
+    onProviderChange();
+    if(_wantModel&&cfg.models.includes(_wantModel)){
+      document.getElementById('modelSel').value=_wantModel;
+      model=_wantModel;
+    }
+  }catch(e){}
   buildProvStrip();
   /* if no key saved for this provider, open setup */
   if(!getKey()){toggleSetup();toast('Add your '+cfg.name+' key to continue');}
-  else{toast(cfg.icon+' '+cfg.name+' selected');}
+  else{toast((PROV_ICONS[pk]||'🤖')+' '+cfg.name+' selected');}
 }
 function saveKey(){
   const v=document.getElementById('apikey').value.trim();
@@ -690,20 +697,33 @@ async function generate(){
     /* Multi-strategy JSON parse */
     let parsed=null;
     const tryP=s=>{try{return JSON.parse(s);}catch(e){return null;}};
-    let c=full.trim().replace(/^[`]{3}json\s*/i,'').replace(/^[`]{3}\s*/,'').replace(/\s*[`]{3}$/,'').trim();
+    let c=full.trim()
+      .replace(/^[`]{3}json\s*/i,'').replace(/^[`]{3}\s*/,'').replace(/\s*[`]{3}$/,'')
+      .replace(/^[`]+/,'').replace(/[`]+$/,'').trim();
+    /* Strategy 1: direct parse */
     parsed=tryP(c);
+    /* Strategy 2: extract outermost {} */
     if(!parsed){const fi=c.indexOf('{'),la=c.lastIndexOf('}');if(fi>=0&&la>fi)parsed=tryP(c.slice(fi,la+1));}
-    if(!parsed){try{parsed=tryP(c.replace(/,\s*([}\]])/g,'$1'));}catch(e){}}
+    /* Strategy 3: fix trailing commas */
+    if(!parsed){const fi=c.indexOf('{'),la=c.lastIndexOf('}');if(fi>=0&&la>fi){const s=c.slice(fi,la+1).replace(/,\s*([}\]])/g,'$1');parsed=tryP(s);}}
+    /* Strategy 4: remove JS comments + trailing commas */
+    if(!parsed){const fi=c.indexOf('{'),la=c.lastIndexOf('}');if(fi>=0&&la>fi){const s=c.slice(fi,la+1).replace(/\/\/[^\n]*/g,'').replace(/,\s*([}\]])/g,'$1');parsed=tryP(s);}}
+    /* Strategy 5: for SD mode, also try extracting first complete {...} block */
+    if(!parsed&&mode==='sd'){
+      const m=c.match(/\{[\s\S]*\}/);
+      if(m){parsed=tryP(m[0])||tryP(m[0].replace(/,\s*([}\]])/g,'$1'));}
+    }
 
     if(parsed){
       last={mode,data:parsed};
       mode==='coding'?renderCoding(parsed):renderSD(parsed);
     }else{
       document.getElementById('rarea').innerHTML=
-        '<div class="err-box">&#9888; Could not parse response.'+(full.length<50?' Response empty — check API key.':' Model returned unexpected format. Tap Generate to retry.')+'<br><br>'+
-        '<details><summary style="cursor:pointer;font-weight:600">Show raw response</summary>'+
-        '<pre style="white-space:pre-wrap;word-break:break-word;font-size:10px;margin-top:6px;max-height:180px;overflow-y:auto">'+
-        full.slice(0,800).replace(/&/g,'&amp;').replace(/</g,'&lt;')+
+        '<div class="err-box">&#9888; Could not parse response.'+(full.length<50?' Response empty — check API key.':' Model returned unexpected format. Tap Generate to retry.')
+        +'<br><small style="color:var(--ts)">Provider: '+provider+' · Model: '+model+'</small><br><br>'
+        +'<details><summary style="cursor:pointer;font-weight:600">Show raw response ('+full.length+' chars)</summary>'+
+        '<pre style="white-space:pre-wrap;word-break:break-word;font-size:10px;margin-top:6px;max-height:300px;overflow-y:auto">'+
+        full.slice(0,2000).replace(/&/g,'&amp;').replace(/</g,'&lt;')+
         '</pre></details></div>';
     }
   }catch(err){
