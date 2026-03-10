@@ -902,34 +902,34 @@ HELLO INTERVIEW FRAMEWORK — EXACT STRUCTURE
 
 STEP 1 — REQUIREMENTS
 FRs: "Users should be able to…" max 3. Rest go "below the line (out of scope)".
-NFRs with specific numbers. From your Ad Click guide: "Scalable to 10k clicks/sec", "Sub-second analytics queries", "Fault tolerant — no data loss", "Idempotent click tracking".
-Capacity: plain English first. Example: "We design for 10M active ads, peak 10k clicks/sec, 100M clicks/day. At 500B per event thats 18TB/year. At 10k writes/sec PostgreSQL maxes at 5k TPS — this drives us to use a queue and stream processor."
+NFRs with specific numbers. From your Ad Click guide: "Scalable to 10k clicks/sec", "Sub-second analytics queries", "Fault-tolerant — no data loss on node failure", "Idempotent — no duplicate counting".
+Capacity: plain English first. Example: "We design for 10M active ads, peak 10k clicks/sec, 100M clicks/day. At 500B per event: 50MB/s write, 18TB/year". Then numbers. Then design_impact: "Write-heavy asymmetry drives: queue + stream processor + OLAP instead of transactional DB".
 
 STEP 2 — CORE ENTITIES (nouns only, no fields)
 Like Uber guide: "Rider, Driver, Fare, Ride, Location" — one sentence role each. No fields, no schema here.
 
 STEP 3 — API / SYSTEM INTERFACE
-Data systems: define Input and Output explicitly. Example: "Input: {adId, userId, timestamp, sourceUrl}. Output: {adId, clickCount, timeWindow}."
+Data systems: define Input and Output explicitly. Example: "Input: {adId, userId, timestamp, sourceUrl}. Output: {adId, clickCount, window}".
 Product systems: REST endpoints. userId always from JWT not body — always say why (client is untrusted).
 
-STEP 4 — HLD BUILT ONE FR AT A TIME
-For each FR: add only components needed for THAT requirement. Walk through request step by step. State one non-obvious key insight per FR.
+STEP 4 — HLD BUILT ONE FR AT A TIME (exactly like Uber guide)
+For each FR: add only components needed for THAT requirement. Walk through request step by step. State one key insight per FR.
 Example from Uber (FR: fare estimate):
   what_to_draw: "Client, API Gateway, Ride Service, Maps API, Database"
   narrative: "Ride Service calls Maps for distance/ETA, applies pricing, stores Fare entity, returns to client."
-  flow: ["1. Client POSTs /fare", "2. API GW auth to Ride Service", "3. Calls Maps API", "4. Creates Fare in DB", "5. Returns Fare"]
+  flow: ["1. Client POSTs /fare", "2. API GW auth to Ride Service", "3. Calls Maps API", "4. Creates Fare in DB", "5. Returns fareId"]
   key_point: "We store Fare so client sends fareId only — prevents price tampering since price always comes from our DB."
 
 STEP 5 — TWO DIAGRAMS
 Diagram 1: baseline satisfying FRs, 6-8 boxes, simple flow.
 Diagram 2: evolves Diagram 1 — same boxes plus new ones marked with a star. Each new component annotated with arrow and text showing which NFR it satisfies.
-Use box-drawing characters. Label every arrow with what flows on it.Show alternatives in [brackets] on same line as component.
+Box style: draw boxes with proper box-drawing characters. Label every arrow with what flows on it. Show alternatives in comments.
 
 STEP 6 — DEEP DIVES: BAD TO GOOD TO GREAT
 Always this progression. Example from Ad Click guide:
-  BAD: "Direct DB writes — PostgreSQL 5k TPS vs 10k clicks/sec = 50% data loss."
-  GOOD: "Batch processing — 5s batches cut writes 50x but 5s lag and crash loses the batch."
-  GREAT: "Kafka + Flink + ClickHouse — Kafka handles 10k/sec partitioned by adId. Flink 1-min tumbling windows with exactly-once semantics. ClickHouse ingests 100k rows/sec. Kafka 7-day retention means Flink replays on crash — no data loss."
+  BAD Direct DB writes: "PostgreSQL 5k TPS vs 10k clicks/sec = 50 percent data loss."
+  GOOD Batch processing: "5s batches cut writes 50x but 5s lag and crash loses the batch."
+  GREAT Kafka + Flink + ClickHouse: "Kafka handles 10k/sec partitioned by adId. Flink 1-min tumbling windows with exactly-once semantics. ClickHouse ingests 100k rows/sec. Kafka 7-day retention means Flink replays on crash — no data loss."
 
 QUALITY BAR — from your actual guides:
 Bad: "use a database" / "add a cache" / "use a queue"
