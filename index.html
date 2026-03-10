@@ -967,7 +967,8 @@ function sdPrompt(){
     deep:'Deep walkthrough — explain every component as if teaching.'
   }[depth]||'Senior/Staff.';
 
-  return `You are Evan King from Hello Interview. You wrote the definitive FAANG system design guide. Match the quality of your hellointerview.com breakdowns for Uber and Ad Click Aggregator exactly.
+  return `You are Evan King from Hello Interview. You wrote the definitive FAANG system design guide. Every answer you produce must match the depth, specificity, and quality of your hellointerview.com breakdowns for Uber and Ad Click Aggregator — the gold standard for Staff+ system design interviews at Google, Meta, Amazon, and Netflix.
+FAANG DEPTH MEANS: real capacity numbers, named tech with versions, explicit trade-offs with failure modes, every design decision justified by an NFR, and zero generic advice. If a sentence could apply to any system it must be removed.
 
 LEVEL: ${lvl}
 
@@ -987,6 +988,8 @@ Product systems: REST endpoints. userId always from JWT not body — always say 
 
 STEP 4 — HLD BUILT ONE FR AT A TIME (exactly like Uber guide)
 For each FR: add only components needed for THAT requirement. Walk through request step by step. State one key insight per FR.
+Before drawing: state your assumption aloud — "I'm assuming X because Y." Interviewers reward candidates who surface assumptions explicitly.
+While drawing each component: name the alternative you rejected and why in one sentence — "I'm using Redis here, not Memcached, because we need TTL plus geo ops."
 Example from Uber (FR: fare estimate):
   what_to_draw: "Client, API Gateway, Ride Service, Maps API, Database"
   narrative: "Ride Service calls Maps for distance/ETA, applies pricing, stores Fare entity, returns to client."
@@ -1019,6 +1022,7 @@ Diagram 2: evolves Diagram 1 to satisfy NFRs. Start from Diagram 1 — keep ever
 Box style: use box-drawing characters (┌─┐ │ └─┘). Arrow right ─►, arrow down ▼.
 
 STEP 6 — DEEP DIVES: BAD TO GOOD TO GREAT
+Pick the 3-4 HARDEST problems this specific system faces — the ones where a naive solution fails spectacularly at scale. These are the problems FAANG interviewers specifically probe. Not "how do we store data" but "how do we handle 10k writes/sec without data loss" or "how do we do geo-matching in under 100ms at 1M drivers".
 Always this progression. Example from Ad Click guide:
   BAD Direct DB writes: "PostgreSQL 5k TPS vs 10k clicks/sec = 50 percent data loss."
   GOOD Batch processing: "5s batches cut writes 50x but 5s lag and crash loses the batch."
@@ -1098,7 +1102,8 @@ JSON FORMAT — return valid JSON starting with {
         "component": "box name",
         "say": "2-3 sentences aloud: responsibility, what flows in/out, why it belongs here",
         "what_it_does": "internal mechanism in one sentence",
-        "interviewer_tip": "what interviewer listens for on this component"
+        "interviewer_tip": "what interviewer listens for on this component",
+        "bottleneck_at_scale": "one sentence: what breaks on this component at 10x traffic — this is exactly what Diagram 2 fixes"
       }
     ]
     "diagram_scaled": "DIAGRAM 2. Same boxes as Diagram 1 PLUS ★-prefixed new ones. Each ★: inline annotation [satisfies: NFR]. Alternatives INLINE: [Alt: X OR Y] on same line. Separate WRITE PATH and READ PATH with labeled dividers. Lines max 60 chars.",
@@ -1146,10 +1151,11 @@ JSON FORMAT — return valid JSON starting with {
     {"question": "realistic follow-up for THIS system", "answer": "3-4 sentence answer with specific tech and numbers"}
   ],
   "speak_guide": {
-    "opening_script": "word-for-word first 60 seconds of the interview",
+    "opening_script": "word-for-word first 60 seconds: start with 'Before I dive in, let me confirm scope and assumptions.' State the 3 FRs as questions, get buy-in, then say 'OK let me start with requirements.' This exact phrasing shows structured thinking.",
     "key_insight": "the one thing most candidates miss on this specific problem",
     "common_mistakes": ["mistake specific to this problem and what to say instead", "another mistake"],
-    "closing_script": "how to wrap up in 2 minutes"
+    "closing_script": "how to wrap up in 2 minutes: recap the 3 FRs satisfied, call out the 2 hardest NFR trade-offs you made, invite follow-up — 'I'd love to go deeper on [hardest topic] if you'd like.'",
+    "interview_timing": "Requirements: 5 min. Entities+API: 3 min. HLD FR-by-FR: 10 min. Diagrams: 5 min. Deep dives: 10 min. QA: 2 min. Total: 35 min."
   }
 }
 
@@ -1188,6 +1194,7 @@ function openSM(){
     h+=sc('🔬 Deep Dives to Hit',(d.step6_deep_dives||[]).map(dd=>'• '+dd.topic+': '+String(dd.real_solution).slice(0,130)).join('\n'));
     h+=sc('⚠️ Mistakes to Avoid',(sg.common_mistakes||[]).map(m=>'• '+m).join('\n'));
     h+=sc('🏁 Closing (say this)',sg.closing_script||'');
+    if(sg.interview_timing)h+=sc('⏱ Section Timing',sg.interview_timing||'');
   }
   document.getElementById('smc').innerHTML=h;document.getElementById('sovl').classList.add('on');
 }
@@ -1358,7 +1365,8 @@ function renderSD(d,_container){
       <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:7px">🟩 ${c.component||''}</div>
       <div style="font-size:13px;line-height:1.72;color:var(--tp);font-style:italic;margin-bottom:${c.what_it_does||c.interviewer_tip?'9px':'0'}">"${c.say||''}"</div>
       ${c.what_it_does?`<div style="font-size:11.5px;color:var(--ts);line-height:1.6;margin-bottom:5px"><span style="font-weight:600;color:var(--tp)">⚙️ Mechanism:</span> ${c.what_it_does}</div>`:''}
-      ${c.interviewer_tip?`<div style="font-size:11.5px;color:var(--blue);line-height:1.6;padding:6px 10px;background:var(--bs);border-radius:6px;border-left:2px solid var(--blue)"><span style="font-weight:600">💡 Interviewer listens for:</span> ${c.interviewer_tip}</div>`:''}
+      ${c.interviewer_tip?`<div style="font-size:11.5px;color:var(--blue);line-height:1.6;padding:6px 10px;background:var(--bs);border-radius:6px;border-left:2px solid var(--blue);margin-bottom:${c.bottleneck_at_scale?'5px':'0'}"><span style="font-weight:600">💡 Interviewer listens for:</span> ${c.interviewer_tip}</div>`:''}
+      ${c.bottleneck_at_scale?`<div style="font-size:11.5px;color:var(--red,#e53);line-height:1.6;padding:6px 10px;background:rgba(229,51,51,.07);border-radius:6px;border-left:2px solid var(--red,#e53)"><span style="font-weight:600">⚠️ Bottleneck at scale:</span> ${c.bottleneck_at_scale}</div>`:''}
     </div>`).join('')}</div>`:''}
   </div>`:'';
 
@@ -1509,12 +1517,14 @@ function renderSD(d,_container){
 
 function copyCode(btn){const a=document.getElementById('rarea');navigator.clipboard.writeText(a._rawCode||'').then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',1500);});}
 
-/* ═══ HOME BUTTONS ═══ */
-(function(){
+/* ═══ HOME BUTTONS + INIT ═══ */
+document.addEventListener('DOMContentLoaded',function(){
   var bc=document.getElementById('btn_coding');
   var bs=document.getElementById('btn_sd');
+  var bd=document.getElementById('btn_debate');
   if(bc) bc.addEventListener('click',function(){openTool('coding');});
   if(bs) bs.addEventListener('click',function(){openTool('sd');});
+  if(bd) bd.addEventListener('click',function(){openDebate();});
   /* Restore saved provider/model on load */
   try{
     var sp=localStorage.getItem('nt_v6_provider');
@@ -1523,8 +1533,8 @@ function copyCode(btn){const a=document.getElementById('rarea');navigator.clipbo
     onProviderChange();
     if(sm&&document.getElementById('modelSel')){document.getElementById('modelSel').value=sm;model=sm;}
   }catch(e){try{onProviderChange();}catch(e2){}}
-})();
-document.getElementById('tbox').addEventListener('input',chkBtn);
+  document.getElementById('tbox').addEventListener('input',chkBtn);
+});
 
 
 /* ═══════════════════════════════════════════════════════
@@ -2528,10 +2538,7 @@ function resetDebate(){
   dbEl('db-results-inner').innerHTML='';
 }
 
-document.addEventListener('DOMContentLoaded',function(){
-  var bd=document.getElementById('btn_debate');
-  if(bd)bd.addEventListener('click',function(){openDebate();});
-});
+
 
 </script>
 
