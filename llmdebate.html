@@ -72,6 +72,14 @@ body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--tp);m
 .btn-go{flex:2;padding:10px;border-radius:8px;font-size:13px;font-weight:700;border:none;background:var(--tp);color:#fff;cursor:pointer;}
 .btn-go:disabled{opacity:.35;cursor:not-allowed;}
 
+/* PROVIDER STRIP */
+.prov-strip{display:flex;gap:6px;margin:6px 20px 4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.prov-strip::-webkit-scrollbar{display:none;}
+.prov-chip{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:20px;border:1.5px solid var(--br);background:var(--sf);color:var(--ts);font-size:11.5px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s;}
+.prov-chip.on{border-color:var(--ac);background:var(--as);color:var(--tp);}
+.prov-chip .prov-model{font-size:10px;font-weight:400;color:var(--ts);margin-left:2px;}
+.prov-chip.on .prov-model{color:var(--ac);}
+
 /* CHIPS */
 .chips{display:flex;gap:7px;padding:8px 20px 10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 .chips::-webkit-scrollbar{display:none;}
@@ -364,6 +372,9 @@ body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--tp);m
     <button class="mode-btn" id="mSD" onclick="setMode('sd')">🏗️ System Design</button>
   </div>
 
+  <!-- Provider strip — select LLM for Quick Ref -->
+  <div class="prov-strip" id="provStrip"></div>
+
   <div class="voice-wrap">
     <div class="voice-top">
       <span class="vlbl" id="vlbl">🎙 Speak your coding problem</span>
@@ -469,6 +480,46 @@ function onProviderChange(){
   document.getElementById('apikey').value=saved||'';
 }
 
+function buildProvStrip(){
+  var strip=document.getElementById('provStrip');
+  if(!strip)return;
+  var html='';
+  Object.keys(PROVIDERS).forEach(function(pk){
+    var cfg=PROVIDERS[pk];
+    var isOn=(pk===provider);
+    var savedModel=null;
+    try{savedModel=localStorage.getItem(SK+'_provmodel_'+pk);}catch(e){}
+    var activeModel=isOn?model:(savedModel||cfg.models[0]);
+    var mLabel=cfg.modelLabels[activeModel]||activeModel;
+    var shortLabel=mLabel.split(' ')[0];
+    html+='<button class="prov-chip'+(isOn?' on':'')+'" data-pk="'+pk+'" id="pchip_'+pk+'">'
+      +cfg.icon+' '+cfg.name
+      +'<span class="prov-model">'+shortLabel+'</span>'
+      +'</button>';
+  });
+  strip.innerHTML=html;
+  strip.querySelectorAll('.prov-chip').forEach(function(btn){
+    btn.addEventListener('click',function(){selectProvChip(btn.dataset.pk);});
+  });
+}
+function selectProvChip(pk){
+  var cfg=PROVIDERS[pk];
+  if(!cfg)return;
+  /* save current model choice for old provider */
+  try{localStorage.setItem('${SK}_provmodel_'+provider,model);}catch(e){}
+  provider=pk;
+  /* restore model for new provider */
+  var saved=null;try{saved=localStorage.getItem('${SK}_provmodel_'+pk);}catch(e){}
+  model=(saved&&cfg.models.includes(saved))?saved:cfg.models[0];
+  saveProvider();
+  /* sync gear panel selectors */
+  try{document.getElementById('providerSel').value=pk;onProviderChange();
+    if(model)document.getElementById('modelSel').value=model;}catch(e){}
+  buildProvStrip();
+  /* if no key saved for this provider, open setup */
+  if(!getKey()){toggleSetup();toast('Add your '+cfg.name+' key to continue');}
+  else{toast(cfg.icon+' '+cfg.name+' selected');}
+}
 function saveKey(){
   const v=document.getElementById('apikey').value.trim();
   if(!v){toast('Enter a key');return;}
@@ -476,6 +527,7 @@ function saveKey(){
   model=document.getElementById('modelSel').value||model;
   saveProvider();
   document.getElementById('setup').style.display='none';
+  buildProvStrip();
   toast('Saved ✓');
 }
 function toggleSetup(){
@@ -495,7 +547,7 @@ function toggleSetup(){
 }
 
 /* ═══ NAV ═══ */
-function openTool(m){document.getElementById('list').style.display='none';document.getElementById('tool').classList.add('open');setMode(m);if(!getKey())document.getElementById('setup').style.display='block';}
+function openTool(m){document.getElementById('list').style.display='none';document.getElementById('tool').classList.add('open');buildProvStrip();setMode(m);if(!getKey())document.getElementById('setup').style.display='block';}
 function goBack(){stopMic(false);document.getElementById('tool').classList.remove('open');document.getElementById('list').style.display='block';clearAll();last=null;}
 
 /* ═══ MODE ═══ */
@@ -1454,29 +1506,65 @@ let dbRounds=1;
 
 var _debateWired=false;
 var _dbMicRec=null;
+var _dbListening=false,_dbSilT=null,_dbTimerI=null,_dbElapsed=0,_dbAccTxt='';
+function _dbStartTimer(){_dbElapsed=0;clearInterval(_dbTimerI);_dbTimerI=setInterval(function(){_dbElapsed++;document.getElementById('db-vtimer').textContent=pad(Math.floor(_dbElapsed/60))+':'+pad(_dbElapsed%60);},1000);}
+function _dbStopTimer(){clearInterval(_dbTimerI);document.getElementById('db-vtimer').textContent='';}
+function _dbMicOff(){
+  _dbListening=false;clearTimeout(_dbSilT);_dbStopTimer();
+  if(_dbMicRec){try{_dbMicRec.stop();}catch(e){}}_dbMicRec=null;
+  var btn=document.getElementById('db-mic-btn');
+  btn.classList.remove('on');btn.textContent='🎙️';
+  document.getElementById('db-wf').classList.remove('on');
+  document.getElementById('db-vs').classList.remove('on');
+}
 function toggleDbMic(){
-  if(_dbMicRec){
-    _dbMicRec.stop();_dbMicRec=null;
-    document.getElementById('db-mic-btn').style.background='var(--as)';
-    document.getElementById('db-mic-status').style.display='none';
+  if(_dbListening){
+    _dbMicOff();
+    var txt=document.getElementById('db-question').value.trim();
+    document.getElementById('db-vs').textContent=txt.length>5?'Ready — tap Start':'Tap the mic and speak clearly';
     return;
   }
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){alert('Voice input not supported in this browser (try Chrome)');return;}
-  _dbMicRec=new SR();
-  _dbMicRec.continuous=true;
-  _dbMicRec.interimResults=false;
-  _dbMicRec.lang='en-US';
-  var ta=document.getElementById('db-question');
-  _dbMicRec.onresult=function(e){
-    var t=Array.from(e.results).map(function(r){return r[0].transcript;}).join(' ');
-    ta.value=t;autoDetectDomain();checkDbReady();
+  if(!SR){toast('Voice not supported — type instead');return;}
+  _dbAccTxt=document.getElementById('db-question').value.trim();
+  _dbMicRec=new SR();_dbMicRec.continuous=true;_dbMicRec.interimResults=true;_dbMicRec.lang='en-US';
+  _dbMicRec.onstart=function(){
+    _dbListening=true;
+    var btn=document.getElementById('db-mic-btn');
+    btn.classList.add('on');btn.textContent='⏹️';
+    document.getElementById('db-wf').classList.add('on');
+    document.getElementById('db-vs').textContent='Listening… speak clearly';
+    document.getElementById('db-vs').classList.add('on');
+    _dbStartTimer();
   };
-  _dbMicRec.onerror=function(){_dbMicRec=null;document.getElementById('db-mic-btn').style.background='var(--as)';document.getElementById('db-mic-status').style.display='none';};
-  _dbMicRec.onend=function(){if(_dbMicRec)_dbMicRec=null;document.getElementById('db-mic-btn').style.background='var(--as)';document.getElementById('db-mic-status').style.display='none';};
-  _dbMicRec.start();
-  document.getElementById('db-mic-btn').style.background='var(--red,#e53)';
-  document.getElementById('db-mic-status').style.display='block';
+  _dbMicRec.onresult=function(e){
+    clearTimeout(_dbSilT);_dbSilT=setTimeout(function(){_dbMicOff();_dbAutoSubmitDb();},2800);
+    var fin=_dbAccTxt?_dbAccTxt+' ':'',interim='';
+    for(var i=e.resultIndex;i<e.results.length;i++){
+      var t=e.results[i][0].transcript;
+      if(e.results[i].isFinal){fin+=t;_dbAccTxt=fin.trim();}else{interim=t;}
+    }
+    document.getElementById('db-question').value=(_dbAccTxt+(interim?' '+interim:'')).trim();
+    autoDetectDomain();checkDbReady();
+  };
+  _dbMicRec.onerror=function(e){if(e.error==='not-allowed')toast('Mic blocked — allow in browser settings');_dbMicOff();};
+  _dbMicRec.onend=function(){if(_dbListening){try{_dbMicRec.start();}catch(e){_dbMicOff();}}};
+  try{_dbMicRec.start();}catch(e){toast('Cannot start mic');}
+}
+function _dbAutoSubmitDb(){
+  var txt=document.getElementById('db-question').value.trim();
+  if(txt.length>5){
+    document.getElementById('db-vs').textContent='Got it — starting…';
+    setTimeout(runDebate,500);
+  } else {
+    document.getElementById('db-vs').textContent='Tap the mic and speak clearly';
+  }
+}
+function clearDbQuestion(){
+  _dbAccTxt='';_dbMicOff();
+  document.getElementById('db-question').value='';
+  document.getElementById('db-vs').textContent='Tap the mic and speak clearly';
+  checkDbReady();
 }
 function _wireDebate(){
   if(_debateWired)return;
@@ -2419,7 +2507,7 @@ document.addEventListener('DOMContentLoaded',function(){
     </div>
 
     <div class="db-section">
-      <div class="db-lbl">Select AIs <span style="font-weight:400;color:var(--ts)">— pick 1 to ask an expert, 2–4 to debate</span></div>
+            <div class="db-lbl">Select AIs <span style="font-weight:400;color:var(--ts)">— 1 model = solo expert, 2–4 = debate</span></div>
       <div class="db-provider-grid" id="db-prov-grid">
         <!-- filled by JS -->
       </div>
@@ -2445,15 +2533,29 @@ document.addEventListener('DOMContentLoaded',function(){
 
     <div class="db-section">
       <div class="db-lbl">Your question</div>
-      <div style="position:relative">
-        <textarea class="db-question" id="db-question" placeholder="Ask anything — SIP vs mutual funds, should I take this loan, symptoms I have, system design, coding problem, legal rights, diet plan, career advice…" rows="3" style="padding-right:44px"></textarea>
-        <button id="db-mic-btn" onclick="toggleDbMic()" style="position:absolute;right:8px;top:8px;width:32px;height:32px;border-radius:50%;border:none;background:var(--as);color:var(--ac);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s" title="Voice input">🎤</button>
+      <div class="voice-wrap" style="margin:0 0 0 0">
+        <div class="voice-top">
+          <span class="vlbl" id="db-vlbl">🎙 Speak or type your question</span>
+          <span class="vtimer" id="db-vtimer"></span>
+        </div>
+        <div class="mic-wrap">
+          <button class="mic-btn" id="db-mic-btn" onclick="toggleDbMic()">🎙️</button>
+        </div>
+        <div class="waveform" id="db-wf">
+          <div class="wb" style="height:5px"></div><div class="wb" style="height:11px"></div>
+          <div class="wb" style="height:19px"></div><div class="wb" style="height:25px"></div>
+          <div class="wb" style="height:19px"></div><div class="wb" style="height:11px"></div>
+          <div class="wb" style="height:5px"></div>
+        </div>
+        <div class="vstatus" id="db-vs">Tap the mic and speak clearly</div>
+        <textarea class="db-question tbox" id="db-question" placeholder="Tap mic to speak, or type your question here…" rows="3" style="margin:4px 14px 8px;width:calc(100% - 28px);resize:none;font-family:-apple-system,sans-serif;"></textarea>
+        <div class="vactions" style="padding:0 14px 14px">
+          <button class="btn-cl" onclick="clearDbQuestion()">Clear</button>
+          <button class="db-run btn-go" id="db-run-btn" disabled onclick="runDebate()">⚔️ Start Debate</button>
+        </div>
       </div>
-      <div id="db-mic-status" style="font-size:11px;color:var(--ac);margin-top:4px;display:none">🎤 Listening… tap mic to stop</div>
     </div>
 
-    <button class="db-run" id="db-run-btn" disabled onclick="runDebate()">⚔️ Start Debate</button>
-    <div style="font-size:11px;color:var(--ts);text-align:center;margin-top:8px">Each AI answers independently, then critiques the others, then a judge synthesizes the best answer.</div>
   </div>
 
   <!-- RESULTS SCREEN -->
