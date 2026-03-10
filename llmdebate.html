@@ -566,7 +566,7 @@ async function generate(){
   const sys=mode==='coding'?codingPrompt():sdPrompt();
   try{
     /* ── Build provider-specific request ── */
-    const maxTok=mode==='coding'?3000:6000;
+    const maxTok=mode==='coding'?4500:12000;
     let url,headers,body,extractDelta;
 
     if(provider==='anthropic'){
@@ -902,14 +902,14 @@ HELLO INTERVIEW FRAMEWORK — EXACT STRUCTURE
 
 STEP 1 — REQUIREMENTS
 FRs: "Users should be able to…" max 3. Rest go "below the line (out of scope)".
-NFRs with specific numbers. From your Ad Click guide: "Scalable to 10k clicks/sec", "Sub-second analytics queries", "Fault-tolerant — no data loss on node failure", "Idempotent — no duplicate counting".
-Capacity: plain English first. Example: "We design for 10M active ads, peak 10k clicks/sec, 100M clicks/day. At 500B per event: 50MB/s write, 18TB/year". Then numbers. Then design_impact: "Write-heavy asymmetry drives: queue + stream processor + OLAP instead of transactional DB".
+NFRs with specific numbers. From your Ad Click guide: "Scalable to 10k clicks/sec", "Sub-second analytics queries", "Fault tolerant — no data loss", "Idempotent click tracking".
+Capacity: plain English first. Example: "We design for 10M active ads, peak 10k clicks/sec, 100M clicks/day. At 500B per event thats 18TB/year. At 10k writes/sec PostgreSQL maxes at 5k TPS — this drives us to use a queue and stream processor."
 
 STEP 2 — CORE ENTITIES (nouns only, no fields)
 Like Uber guide: "Rider, Driver, Fare, Ride, Location" — one sentence role each. No fields, no schema here.
 
 STEP 3 — API / SYSTEM INTERFACE
-Data systems: define Input and Output explicitly. Example: "Input: {adId, userId, timestamp, sourceUrl}. Output: {adId, clickCount, window}".
+Data systems: define Input and Output explicitly. Example: "Input: {adId, userId, timestamp, sourceUrl}. Output: {adId, clickCount, timeWindow}."
 Product systems: REST endpoints. userId always from JWT not body — always say why (client is untrusted).
 
 STEP 4 — HLD BUILT ONE FR AT A TIME (exactly like Uber guide)
@@ -917,13 +917,13 @@ For each FR: add only components needed for THAT requirement. Walk through reque
 Example from Uber (FR: fare estimate):
   what_to_draw: "Client, API Gateway, Ride Service, Maps API, Database"
   narrative: "Ride Service calls Maps for distance/ETA, applies pricing, stores Fare entity, returns to client."
-  flow: ["1. Client POSTs /fare", "2. API GW auth to Ride Service", "3. Calls Maps API", "4. Creates Fare in DB", "5. Returns fareId"]
+  flow: ["1. Client POSTs /fare", "2. API GW auth to Ride Service", "3. Calls Maps API", "4. Creates Fare in DB", "5. Returns Fare"]
   key_point: "We store Fare so client sends fareId only — prevents price tampering since price always comes from our DB."
 
 STEP 5 — TWO DIAGRAMS
 Diagram 1: baseline satisfying FRs, 6-8 boxes, simple flow.
 Diagram 2: evolves Diagram 1 — same boxes plus new ones marked with a star. Each new component annotated with arrow and text showing which NFR it satisfies.
-Box style: draw boxes with proper box-drawing characters. Label every arrow with what flows on it. Show alternatives in comments.
+Box style: draw boxes with proper box-drawing characters. Label every arrow with what flows on it. Show alternatives in [brackets] on same line as component.
 
 STEP 6 — DEEP DIVES: BAD TO GOOD TO GREAT
 Always this progression. Example from Ad Click guide:
@@ -1653,7 +1653,7 @@ function checkDbReady(){
 async function dbCall(providerKey,modelName,systemPrompt,userMsg){
   var key=getDbKey(providerKey);
   if(!key)throw new Error('No key for '+providerKey);
-  var maxTok=5000;
+  var maxTok=8000;
   var url,headers,body,extractText;
 
   if(providerKey==='anthropic'){
@@ -1923,11 +1923,11 @@ function buildExpertPrompt(domain, question) {
     + '  "key_insight": "The single most important insight most people miss — be specific and surprising",\n'
     + '  "headline": "One crisp sentence answer to the question",\n'
     + '  "explanation": [\n'
-    + '    {"point": "Main point 1", "detail": "Specific detail with numbers/examples"},\n'
-    + '    {"point": "Main point 2", "detail": "Specific detail with numbers/examples"},\n'
-    + '    {"point": "Main point 3", "detail": "Specific detail with numbers/examples"}\n'
+    + '    {"point": "Main explanation point 1", "detail": "Specific supporting detail with numbers/examples"},\n'
+    + '    {"point": "Main explanation point 2", "detail": "Specific supporting detail with numbers/examples"},\n'
+    + '    {"point": "Main explanation point 3", "detail": "Specific supporting detail with numbers/examples"}\n'
     + '  ],\n'
-    + '  "warnings": ["Critical risk 1", "Critical risk 2"],\n'
+    + '  "warnings": ["Critical risk or caveat 1", "Critical risk or caveat 2"],\n'
     + '  "next_steps": [\n'
     + '    {"action": "Concrete step 1", "why": "Why this specifically"},\n'
     + '    {"action": "Concrete step 2", "why": "Why this specifically"},\n'
@@ -1935,9 +1935,9 @@ function buildExpertPrompt(domain, question) {
     + '  ],\n'
     + '  "expert_opinion": "Your frank expert opinion — what you would personally do/recommend and why",\n'
     + '  "followup_qa": [\n'
-    + '    {"q": "Follow-up question 1", "a": "Precise answer"},\n'
-    + '    {"q": "Follow-up question 2", "a": "Precise answer"},\n'
-    + '    {"q": "Follow-up question 3", "a": "Precise answer"}\n'
+    + '    {"q": "Likely follow-up question 1", "a": "Precise answer"},\n'
+    + '    {"q": "Likely follow-up question 2", "a": "Precise answer"},\n'
+    + '    {"q": "Likely follow-up question 3", "a": "Precise answer"}\n'
     + '  ]\n'
     + "}\n\n"
     + "Rules: Use specific numbers, percentages, names. Never vague generalities. "
@@ -1967,7 +1967,7 @@ function buildJudgePrompt(domain, isMeta, question) {
 
   if (isMeta) {
     return role + "\n\n"
-      + "You are the final orchestrator in a multi-expert AI debate on: " + (question||"") + "\n\n"
+      + "You are the final orchestrator in a multi-expert AI debate on this question: " + (question||"") + "\n\n"
       + "You have answers and critiques from multiple AI experts. Your job:\n"
       + "1. Identify the single best insight across ALL models — be specific\n"
       + "2. For each model: note the one unique valuable contribution it made\n"
@@ -2159,16 +2159,11 @@ async function runDebate(){
       var p2sys=buildCritiquePrompt(activeDomain);
       var p2tasks=succeeded.map(async function(entry){
         var prov=entry[0],mdl=entry[1];
-        var _p2cap=isSDMode?3000:1200;
         var othersText=succeeded
           .filter(function(e){return e[0]!==prov;})
-          .map(function(e){
-            var ans=answers[e[0]]||'';
-            return '=== '+DB_PROVIDERS[e[0]].label+' ===\n'+ans.slice(0,_p2cap)+(ans.length>_p2cap?'\n[truncated]':'');
-          })
+          .map(function(e){return '=== '+DB_PROVIDERS[e[0]].label+' answer ===\n'+answers[e[0]];})
           .join('\n\n');
-        var myAns=answers[prov]||'';
-        var userMsg='YOUR ANSWER:\n'+myAns.slice(0,_p2cap)+(myAns.length>_p2cap?'\n[truncated]':'')+'\n\nOTHER MODELS:\n'+othersText+'\n\nCritique specifically. Reference actual content.';
+        var userMsg='YOUR ANSWER:\n'+answers[prov]+'\n\nOTHER MODELS:\n'+othersText+'\n\nProvide your critical review. Be specific.';
         try{
           var crit=await dbCall(prov,mdl,p2sys,userMsg);
           critiques[prov]=(critiques[prov]||'')+crit;
@@ -2202,13 +2197,12 @@ async function runDebate(){
     /* Majority vote tallying (only in multi-model mode) */
     if(dbJudgeMode==='majority'){
       var allAnswersMaj=succeeded.map(function(e){
-        var _majCap=isSDMode?1000:500;
-        return '['+DB_PROVIDERS[e[0]].label+']:\n'+answers[e[0]].slice(0,_majCap);
+        return '['+DB_PROVIDERS[e[0]].label+']: '+answers[e[0]].slice(0,600);
       }).join('\n\n---\n\n');
+      var labelsStr=succeeded.map(function(e){return DB_PROVIDERS[e[0]].label;}).join(', ');
       var voteTasks=succeeded.map(async function(entry){
         var vp2=entry[0],vm=entry[1];
-        var labelsStr=succeeded.filter(function(x){return x[0]!==vp2;}).map(function(x){return DB_PROVIDERS[x[0]].label;}).join('/');
-        var vsys='Vote for the best answer (not your own). Reply with ONE label only: '+labelsStr+'. No explanation.';
+        var vsys='You are an impartial judge. Vote for the single best answer (not your own). Reply with ONLY the provider label from: '+labelsStr;
         try{
           var vote=await dbCall(vp2,vm,vsys,allAnswersMaj);
           return {prov:vp2,vote:vote.trim()};
@@ -2240,13 +2234,10 @@ async function runDebate(){
     :'QUESTION: '+question+'\n\n';
   var nonSdSys=buildJudgePrompt(activeDomain,dbJudgeMode==='meta',question);
 
-  var _p3cap=isSDMode?4000:1500;
   var allContext=succeeded.map(function(e){
-    var ans=(answers[e[0]]||'').slice(0,_p3cap);
-    var crit=(critiques[e[0]]||'(none)').slice(0,600);
-    return '=== '+DB_PROVIDERS[e[0]].label+' ANSWER ===\n'+ans
-      +'\n\n=== '+DB_PROVIDERS[e[0]].label+' CRITIQUE ===\n'+crit;
-  }).join('\n\n---\n\n');
+    return '=== '+DB_PROVIDERS[e[0]].label+' ANSWER ===\n'+answers[e[0]]
+      +'\n\n=== '+DB_PROVIDERS[e[0]].label+' CRITIQUE ===\n'+(critiques[e[0]]||'(none)');
+  }).join('\n\n'+'─'.repeat(40)+'\n\n');
 
   var verdictRaw='';
   var verdictParsed=null;
